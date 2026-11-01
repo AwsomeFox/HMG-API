@@ -33,6 +33,10 @@ Supported: the newest release (including betas). Fixes go into the next one.
   - a mod's first use of each car command waits for the owner's OK on screen, and
     vehicle commands only go through the car's own services, each with its own limits
     (no CAN frames of our own);
+  - network rules a mod declares go in HMG-API's own chains, built from checked fields
+    (no free-form iptables text); only rules on the Wi-Fi hotspot go in without the
+    owner's `overrides.allow_network`, since anything else can reach the car's own
+    network (the modem, the internal link);
   - HMG-API warns at install when a mod's scripts call commands the head unit lacks.
 - **Files:** everything under `/data/hmgapi` is root-only, except
   `/data/hmgapi/public` (HMG-API's published state and Car Reports, readable by apps).

@@ -35,8 +35,9 @@ final class ReportTab {
         Ui.text(list, "Car Report", 28, true, Ui.TEXT);
         Ui.text(list, "Checks how HMG-API fits this car and makes a report for HMG-API's maintainers, so what's missing "
                 + "for your car can be added. It holds what the head unit is (model, region, firmware), which hook points "
-                + "this car has, which mods load, and recent HMG-API errors. Nothing personal: no VIN, serial numbers, "
-                + "phone numbers or account details. Plug in a USB stick first to get the file to attach.", 16, false, Ui.GREY);
+                + "this car has, which mods load, recent HMG-API errors, and the head unit's network (its firewall rules, "
+                + "routes, and what the firewall blocked). Nothing personal: no VIN, serial numbers, phone numbers, "
+                + "account details or device addresses. Plug in a USB stick first to get the file to attach.", 16, false, Ui.GREY);
         go = Ui.button(list, "Make report", true, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,7 +92,7 @@ final class ReportTab {
 
     private void show(String out, String check) {
         go.setText("Make it again");
-        String url = null, file = null, car = null, map = null, found = null;
+        String url = null, file = null, car = null, map = null, found = null, net = null;
         StringBuilder usb = new StringBuilder();
         for (String l : out.split("\n")) {
             if (l.startsWith("issue-url: ")) url = l.substring(11).trim();
@@ -99,12 +100,15 @@ final class ReportTab {
             else if (l.startsWith("car: ")) car = l.substring(5).trim();
             else if (l.startsWith("hook map: ")) map = l.trim();
             else if (l.startsWith("map-car: ")) found = l.substring(9).trim();
+            else if (l.startsWith("network: ")) net = l.substring(9).trim();
             else if (l.startsWith("usb: /")) usb.append(l.substring(5).trim()).append('\n');
         }
         StringBuilder s = new StringBuilder();
         s.append("Car: ").append(car).append("\n\n").append(map).append("\n");
         if (!check.isEmpty()) s.append("Map check: ").append(check).append("\n");
-        s.append("Found from this car's own files: ").append(found).append("\n\n");
+        s.append("Found from this car's own files: ").append(found).append("\n");
+        if (net != null) s.append("Network: ").append(net).append("\n");
+        s.append("\n");
         s.append("Report file: ").append(file).append(".json\n");
         message.setText("Done. Scan the code with your phone: it opens a GitHub issue with this summary. Attach the report "
                 + "file to it, from the USB stick or over adb (below), and send it.");

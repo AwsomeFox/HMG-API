@@ -42,7 +42,7 @@ typedef unsigned int u32;
 typedef unsigned char u8;
 typedef long sl;
 
-#define VERSION "1.0.0-beta.1"
+#define VERSION "1.0.0-beta.2"
 
 #ifndef ROOTDIR
 #define ROOTDIR "/data/hmgapi"
@@ -1195,7 +1195,8 @@ static int svc_valid(struct svc *v)
     if (!(seq(v->f[3], "boot") || seq(v->f[3], "android") || seq(v->f[3], "manual")) || !(seq(v->f[4], "yes") || seq(v->f[4], "no"))) return 0;
     if (!(seq(v->f[5], "jar") || seq(v->f[5], "script"))) return 0;
     k = v->f[6];
-    if (seq(v->f[0], "hmgapi")) return seq(k, ENGINE_JAR);   /* HMG-API's own services: only its jar */
+    /* HMG-API's own services: only its jar, and the network keeper the engine writes (Network.java) */
+    if (seq(v->f[0], "hmgapi")) return seq(v->f[5], "jar") ? seq(k, ENGINE_JAR) : seq(k, ROOTDIR "/state/net.sh");
     if (k[0] == '/' || sstr(k, "..")) return 0;
     return 1;
 }

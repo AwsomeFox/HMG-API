@@ -39,3 +39,9 @@ Tested on a US EV6 (260507), 2026-10-27, started through the NEMESIS daemon (no 
 answers `<name> <value>` lines. hmgapid runs that service (mod `hmgapi`, the only
 service allowed to run `/system/framework/hmgapi-hook.jar`) while any enabled mod
 declares readings.
+
+**Network keeper.** HMG-API's other own service, `hmgapi net`, runs
+`state/net.sh` (the only script a `hmgapi` service may run; the engine writes it,
+`hmgapi.engine.Network`) while any enabled mod has `"network"` asks or some are still
+in: it applies `state/net.rules`, re-applies what the stock firewall removes, and takes
+everything out when it's stopped (TERM).

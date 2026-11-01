@@ -138,7 +138,11 @@ svc ask root boot no script bin/ask.sh - $T/root/hmgapid
 hmgapi vehicle root boot no jar /system/framework/hmgapi-hook.jar hmgapi.vehicle.Hub
 svc steal root boot no jar /system/framework/hmgapi-hook.jar hmgapi.vehicle.Hub
 hmgapi other root boot no jar /system/framework/other.jar x.Main
+hmgapi net root boot no script $S/state/net.sh - 1a2b
+hmgapi netx root boot no script $S/state/other.sh -
+svc netsteal root boot no script $S/state/net.sh -
 EOS
+printf 'echo "keeper $*"\n' > "$S/state/net.sh"
 waitfor() { i=0; while [ $i -lt 40 ]; do if eval "$1"; then return 0; fi; sleep 0.25; i=$((i+1)); done; return 1; }
 waitfor '[ -f "$S/run/svc/loop/runs" ]' || true
 sleep 2
@@ -152,6 +156,9 @@ check "bad path refused" "" "$(st bad)"
 has "HMG-API's own service runs from its jar" "app_process /system/bin --nice-name=hmgapi.vehicle hmgapi.vehicle.Hub CLASSPATH=/system/framework/hmgapi-hook.jar" "$(run root service-log hmgapi vehicle)"
 check "a mod can't run HMG-API's jar" "" "$(st steal)"
 check "HMG-API's services: only its jar" "" "$(run root services hmgapi | awk '$2 == "other"')"
+has "HMG-API's network keeper runs from state/net.sh" "keeper 1a2b" "$(run root service-log hmgapi net)"
+check "... no other HMG-API script" "" "$(run root services hmgapi | awk '$2 == "netx"')"
+check "... and a mod can't run it" "" "$(st netsteal)"
 has "refusal logged" "service line refused" "$(cat "$S/hmgapid.log")"
 check "log times are wall-clock seconds (time(2) is OABI only; the cars answer -ENOSYS)" yes "$(awk 'NR==1 { print ($1 > 1600000000) ? "yes" : "no" }' "$S/hmgapid.log")"
 has "jar service: app_process with its jar and main class" "app_process /system/bin --nice-name=svc.dexy com.example.Main --flag CLASSPATH=$S/mods/svc/bin/x.jar" "$(run root service-log svc dexy)"

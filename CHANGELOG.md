@@ -27,7 +27,9 @@ map lacks, only those parts stay off and the app says why.
   since the start).
 - **Car Report:** checks how HMG-API fits the car and maps it from its own software on
   the spot; saved to a USB stick, with a QR code that opens a filled-in GitHub issue.
-  Model-level facts only, logs scrubbed.
+  Model-level facts only, logs scrubbed. Since beta 2 it also holds the head unit's
+  network: the stock firewall (its service, script, rules and counters), routes,
+  and the packets the firewall dropped (device addresses removed).
 - **Asked first:** the first time a mod uses a car command, HMG-API asks you on screen
   (once per mod and command; giving back never asks).
 - **Mods are signed by their author.** Updates must come from the same author key
@@ -78,6 +80,13 @@ side with it: `tools/mod-draft.py` drafts its `mod.json`.
 - **Phone projection:** Android Auto density, sensors (no tap limit, EV sensor
   types), fuel and connector types; events for Android Auto and CarPlay sessions,
   guidance and navigation messages.
+- **Network** (since beta 2): firewall rules (filter, nat, mangle; any chain),
+  routes, routing rules and `net.*` sysctls, declared in `mod.json` and kept in place
+  by HMG-API's network keeper even when the stock firewall reloads. Rules go in
+  HMG-API's own chains, checked before the car's; hotspot-only rules need nothing
+  more, anything that can reach the car's own network needs the owner's
+  `overrides.allow_network`. Found on the Ioniq 6, whose firewall allows the CarPlay
+  ports only on the wired link.
 - **Not while driving:** your app follows the car's own driving restriction and
   popup.
 - **USB folders, tiles with day and night icons, the car's notices.**

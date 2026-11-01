@@ -17,7 +17,8 @@ import java.util.regex.Pattern;
  * itself: what the head unit is (model, region, firmware), the hook map and which
  * points it lacks, this car mapped from its own files (MapProbe: names only, ready to
  * become its map), the last on-car map check, the unit's features, each installed
- * mod and whether it loads here, and HMG-API's recent errors.
+ * mod and whether it loads here, HMG-API's recent errors, and the unit's network
+ * (NetReport: the stock firewall and its rules, routes, logged drops).
  *
  * Model-level facts only. Never: anything from /data but HMG-API's own state, VIN,
  * serials, phone numbers, IMEI, account details, addresses. Log lines are scrubbed
@@ -125,6 +126,15 @@ final class Report {
         }
         r.put("mods", mods);
         r.put("errors", errors(e));
+        Map<String, Object> net;
+        try {
+            net = NetReport.collect(e);
+            net.put("summary", NetReport.summary(net));
+        } catch (Throwable t) {
+            net = new LinkedHashMap<String, Object>();
+            net.put("error", scrub(String.valueOf(t)));
+        }
+        r.put("network", net);
 
         // out: public/reports (the Car Report app reads it), and USB sticks
         String name = "car-report-" + safe(e.facts.get("model")) + "-" + safe(e.facts.get("region")) + "-"
@@ -156,6 +166,7 @@ final class Report {
         e.out.add("map-car: " + pj.get("found") + " hook point(s) found, " + ((Map<?, ?>) pj.get("not_found") == null ? 0
                 : ((Map<?, ?>) pj.get("not_found")).size()) + " not found");
         e.out.add("saved: " + dir.getPath() + "/" + name + ".json");
+        if (net.get("summary") != null) e.out.add("network: " + net.get("summary"));
         for (String s : sticks) e.out.add("usb: " + s + "/" + name + ".json");
         if (usb && sticks.isEmpty()) e.out.add("usb: no USB stick found (the report is in HMG-API's folder; adb pull works too)");
         e.out.add("issue-url: " + issueUrl(r, name));
@@ -242,6 +253,16 @@ final class Report {
             if (m.get("hooks_not_loaded") != null) s.append(": hooks not loaded (").append(m.get("hooks_not_loaded")).append(")");
             s.append("\n");
         }
+        Map<String, Object> net = (Map<String, Object>) r.get("network");
+        if (net != null && net.get("summary") != null) {
+            s.append("\n## Network\n\n- ").append(net.get("summary")).append("\n");
+            List<Object> drops = (List<Object>) net.get("drops");
+            if (drops != null && !drops.isEmpty()) {
+                s.append("\nLast packets the firewall logged:\n\n```\n");
+                for (int i = Math.max(0, drops.size() - 15); i < drops.size(); i++) s.append(drops.get(i)).append("\n");
+                s.append("```\n");
+            }
+        }
         List<Object> errs = (List<Object>) r.get("errors");
         if (!errs.isEmpty()) {
             s.append("\n## Recent HMG-API errors\n\n```\n");
@@ -261,6 +282,8 @@ final class Report {
         String body = "Product: " + unit.get("product") + "\nHMG-API: " + r.get("hmgapi") + "\nMap: " + map.get("status")
                 + (Boolean.TRUE.equals(map.get("hooks_on")) ? " (hooks on)" : " (hooks off)")
                 + "\nFound on this car: " + pj.get("found") + " points, " + (nf == null ? 0 : nf.size()) + " not found"
+                + (r.get("network") instanceof Map && ((Map<String, Object>) r.get("network")).get("summary") != null
+                        ? "\nNetwork: " + ((Map<String, Object>) r.get("network")).get("summary") : "")
                 + "\n\nPlease attach " + name + ".json (USB stick: HMG-API reports; adb: adb pull /data/hmgapi/public/reports/).";
         // the "Car or firmware support" issue form (.github/ISSUE_TEMPLATE/2-car.yml), its summary field filled in
         return "https://github.com/" + REPO + "/issues/new?template=2-car.yml&title=" + URLEncoder.encode(title, "UTF-8")

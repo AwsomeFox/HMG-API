@@ -37,6 +37,17 @@ A mod can change how Android Auto looks (its density: smaller text and icons, mo
 map) and what the phone is told about the car (for example, no tap limit while
 moving, or EV data so Maps plans charging stops).
 
+## Network rules
+
+Some cars' head units have a firewall that blocks what a mod needs (on the Ioniq 6 it
+blocks wireless CarPlay on the car's Wi-Fi). A mod can ask HMG-API to open ports,
+add routes or change network settings; HMG-API keeps them in place, also after the
+car's own firewall reloads, and takes them out when the mod is off or removed.
+Rules for the car's Wi-Fi hotspot go in as they are. Anything that could reach the
+car's own network (the mobile data modem, the internal link) is left out with a
+warning until you allow that mod (`overrides.allow_network`). The plan lists every
+rule.
+
 ## Not while driving
 
 A mod can mark its own app as "not while driving": the car closes it with its own

@@ -23,6 +23,7 @@ import java.util.Set;
  *   "provides": {"panel": [{"title": "Battery", "widget": "dev.example.cam/.BatteryWidget"}]}
  *   "input":    [{"key": "map", "press": "x3", "broadcast": "dev.example.cam.SAVE"}]
  *   "projection": {"aa_density": 200, "aa_sensors": {"remove": ["speed"]}, "events": true}
+ *   "network":  {"rules": [{"chain": "input", "in": "hotspot", "proto": "tcp", "ports": [7000], "action": "accept"}]}
  *
  * apps: installed, turned off and removed with the mod (ModApps, `engine apps`).
  * services: run and watched by hmgapid (state/services.txt): "jar" runs app_process
@@ -38,6 +39,8 @@ import java.util.Set;
  * provides.panel: app widgets (AppWidgetProvider) of the mod's own apps, shown in
  * the right-hand split-screen panel (hook.Panel). input: button bindings (Keys),
  * delivered by the runtime in system_server (hook.Input) to the mod's own apps.
+ * network: firewall rules, routes and network settings, kept in place by HMG-API's
+ * network keeper (Network).
  *
  * LiveState.publish writes the state files for the enabled mods only, so turning a
  * mod off stops its services and takes its app's access away at once.
@@ -76,6 +79,7 @@ final class ModRuntime {
         final List<Map<String, Object>> panel = new ArrayList<Map<String, Object>>();
         final List<Keys.Binding> input = new ArrayList<Keys.Binding>();
         Projection.Ask projection;
+        Network.Ask network;
         final List<String> errors = new ArrayList<String>();
     }
 
@@ -232,6 +236,7 @@ final class ModRuntime {
         }
         d.projection = Projection.of(id, mod.get("projection"), d.errors);
         if (d.projection != null && d.projection.events && d.apps.isEmpty()) d.errors.add(id + ": projection events: the mod has no app to tell (\"apps\")");
+        d.network = Network.of(id, mod.get("network"), d.errors);
         Object in = mod.get("input");
         if (in instanceof List) {
             for (Object o : (List<Object>) in) {
@@ -355,6 +360,8 @@ final class ModRuntime {
         if (veh.length() > 0 || cmd.length() > 0 || watch) svcs.append(VEHICLE_SERVICE).append('\n');
         svcs.append(LOG_SERVICE).append('\n');
         e.stateDir.mkdirs();
+        String net = Network.publish(e, json, on);   // the network keeper, while a mod has network asks (or some are still in)
+        if (net != null) svcs.append(net).append('\n');
         writeIfChanged(new File(e.stateDir, "apps.txt"), apps.toString());
         writeIfChanged(new File(e.stateDir, "services.txt"), svcs.toString());
         writeIfChanged(new File(e.stateDir, "usb.txt"), usb.toString());
@@ -378,6 +385,7 @@ final class ModRuntime {
             for (String p : d.notWhileDriving) out.add("driving  " + p + " closes while the car's driving restriction is on [" + id + "]");
             for (Map<String, Object> p : d.panel) out.add("panel    \"" + p.get("title") + "\" (" + p.get("widget") + ") in the side panel [" + id + "]");
             for (String l : Projection.describe(d.projection)) out.add(l);
+            for (String l : Network.describe(id, d.network, allowNetwork(e, id))) out.add(l);
             for (Keys.Binding b : active(e, id, d.input)) {
                 out.add("button   " + b.key + " " + b.press + (b.stock.equals("replace") ? " (instead of the car's)" : "") + " -> "
                         + (b.send != null ? "the car gets " + b.send + (b.release != null ? ", then " + b.release + " when let go" : "")
@@ -390,7 +398,15 @@ final class ModRuntime {
         bindings(e, json, on, notes);
         projection(e, json, on, notes);
         for (String n : notes) out.add("problem  " + n);
+        for (String n : Network.settle(e, json, on).notes) out.add(n.startsWith("WARNING") ? n : "problem  " + n);
         return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    static boolean allowNetwork(Engine e, String id) {
+        Object ov = e.hmgapi == null ? null : e.hmgapi.get("overrides");
+        Object l = ov instanceof Map ? ((Map<String, Object>) ov).get("allow_network") : null;
+        return l instanceof List && ((List<Object>) l).contains(id);
     }
 
     static String join(List<String> l) {

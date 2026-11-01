@@ -35,6 +35,7 @@ setting). It never edits your code.
 | buttons | `"input": [{"key": "tune_enter", "press": "hold", "stock": "replace", "open": "<your app>/.Grid"}]`: one reader for every mod (see Buttons) |
 | a page in the right-hand split-screen panel | `"provides": {"panel": [{"title": "Battery", "widget": "<your app>/.MyWidget"}]}`: a standard Android app widget from your app (example: `mods/examples/side-panel`) |
 | Android Auto settings and events | `"projection"` (see Phone projection) |
+| firewall rules, routes, network settings | `"network"` (see Network): HMG-API keeps them in place, the stock firewall can't take them away |
 | your app closed while driving | `"not_while_driving": ["<your app's package>"]`: the car's own driving restriction and popup |
 | feature flags, the Wi-Fi client, codecs, keyboard lists | see Files and settings that several mods share |
 
@@ -216,6 +217,63 @@ A car without a button ignores bindings to it. The key names are the car's own
   library patch (the Wireless CarPlay/AA mod): require it to get them.
 
 Settings apply through hooks when GPM starts, and every mod's asks are combined.
+
+## Network
+
+```json
+"network": {
+  "rules": [
+    {"chain": "input", "in": "hotspot", "proto": "tcp+udp",
+     "ports": ["5000-5001", 5020, "6000-6003", 6011, 6020, 6030, 7000], "both_ways": true, "action": "accept"},
+    {"chain": "input", "in": "hotspot", "proto": "icmpv6", "action": "accept"}
+  ],
+  "routes": [{"to": "10.8.0.0/24", "dev": "tun0", "table": 100}],
+  "route_rules": [{"priority": 1000, "fwmark": 16, "table": 100}],
+  "sysctl": {"net.ipv4.ip_forward": "1"}
+}
+```
+
+Some cars run a whitelist firewall (the Ioniq 6: wireless CarPlay finds the car on the
+hotspot, then every CarPlay connection is dropped, because the CarPlay ports are only
+allowed on the wired link). A mod never runs `iptables` itself: it says what it needs,
+and HMG-API's network keeper (`hmgapi net`, run by hmgapid as root) puts it in, checks
+it every 10 s, puts back what the stock firewall or a Wi-Fi restart took away, and
+takes it all out when the mod is turned off or removed (the stock value of every
+sysctl comes back).
+
+- **rules**: `table` filter (default), nat (IPv4 only) or mangle; `chain` input,
+  output, forward (filter), prerouting, postrouting, output (nat and mangle); `in` /
+  `out` an interface (`rmnet+` for all of them) or `hotspot` (wlan0, from/to the
+  hotspot's own addresses only: 192.168.0.0/24 and link-local fe80::/10; iPhones use
+  IPv6 link-local for CarPlay); `from` / `to` `hotspot` or an address/prefix; `ip` 4, 6
+  or both (default); `proto` tcp, udp, tcp+udp, icmp, icmpv6 or all; `ports`
+  (destination) and `source_ports`, numbers or `"a-b"`; `both_ways` (the ports as
+  source too, as the stock wired CarPlay rules do); `icmp_type`; `state` (new,
+  established, related, invalid); `action` accept, drop, reject, return,
+  `log:<prefix>`, `mark:<n>` (mangle), masquerade, `snat:<address>` (nat postrouting),
+  `dnat:<address[:port]>`, `redirect:<port>` (nat prerouting or output); `when`
+  (`settings.<key>`, as for parts). Every field is checked: there is no free-form
+  iptables text.
+- Each rule goes in HMG-API's own chain (`HMGAPI_IN`, `HMGAPI_OUT`, `HMGAPI_FWD`,
+  `HMGAPI_PRE`, `HMGAPI_POST`, ...), which the stock chain jumps to **first**, so a mod's
+  rule is checked before the car's own.
+- **routes**: `to` (or `default`), `dev` (or `hotspot`), `via`, `metric`, `table` (main
+  or 1-252). **route_rules**: `priority` (100-32765, one per rule), `fwmark`, `from`,
+  `to`, `iif`, `table`. **sysctl**: `net.*` keys, whole numbers.
+- **What needs the owner's yes:** accept/drop rules on the hotspot (input from it,
+  output to it) go in as they are. Anything else (another interface, forward, nat,
+  mangle, routes, sysctls) can reach the car's own network (the modem, the internal
+  link), so the plan shows it as left out with a warning until the owner adds the mod
+  to `overrides.allow_network` in `hmgapi.json`.
+- Mods' rules go in mod order; `overrides.network_order: ["<mod>", ...]` puts some
+  first. Where two mods match the same traffic differently, the plan says whose rule
+  comes first.
+- The Car Report includes the unit's firewall (the stock service and script, every
+  rule and counter), routes and the packets the firewall logged as dropped, so a car
+  that blocks something can be fixed from its report.
+- By hand: `hmgapid sh 'sh /data/hmgapi/state/net.sh once'` checks once;
+  `.../net.sh down` takes everything out. The keeper's log:
+  `/data/hmgapi/logs/hmgapi/net.log`.
 
 ## Files and settings that several mods share
 

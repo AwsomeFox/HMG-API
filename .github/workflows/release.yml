@@ -35,7 +35,7 @@ jobs:
       - name: Tools
         run: |
           sudo apt-get update -q
-          sudo apt-get install -yq clang lld qemu-user-static binfmt-support zip unzip
+          sudo apt-get install -yq clang lld qemu-user-static binfmt-support zip unzip mksh
           pip install --require-hashes -r tools/requirements.txt
 
       - name: The tag is this version

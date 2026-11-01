@@ -32,6 +32,9 @@ computer mode and doesn't read sticks.
   on the spot. Names only, no code.
 - Which mods are installed and whether each one loads on your car.
 - HMG-API's recent warnings and errors.
+- The head unit's network: its firewall (the car's own rules), routes, and the
+  connections the firewall blocked. Device addresses (your phone's, the modem's)
+  are taken out.
 
 ## What's never in it
 
