@@ -48,6 +48,16 @@ map lacks, only those parts stay off and the app says why.
   updates still work), so an update can't silently remove it.
 - **Startup notice:** a switch in the app (off by default) lets a mod dismiss the
   notice shown at start. It says what it skips.
+- **With a NEMESIS package that does the same** (since beta 3): files a package
+  changed and then put back when it was uninstalled no longer stop HMG-API ("changed
+  outside HMG-API"): a mod's line edits go on the file as found, and an exact file
+  that is stock again is built on again; a file no mod wants any more is let go. A
+  file a mod adds that a package already added names the package to uninstall
+  first. NEMESIS packages' own backup names (`featurexml.<onebin>.cfg`, `perm.*`,
+  `*.absent`) are recognized.
+- **The network keeper** leaves another tool's rules ahead of HMG-API's if they can't
+  drop anything (accept, return, log, mark), instead of moving itself back to the top
+  every 10 s.
 
 ### For mod authors
 

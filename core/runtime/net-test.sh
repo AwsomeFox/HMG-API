@@ -158,8 +158,9 @@ chmod +x "$F/bin/"*
 keeper() { FW=$F/fw HMGAPI_PROCSYS=$F/proc PATH=$F/bin:$PATH "$UNIT_SH" "$D/state/net.sh" "$@" 2>&1; }
 ipt() { FW=$F/fw PATH=$F/bin:$PATH iptables "$@"; }
 first() { ipt "$@" | grep -m1 '^-A ' || true; }
-# the stock firewall: a whitelist chain jumped to from INPUT
-ipt -N WLIST_IN; ipt -A WLIST_IN -i wlan0 -p udp --dport 53 -j ACCEPT; ipt -A INPUT -j WLIST_IN
+# the stock firewall: INPUT jumps to WLIST_IN, which sends each interface to its own whitelist
+stockfw() { ipt -N WL_WLAN0_IN; ipt -A WL_WLAN0_IN -p udp --dport 53 -j ACCEPT; ipt -N WLIST_IN; ipt -A WLIST_IN -i wlan0 -j WL_WLAN0_IN; ipt -A INPUT -j WLIST_IN; }
+stockfw
 
 echo running > "$F/fw/prop"
 check "waits while the stock firewall loads" "" "$(keeper once)"
@@ -182,8 +183,15 @@ check "all there: a check is quiet" "" "$(keeper once)"
 ipt -I INPUT 1 -j WLIST_IN   # the stock firewall jumps to its own chain first again
 has "moved behind the stock chain: put back" "firewall rules put back" "$(keeper once)"
 check "... first again" "-A INPUT -j HMGAPI_IN" "$(first -S INPUT)"
+# another tool's chain that only accepts may go first: HMG-API's rules still see everything else
+ipt -N OTHER_CP_IN; ipt -A OTHER_CP_IN -i wlan0 -p tcp --dport 7000 -j ACCEPT; ipt -I INPUT 1 -j OTHER_CP_IN
+check "an accept-only chain ahead: left there, nothing redone" "" "$(keeper once)"
+check "... it stays first" "-A INPUT -j OTHER_CP_IN" "$(first -S INPUT)"
+ipt -I INPUT 1 -i wlan0 -j DROP
+has "a drop ahead: HMG-API's chain first again" "firewall rules put back" "$(keeper once)"
+check "... first" "-A INPUT -j HMGAPI_IN" "$(first -S INPUT)"
 rm -rf "$F/fw/4" "$F/fw/6"   # the stock firewall flushed everything
-ipt -N WLIST_IN; ipt -A INPUT -j WLIST_IN
+stockfw
 has "flushed: put back" "firewall rules put back" "$(keeper once)"
 check "... all of them" 28 "$(ipt -S HMGAPI_IN | grep -c '^-A')"
 : > "$F/fw/ip4.route"   # a Wi-Fi restart took the route

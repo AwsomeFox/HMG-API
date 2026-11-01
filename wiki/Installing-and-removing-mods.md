@@ -16,6 +16,44 @@
 
 A mod that doesn't support your car or software says so and isn't installed.
 
+### Over adb, from a computer
+
+With HMG-API installed and the head unit on adb, one command per step:
+
+```
+adb push wireless-carplay-aa-2.1.0.zip /data/local/tmp/
+```
+```
+adb shell hmgapid engine install /data/local/tmp/wireless-carplay-aa-2.1.0.zip
+```
+```
+adb shell hmgapid engine plan
+```
+```
+adb shell hmgapid engine apply
+```
+
+`install` checks the package and its signature but changes nothing yet; `plan` shows
+what will change (and any problem); `apply` does it. Restart the head unit if the plan
+says so. Remove a mod with `adb shell hmgapid engine remove <id>`, then `apply`.
+
+## A NEMESIS package that does the same thing
+
+Mods never fight a NEMESIS package that already changed the same apps (an older
+wireless CarPlay/Android Auto package, for example):
+
+- A mod's hooks stay off for any app the package replaced: the package keeps working
+  as it is. The plan says which hook points are off and why.
+- Files both change: the mod's change goes on top of the package's (a line in a
+  settings file), or starts from the stock copy NEMESIS keeps.
+- A file the package added that the mod adds too: nothing changes, and the plan names
+  the package to uninstall first.
+
+**Best order:** uninstall the old package in NEMESIS Manager first, restart, then turn
+the mod on. **If you already installed the mod first:** uninstall the package anyway,
+restart, and tap **Apply changes**. HMG-API sees that the package put the stock files
+back, builds the mod's changes on them, and the mod's hooks turn on at the next restart.
+
 ## Updating
 
 The same way: put the new zip on the stick and install it over the old one. Your

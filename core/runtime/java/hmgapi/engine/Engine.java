@@ -748,8 +748,11 @@ public final class Engine {
         Map<String, String> binds = new TreeMap<String, String>();   // "src target service" -> mod
         Map<String, Object> state;
         Set<String> settingsRestore = new LinkedHashSet<String>();
+        Map<String, String> rebased = new TreeMap<String, String>();   // path -> live md5: changed outside HMG-API, built on again
+        Map<String, String> rebasedFrom = new TreeMap<String, String>();   // path -> what HMG-API had written (merges: checked after build)
 
         boolean isEmpty() {
+            if (!rebased.isEmpty()) return false;
             for (Target t : targets.values()) if (t.restore || t.result == null || !t.result.equals(owned(t.path))) return false;
             for (String k : settings.keySet()) if (!String.valueOf(settings.get(k)[0]).equals(ownedSetting(k))) return false;
             return settingsRestore.isEmpty() && bindsText(binds).equals(currentBinds());
@@ -807,14 +810,12 @@ public final class Engine {
         Map<String, Object> files = (Map<String, Object>) p.state.get("files");
         Map<String, Object> st = (Map<String, Object>) p.state.get("settings");
 
-        // files HMG-API owns must still be what it wrote
+        // files HMG-API owns must still be what it wrote (changed outside: settled below, once the mods' changes are known)
+        Map<String, String> outside = new TreeMap<String, String>();
         for (Map.Entry<String, Object> e : files.entrySet()) {
             Map<String, Object> f = (Map<String, Object>) e.getValue();
             String live = md5(sys(e.getKey()));
-            if (!live.equals(f.get("result")) && !force) {
-                problems.add(e.getKey() + ": changed outside HMG-API (expected " + f.get("result") + ", found " + live
-                        + "); run `engine status`, or apply --force to rebuild it anyway");
-            }
+            if (!live.equals(f.get("result")) && !force) outside.put(e.getKey(), live);
         }
 
         List<Mod> mods = restoreAll ? new ArrayList<Mod>() : mods();
@@ -904,6 +905,21 @@ public final class Engine {
                 t.mods.add(m.id);
             }
         }
+        for (Map.Entry<String, String> o : outside.entrySet()) {
+            String why = rebaseWhy(o.getKey(), o.getValue(), (Map<String, Object>) files.get(o.getKey()), p.targets.get(o.getKey()));
+            if (why == null) {
+                problems.add(o.getKey() + ": changed outside HMG-API (expected " + ((Map<String, Object>) files.get(o.getKey())).get("result")
+                        + ", found " + o.getValue() + "); run `engine status`, or apply --force to rebuild it anyway");
+                continue;
+            }
+            // taken as found: built on again as a file HMG-API hasn't changed yet (its old backup replaced at apply)
+            if (why.startsWith("the mods' changes merge")) p.rebasedFrom.put(o.getKey(), String.valueOf(((Map<String, Object>) files.get(o.getKey())).get("result")));
+            files.remove(o.getKey());
+            p.rebased.put(o.getKey(), o.getValue());
+            out.add("rebase   " + o.getKey() + ": changed outside HMG-API (now " + o.getValue() + ", " + why + ")"
+                    + (p.targets.containsKey(o.getKey()) ? "; the mods' changes go on it" : "; no mod changes it now, so HMG-API lets it go"));
+        }
+        rebaseAccept = p.rebased;
         for (String path : files.keySet()) {
             if (!p.targets.containsKey(path)) {
                 Target t = new Target();
@@ -937,6 +953,17 @@ public final class Engine {
                 skipped.add(t.path);
             }
         }
+        // a merge built on a file that changed outside: only if HMG-API's own edits are gone from it (the whole file
+        // put back, as a NEMESIS uninstall does). If building changes nothing, they're still in it, and its stock
+        // can't be told apart from them.
+        for (Map.Entry<String, String> r : p.rebasedFrom.entrySet()) {
+            Target t = p.targets.get(r.getKey());
+            if (t != null && p.rebased.get(r.getKey()).equals(t.result)) {
+                for (java.util.Iterator<String> it = out.iterator(); it.hasNext(); ) if (it.next().startsWith("rebase   " + r.getKey() + ":")) it.remove();
+                problems.add(r.getKey() + ": changed outside HMG-API (expected " + r.getValue() + ", found " + t.result
+                        + "), and HMG-API's own changes are still in it; run `engine status`, or apply --force to rebuild it anyway");
+            }
+        }
         for (String path : skipped) {
             Map<String, Object> f = (Map<String, Object>) files.get(path);
             if (f == null) p.targets.remove(path);
@@ -949,6 +976,74 @@ public final class Engine {
             }
         }
         return p;
+    }
+
+    /** live md5s taken as found this plan (Plan.rebased), for build() */
+    Map<String, String> rebaseAccept = new TreeMap<String, String>();
+
+    /** change types that edit whatever file is there (merged, keeping every other line) */
+    static final Set<String> MERGES = new LinkedHashSet<String>(java.util.Arrays.asList("lines", "props", "codecs"));
+
+    /**
+     * A file HMG-API changed was changed since by something else (a NEMESIS package
+     * installed or uninstalled, an update): why it can be built on as found, or null.
+     * Changes that merge onto any file ("stock": "any") always can; exact ones only if
+     * the file is now a stock the mods accept, the stock HMG-API recorded, or a stock
+     * copy NEMESIS keeps.
+     */
+    @SuppressWarnings("unchecked")
+    String rebaseWhy(String path, String live, Map<String, Object> owned, Target t) throws IOException {
+        if ("absent".equals(live)) return null;
+        if (t != null && !t.changes.isEmpty()) {
+            boolean merge = true;
+            for (Ch ch : t.changes) merge &= MERGES.contains(ch.type) && "any".equals(ch.c.get("stock"));
+            if (merge) return "the mods' changes merge onto any version of it";
+        }
+        if (live.equals(owned.get("stock"))) return "the stock HMG-API started from";
+        if (t != null) {
+            Set<String> accepted = new LinkedHashSet<String>();
+            for (Ch ch : t.changes) {
+                Object st = ch.c.get("stock");
+                if (st instanceof String && !"any".equals(st)) accepted.add((String) st);
+                else if (st instanceof List) for (Object o : (List<Object>) st) accepted.add(String.valueOf(o));
+                accepted.addAll(setStock(ch.mod, path));
+            }
+            if (accepted.contains(live)) return "a stock version the mods accept";
+        }
+        if (nemesisStock(path, java.util.Collections.singleton(live)) != null) return "the stock copy a NEMESIS package keeps";
+        return null;
+    }
+
+    /** the NEMESIS package that keeps a backup of this path (or marks it absent before it): its folder name, or null */
+    String nemesisPackageOf(String path) {
+        File[] pkgs = new File(root + "/data/nemesis/backup").listFiles();
+        if (pkgs == null) return null;
+        java.util.Arrays.sort(pkgs);
+        for (File pkg : pkgs) if (pkg.isDirectory() && hasBackupOf(pkg, path, 4)) return pkg.getName();
+        return null;
+    }
+
+    boolean hasBackupOf(File dir, String path, int depth) {
+        File[] fs = dir.listFiles();
+        if (fs == null || depth < 0) return false;
+        for (File f : fs) {
+            if (f.isDirectory() ? hasBackupOf(f, path, depth - 1) : backupName(f.getName(), path)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether a file in a NEMESIS package's backup folder is (or marks) this path. Each
+     * package names its own: x.so, x.so.absent (absent before), perm.<x>.xml,
+     * featurexml.<onebin>.cfg for /system/onebin/<onebin>/featurexml.cfg.
+     */
+    static boolean backupName(String n, String path) {
+        String name = new File(path).getName();
+        if (n.endsWith(".absent")) n = n.substring(0, n.length() - 7);
+        if (n.equals(name) || n.endsWith("." + name) || n.startsWith(name)) return true;
+        int dot = name.lastIndexOf('.');
+        String parent = new File(path).getParentFile() == null ? "" : new File(path).getParentFile().getName();
+        return dot > 0 && !parent.isEmpty() && n.equals(name.substring(0, dot) + "." + parent + name.substring(dot));
     }
 
     // ------------------------------------------------------------------ build
@@ -1073,7 +1168,7 @@ public final class Engine {
                     return;
                 }
                 t.stock = "absent";
-            } else if (any || accepted.contains(m) || overrideAccepts(t.path, m)) {
+            } else if (any || accepted.contains(m) || m.equals(rebaseAccept.get(t.path)) || overrideAccepts(t.path, m)) {
                 t.stock = m;
                 t.baseline = live;
                 t.newBackup = true;
@@ -1086,8 +1181,18 @@ public final class Engine {
                     out.add("note     " + t.path + ": live file isn't stock (" + m + "); using the stock copy NEMESIS kept ("
                             + nem.getParentFile().getName() + "). Uninstall that NEMESIS package, or HMG-API takes this file over.");
                 } else {
-                    problems.add(t.path + ": not the stock file " + t.mods + " expect (found " + m + ", accepted "
-                            + accepted + "). hmgapi.json overrides.accept_baseline can accept it at your own risk.");
+                    boolean allAdd = true;
+                    for (Ch ch : t.changes) allAdd &= "add".equals(ch.type);
+                    String pkg = nemesisPackageOf(t.path);
+                    String from = pkg != null ? "the NEMESIS package " + pkg + " changed it: uninstall " + pkg + " in NEMESIS Manager first"
+                            : "if a NEMESIS package put it there, uninstall that package first";
+                    if (allAdd) {
+                        problems.add(t.path + ": already on the head unit (" + m + "), but " + t.mods + " add it; " + from
+                                + ", or turn " + t.mods + " off so the other mods apply.");
+                    } else {
+                        problems.add(t.path + ": not the stock file " + t.mods + " expect (found " + m + ", accepted "
+                                + accepted + "); " + from + ". hmgapi.json overrides.accept_baseline can accept it at your own risk.");
+                    }
                     return;
                 }
             }
@@ -1500,22 +1605,21 @@ public final class Engine {
     File nemesisStock(String path, Set<String> accepted) {
         File[] pkgs = new File(root + "/data/nemesis/backup").listFiles();
         if (pkgs == null || accepted.isEmpty()) return null;
-        String name = new File(path).getName();
         for (File pkg : pkgs) {
-            File hit = find(pkg, name, accepted, 4);
+            File hit = find(pkg, path, accepted, 4);
             if (hit != null) return hit;
         }
         return null;
     }
 
-    File find(File dir, String name, Set<String> accepted, int depth) {
+    File find(File dir, String path, Set<String> accepted, int depth) {
         File[] fs = dir.listFiles();
         if (fs == null || depth < 0) return null;
         for (File f : fs) {
             if (f.isDirectory()) {
-                File h = find(f, name, accepted, depth - 1);
+                File h = find(f, path, accepted, depth - 1);
                 if (h != null) return h;
-            } else if (f.getName().equals(name) || f.getName().endsWith("." + name) || f.getName().startsWith(name)) {
+            } else if (!f.getName().endsWith(".absent") && backupName(f.getName(), path)) {
                 try {
                     if (accepted.contains(md5(f))) return f;
                 } catch (IOException e) {
@@ -1560,6 +1664,11 @@ public final class Engine {
         j.put("state", Json.parse(Json.write(p.state)));   // a copy: p.state changes below
         write(journalFile, Json.write(j));
 
+        // files taken as found (changed outside HMG-API): their old backups no longer say what was there
+        for (String path : p.rebased.keySet()) {
+            rm(backup(path));
+            if (path.endsWith(".apk")) rm(backup(path.replaceAll("\\.apk$", ".odex")));
+        }
         // stock backups, once
         for (Target t : changed) {
             if (!t.newBackup) continue;
