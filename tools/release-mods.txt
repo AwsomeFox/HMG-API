@@ -1,0 +1,5 @@
+# Mods a HMG-API release carries (signed with the mod author's key, in HMGAPI/updates
+# on the USB download and as their own downloads). Test and example mods stay in the repo.
+mods/wireless-carplay-aa
+mods/adb
+mods/examples/nemesis-shortcut

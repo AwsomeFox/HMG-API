@@ -1,0 +1,30 @@
+# The wiki's source is wiki/ in this repo: on each change to it on main, the GitHub
+# wiki gets the same pages and images.
+name: Wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ["wiki/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push wiki/ to the GitHub wiki
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git clone -q "https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY.wiki.git" "$RUNNER_TEMP/wiki"
+          rsync -a --delete --exclude .git wiki/ "$RUNNER_TEMP/wiki/"
+          cd "$RUNNER_TEMP/wiki"
+          git add -A
+          if git diff --cached --quiet; then echo "wiki already up to date"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Wiki from $GITHUB_SHA"
+          git push -q

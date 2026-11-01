@@ -82,7 +82,9 @@ Uninstalling puts every file and setting HMG-API or a mod changed back to the st
 ./build.sh
 ```
 
-Everything goes to `out/`. Needs clang + lld, a JDK, the Android SDK (build-tools, a platform `android.jar`), the head unit's own `/system/lib` (`SYSLIB`, to link the loader against) and the app's signing key (`HMGAPI_KEY`).
+Everything goes to `out/`. Needs clang + lld, a JDK and the Android SDK (build-tools, a platform `android.jar`). No manufacturer files: the loader links against stand-ins for the head unit's libraries (`core/loader/syslib-stubs.sh`, the same bytes as linking the unit's own). Without HMG-API's signing key (`HMGAPI_KEY`) the app is signed with a throwaway key.
+
+GitHub Actions: `ci.yml` builds and runs every off-car test on each push and pull request; `release.yml` turns a version tag (`v1.0.0-beta.1`) into a signed draft release (keys in repository secrets; bundled mods in `tools/release-mods.txt`); `wiki.yml` publishes `wiki/` to the GitHub wiki.
 
 ```
 tools/test-all.sh

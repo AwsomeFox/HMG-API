@@ -1,0 +1,49 @@
+# Build everything and run every off-car test (tools/test-all.sh) on each push and
+# pull request. No private files: the loader links against stand-ins
+# (core/loader/syslib-stubs.sh), the app is signed with a throwaway key, and tests
+# that need stock car files skip. The downloads it makes are for testing only.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tools (clang, lld, qemu for the ARM tests)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq clang lld qemu-user-static binfmt-support zip unzip
+          pip install --require-hashes -r tools/requirements.txt
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Downloads
+        run: tools/mkinstallers.sh
+
+      - name: Off-car tests
+        run: tools/test-all.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hmgapi-test-build
+          path: out/dist/*.zip
+          retention-days: 14

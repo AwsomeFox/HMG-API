@@ -51,8 +51,9 @@ PY
 cp -r out/payload "$U/HMGAPI/install/payload"
 cp "$D/hmgapi-$V-nemesis.zip" "$U/HMGAPI/install/"
 printf '[nemesis]\nversion=1.0\ntype=install\npath=HMGAPI/install/hmgapi-%s-nemesis.zip\n' "$V" > "$U/NEMESIS.data"
-if [ -f "$HOME/hmg-private/keys/leafia-release.key" ]; then
-    cp "$(tools/mkrelease.sh | tail -1)" "$U/HMGAPI/updates/"
+RK=${HMGAPI_RELEASE_KEY:-$HOME/hmg-private/keys/leafia-release.key}
+if [ -f "$RK" ]; then
+    cp "$(tools/mkrelease.sh "$RK" | tail -1)" "$U/HMGAPI/updates/"
 else
     echo "no release key here: HMGAPI/updates has no HMG-API release"
 fi

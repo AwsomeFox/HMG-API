@@ -4,8 +4,9 @@
 #   ./build.sh <part>     hmgapid | zygote | loader | runtime | client | app | mods | lpatch | payload
 # payload (out/payload): everything install/common/install.sh puts on the unit,
 # with a MANIFEST of md5s; every installer (adb, NEMESIS, USB stick) carries it.
-# Needs clang + lld, a JDK, the Android SDK (build-tools, a platform android.jar),
-# the head unit's /system/lib (SYSLIB) for the loader, and the app's signing key.
+# Needs clang + lld, a JDK and the Android SDK (build-tools, a platform android.jar).
+# The app is signed with HMG-API's key (HMGAPI_KEY, a .p12 with a .pass beside it);
+# without it, with a throwaway key (fine for tests, not for a release).
 set -e
 cd "$(dirname "$0")"
 REPO=$PWD
@@ -21,11 +22,13 @@ zygote() {
 }
 
 loader() {
-    # against the head unit's own libraries (KitKat linker: DT_HASH, no GNU hash)
+    # against stand-ins for the head unit's libc/liblog/libdl (core/loader/syslib-stubs.sh: the same
+    # bytes as linking the unit's own; KitKat linker: DT_HASH, no GNU hash)
+    sh core/loader/syslib-stubs.sh "$OUT/syslib" >/dev/null
     clang --target=armv7a-linux-androideabi -mthumb -march=armv7-a -mfloat-abi=softfp -Os -fPIC \
       -ffreestanding -fno-builtin -nostdlib -shared -fno-stack-protector -fuse-ld=lld \
       -Wl,--hash-style=sysv -Wl,-z,defs -Wl,--build-id=none -Wl,-soname,libhmgapi_hook.so \
-      -o "$OUT/libhmgapi_hook.so" core/loader/loader.c "$SYSLIB/libc.so" "$SYSLIB/liblog.so" "$SYSLIB/libdl.so"
+      -o "$OUT/libhmgapi_hook.so" core/loader/loader.c "$OUT/syslib/libc.so" "$OUT/syslib/liblog.so" "$OUT/syslib/libdl.so"
     md5sum "$OUT/libhmgapi_hook.so"
 }
 
@@ -101,6 +104,13 @@ app() {
     "$BT/zipalign" -f 4 "$W/unsigned.apk" "$W/aligned.apk"
     # v1 (JAR) signing only: plenty for API 19 (the head unit's install allowlist,
     # not the digest, is what refuses unknown signers while booted; see core/app/install.sh)
+    if [ ! -f "$APP_KEY" ]; then   # no HMG-API key here (CI, a contributor): a throwaway one
+        APP_KEY="$OUT/throwaway-app.p12"
+        [ -f "$APP_KEY" ] || keytool -genkeypair -keystore "$APP_KEY" -storetype pkcs12 -storepass throwaway -keypass throwaway \
+            -alias app -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=HMG-API test build" >/dev/null 2>&1
+        echo throwaway > "${APP_KEY%.p12}.pass"
+        echo "app: signed with a throwaway key (set HMGAPI_KEY for a release)" >&2
+    fi
     "$BT/apksigner" sign --ks "$APP_KEY" --ks-pass "file:${APP_KEY%.p12}.pass" --min-sdk-version 9 \
         --v2-signing-enabled false --v3-signing-enabled false --out "$OUT/HmgApi.apk" "$W/aligned.apk" 2>/dev/null
     md5sum "$OUT/HmgApi.apk"

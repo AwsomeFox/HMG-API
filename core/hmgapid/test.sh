@@ -48,7 +48,7 @@ check "second daemon refuses" "hmgapid: already running" "$("$T/root/hmgapid" da
 
 # --- root/shell caller
 check "ping" "ok" "$(run root ping)"
-check "version" "hmgapid 1.0.0" "$(run root version)"
+check "version" "hmgapid $(sed -n 's/^#define VERSION "\(.*\)"/\1/p' hmgapid.c)" "$(run root version)"
 check "sh output and exit code" "hi 3" "$(run root sh 'echo hi; exit 3' | tr '\n' ' ')$(code root sh 'exit 3')"
 check "sh stderr streamed" "err" "$(run root sh 'echo err >&2')"
 big=$(run root sh 'i=0; while [ $i -lt 20000 ]; do echo 0123456789; i=$((i+1)); done' | wc -c)

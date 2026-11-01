@@ -15,3 +15,5 @@ tools/hook-trees.local
 *.apk
 *.img
 car-report-*.json
+# a local clone of the GitHub wiki (the wiki's source is wiki/, published by .github/workflows/wiki.yml)
+HMG-API.wiki/

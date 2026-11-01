@@ -1,0 +1,90 @@
+# A HMG-API release from a version tag (v1.0.0, v1.0.0-beta.1): built and tested,
+# signed with HMG-API's keys (repository secrets), then attached to a *draft* GitHub
+# release (a pre-release when the tag has a "-"). Publishing it stays a person's call.
+#
+# Secrets: HMGAPI_APP_P12 (base64) and HMGAPI_APP_PASS, the app's signing key;
+# HMGAPI_RELEASE_KEY (base64), the release key the app checks updates against;
+# HMGAPI_MOD_KEY (base64), the author key the bundled mods are signed with.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq clang lld qemu-user-static binfmt-support zip unzip
+          pip install --require-hashes -r tools/requirements.txt
+
+      - name: The tag is this version
+        run: |
+          v=$(sed -n 's/.*HMGAPI_VERSION = "\(.*\)";/\1/p' core/runtime/java/hmgapi/engine/Engine.java)
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME, but HMG-API's version is $v"; exit 1; }
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+
+      - name: Keys
+        env:
+          APP_P12: ${{ secrets.HMGAPI_APP_P12 }}
+          APP_PASS: ${{ secrets.HMGAPI_APP_PASS }}
+          RELEASE_KEY: ${{ secrets.HMGAPI_RELEASE_KEY }}
+          MOD_KEY: ${{ secrets.HMGAPI_MOD_KEY }}
+        run: |
+          umask 077
+          k="$RUNNER_TEMP/keys"
+          mkdir -p "$k"
+          echo "$APP_P12" | base64 -d > "$k/app.p12"
+          printf '%s\n' "$APP_PASS" > "$k/app.pass"
+          echo "$RELEASE_KEY" | base64 -d > "$k/release.key"
+          echo "$MOD_KEY" | base64 -d > "$k/mod.key"
+          for f in app.p12 app.pass release.key mod.key; do test -s "$k/$f" || { echo "secret for $f is missing"; exit 1; }; done
+          echo "HMGAPI_KEY=$k/app.p12" >> "$GITHUB_ENV"
+          echo "HMGAPI_RELEASE_KEY=$k/release.key" >> "$GITHUB_ENV"
+          echo "MOD_KEY_FILE=$k/mod.key" >> "$GITHUB_ENV"
+
+      - name: Build and test
+        run: |
+          ./build.sh
+          tools/test-all.sh
+
+      - name: Mods, release and downloads
+        run: |
+          rm -rf out/packages
+          grep -v '^#' tools/release-mods.txt | while read -r m; do [ -n "$m" ] && tools/mkmodpkg.sh "$m" "$MOD_KEY_FILE"; done
+          tools/mkinstallers.sh
+          mkdir -p out/assets
+          cp out/dist/hmgapi-"$VERSION"-*.zip out/assets/
+          cp out/releases/hmgapi-"$VERSION".zip out/assets/hmgapi-"$VERSION"-update.zip
+          cp out/packages/*.zip out/assets/
+          (cd out/assets && sha256sum *.zip > SHA256SUMS)
+
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=".github/release-notes/$GITHUB_REF_NAME.md"
+          [ -f "$notes" ] || notes=CHANGELOG.md
+          pre=""; case "$GITHUB_REF_NAME" in *-*) pre="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --draft $pre --title "HMG-API $VERSION" --notes-file "$notes" out/assets/*
+
+      - name: Forget the keys
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

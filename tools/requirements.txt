@@ -108,3 +108,7 @@ bsdiff4==1.3.1 \
     --hash=sha256:573b2c04e2aaebf441e04303b6992883fe15e1c417066665109887156bf3bdad \
     --hash=sha256:b1220866c9d4469cbdf4e4c582047230123ca05a329024414b87f5f7e0db0956 \
     --hash=sha256:75366494bb91cd0fd39be5c297525a60cf853ce6fe601dfa67d6de461aa18d39
+# core/app/qr-test.sh: the reference the app's QR encoder is checked against
+qrcode==8.2 \
+    --hash=sha256:16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f \
+    --hash=sha256:35c3f2a4172b33136ab9f6b3ef1c00260dd2f66f858f24d88418a015f446506c

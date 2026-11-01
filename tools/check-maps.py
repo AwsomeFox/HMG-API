@@ -65,6 +65,9 @@ if '--rebuild' in sys.argv:
             continue
         folder, tree = line.split()[:2]
         tree = os.path.expanduser(tree)
+        if not os.path.isdir(tree):
+            print('skip  %s: no stock tree at %s' % (folder, tree))
+            continue
         car = json.load(open(os.path.join(REPO, 'maps', folder, 'car.json')))
         with tempfile.TemporaryDirectory() as t:
             mk, mo, rg, fw = folder.split('/')
