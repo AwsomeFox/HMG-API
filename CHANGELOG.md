@@ -60,6 +60,12 @@ map lacks, only those parts stay off and the app says why.
   `packages/hmgapi.zip`. Before, it was the bare package, which NEMESIS's USB handler
   reports as invalid when it's unzipped onto a stick, and doesn't see as a zip copied
   onto one.
+- **Hook maps lost when unzipping** (since beta 4): the payload had a file `MAPS` next
+  to the folder `maps`. On FAT/exFAT sticks, Windows and macOS those are the same name,
+  so one was lost when the download was unzipped there, and HMG-API installed without
+  its hook maps (hooks off) or stopped on the MANIFEST check. The file is now
+  `MAPS.md5`; the installer stops with a clear message if the maps folder is missing;
+  every download is checked for names that clash without case or that FAT can't hold.
 - **The network keeper** leaves another tool's rules ahead of HMG-API's if they can't
   drop anything (accept, return, log, mark), instead of moving itself back to the top
   every 10 s.

@@ -141,10 +141,12 @@ payload() {
     # the catalogue itself: the on-car mapper (engine map-car) finds points by their shapes
     mkdir -p "$P/maps/catalogue" && cp core/hookpoints/*.json "$P/maps/catalogue/"
     python3 -c 'import glob,json; [print(p["id"]) for f in sorted(glob.glob("core/hookpoints/*.json")) for p in json.load(open(f))["points"]]' > "$P/maps/points.txt"
-    (cd "$P" && find maps -type f | sort | xargs md5sum > MAPS)
+    # MAPS.md5, not MAPS: next to the maps folder, names differing only in case are the same
+    # name on FAT/exFAT sticks, Windows and macOS (one of the two was lost when unzipped there)
+    (cd "$P" && find maps -type f | sort | xargs md5sum > MAPS.md5)
     sed -n 's/.*HMGAPI_VERSION = "\(.*\)";/\1/p' core/runtime/java/hmgapi/engine/Engine.java > "$P/VERSION"
     echo "$(git rev-parse --short HEAD 2>/dev/null || echo local)$(git diff --quiet HEAD 2>/dev/null || echo +) $(date -u +%Y-%m-%d)" > "$P/BUILD"
-    (cd "$P" && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS > MANIFEST)
+    (cd "$P" && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS.md5 > MANIFEST)
     echo "payload $(cat "$P/VERSION") ($(cat "$P/BUILD")): $P"
 }
 

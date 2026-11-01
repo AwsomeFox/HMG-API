@@ -40,7 +40,7 @@ install)
     for f in $(cut -c35- "$P/MANIFEST") VERSION BUILD MANIFEST; do
         adb push "$P/$f" "$STAGE/$f" >/dev/null 2>&1 || { echo "couldn't copy $f to the head unit"; exit 1; }
     done
-    # the hook maps: a folder (MAPS, in the MANIFEST, lists its files and md5s; install.sh checks them)
+    # the hook maps: a folder (MAPS.md5, in the MANIFEST, lists its files and md5s; install.sh checks them)
     if [ -d "$P/maps" ]; then
         adb push "$P/maps" "$STAGE/maps" >/dev/null 2>&1 || { echo "couldn't copy the hook maps to the head unit"; exit 1; }
     fi

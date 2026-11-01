@@ -30,6 +30,25 @@ for z in "$NB" "$UZ"; do
     check "$n: the package it installs is HMG-API's" hmgapi "$(ini $T/inner.zip NEMESIS.data id)"
 done
 unzip -p "$NB" "$(ini "$NB" NEMESIS.data path)" > "$NZ"
+# every download unzips the same on a FAT/exFAT stick, Windows and macOS: no two names that differ
+# only in case (payload/MAPS next to payload/maps lost one of them there), nothing FAT can't name
+names() {   # names <zip>: what's wrong with its names, nothing if all is well
+    unzip -Z1 "$1" | python3 -c '
+import sys
+seen = {}
+for n in (l.rstrip("\n") for l in sys.stdin):
+    parts = n.rstrip("/").split("/")
+    for i in range(1, len(parts) + 1):
+        p = "/".join(parts[:i])
+        if seen.setdefault(p.lower(), p) != p:
+            print("case clash: %s / %s" % (seen[p.lower()], p))
+        if any(c in parts[i - 1] for c in "<>:\"\\|?*") or parts[i - 1].endswith((".", " ")):
+            print("not a FAT name: " + p)
+' | sort -u
+}
+for z in "$NB" "$UZ" "$PWD/out/dist/hmgapi-$V-adb.zip" "$NZ"; do
+    check "${z##*/}: every name fits a FAT stick, any case" "" "$(names "$z")"
+done
 check "the NEMESIS download says how to use it" yes "$(unzip -p "$NB" README.txt | grep -q 'top level of a USB stick' && echo yes)"
 
 mkdir -p $T/bin
@@ -52,7 +71,7 @@ unzip -q "$NZ" 'payload/*' -d $T/pk
 P=$S/HMGAPI/install/payload; mv $T/pk/payload $P
 cp install/common/install.sh install/common/uninstall.sh install/common/lib.sh install/common/stock.txt install/common/app-pending.sh $P/
 [ -f "$STOCK" ] || echo "$(md5sum < $R/system/bin/app_process | cut -c1-32) test stock" > $P/stock.txt
-(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS > MANIFEST)
+(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS.md5 > MANIFEST)
 TS=$PWD/install/usb/troubleShooter
 
 mv $S/HMGAPI $S/X

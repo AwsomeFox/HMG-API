@@ -155,16 +155,17 @@ rm -f "$D/hook/disable"
 cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh"
 
 # the hook maps (HMG-API runs only on a car with a good one): replaced as a whole
+[ -s "$P/MAPS.md5" ] && [ ! -d "$P/maps" ] && fail "the hook maps folder (payload/maps) is missing: unzip the download again, onto the stick itself (see the README)"
 if [ -d "$P/maps" ]; then
     rm -r "$D/maps.new" 2>/dev/null
     cp -r "$P/maps" "$D/maps.new" || fail "copy the hook maps"
     while read m f; do
         [ "$(sum "$D/maps.new/${f#maps/}")" = "$m" ] || fail "hook map file $f is damaged (copy the payload again)"
-    done < "$P/MAPS"
+    done < "$P/MAPS.md5"
     rm -r "$D/maps" 2>/dev/null
     mv "$D/maps.new" "$D/maps" || fail "put the hook maps in place"
     chmod -R 700 "$D/maps" 2>/dev/null
-    log "hook maps: $(cat "$P/MAPS" | grep -c car.json) car(s)"
+    log "hook maps: $(grep -c car.json "$P/MAPS.md5") car(s)"
 fi
 
 # start hmgapid now if none runs. A running one (maybe an older build) is left
