@@ -3,8 +3,9 @@
 # release (a pre-release when the tag has a "-"). Publishing it stays a person's call.
 #
 # Secrets: HMGAPI_APP_P12 (base64) and HMGAPI_APP_PASS, the app's signing key;
-# HMGAPI_RELEASE_KEY (base64), the release key the app checks updates against;
-# HMGAPI_MOD_KEY (base64), the author key the bundled mods are signed with.
+# HMGAPI_RELEASE_KEY and HMGAPI_RELEASE_KEY_PUB (base64), the release key the app
+# checks updates against; HMGAPI_MOD_KEY and HMGAPI_MOD_KEY_PUB (base64), the author
+# key the bundled mods are signed with (signing reads <key>.pub beside each key).
 name: Release
 
 on:
@@ -46,7 +47,9 @@ jobs:
           APP_P12: ${{ secrets.HMGAPI_APP_P12 }}
           APP_PASS: ${{ secrets.HMGAPI_APP_PASS }}
           RELEASE_KEY: ${{ secrets.HMGAPI_RELEASE_KEY }}
+          RELEASE_KEY_PUB: ${{ secrets.HMGAPI_RELEASE_KEY_PUB }}
           MOD_KEY: ${{ secrets.HMGAPI_MOD_KEY }}
+          MOD_KEY_PUB: ${{ secrets.HMGAPI_MOD_KEY_PUB }}
         run: |
           umask 077
           k="$RUNNER_TEMP/keys"
@@ -54,8 +57,10 @@ jobs:
           echo "$APP_P12" | base64 -d > "$k/app.p12"
           printf '%s\n' "$APP_PASS" > "$k/app.pass"
           echo "$RELEASE_KEY" | base64 -d > "$k/release.key"
+          echo "$RELEASE_KEY_PUB" | base64 -d > "$k/release.key.pub"
           echo "$MOD_KEY" | base64 -d > "$k/mod.key"
-          for f in app.p12 app.pass release.key mod.key; do test -s "$k/$f" || { echo "secret for $f is missing"; exit 1; }; done
+          echo "$MOD_KEY_PUB" | base64 -d > "$k/mod.key.pub"
+          for f in app.p12 app.pass release.key release.key.pub mod.key mod.key.pub; do test -s "$k/$f" || { echo "secret for $f is missing"; exit 1; }; done
           echo "HMGAPI_KEY=$k/app.p12" >> "$GITHUB_ENV"
           echo "HMGAPI_RELEASE_KEY=$k/release.key" >> "$GITHUB_ENV"
           echo "MOD_KEY_FILE=$k/mod.key" >> "$GITHUB_ENV"
