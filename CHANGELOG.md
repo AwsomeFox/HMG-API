@@ -65,6 +65,12 @@ map lacks, only those parts stay off and the app says why.
   `short-desc`, `detailed-desc`, `os` (the tested US EV6 260507), `models`, `depends`, as
   NEMESIS's Package Store takes them. `hmgapi-<v>-nemesis-package.zip` is the package
   itself, for the store and `nemesis install`.
+- **Opening the app without a tile** (since beta 5): NEMESIS Manager's **Launch** for
+  HMG-API (and `hmgapid sh 'sh /data/hmgapi/open.sh'` over adb) opens the app,
+  installing it first from the copy HMG-API keeps if it's missing. The tile and ★
+  choice come from the hooks, so on a car without a hook map this was the missing way
+  in (and to its Car Report). An app install that fails with Android up is tried again
+  at the next restart, with a message on screen, instead of only a line in the log.
 - **Install and uninstall scripts** (since beta 4): the installer checks the hook maps
   with the rest of the payload, before anything changes (it used to find them
   missing after `/system` was already changed); NEMESIS's preuninstall only takes an

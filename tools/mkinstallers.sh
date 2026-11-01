@@ -45,8 +45,9 @@ N=$W/nemesis
 mkdir -p "$N"
 sed "s/@VERSION@/$V/; s/@PACKAGE_VERSION@/$PV/" install/nemesis/NEMESIS.data.in > "$N/NEMESIS.data"
 cp -r install/nemesis/scripts "$N/scripts"
+cp -r install/nemesis/bin "$N/bin"
 cp -r out/payload "$N/payload"
-chmod 755 "$N"/scripts/*.sh
+chmod 755 "$N"/scripts/*.sh "$N"/bin/*.sh
 zipdir "$N" "$W/hmgapi.zip"
 cp "$W/hmgapi.zip" "$D/hmgapi-$V-nemesis-package.zip"
 NB=$W/nemesis-stick

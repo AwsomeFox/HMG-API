@@ -160,6 +160,9 @@ rm -f "$D/hook/disable"
     done
 } > "$D/installed.txt"
 cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh"
+# open.sh (NEMESIS Manager's Launch, adb) installs the app from this copy if it's missing, then opens it
+cp "$P/app-open.sh" "$D/open.sh" && chmod 700 "$D/open.sh" || fail "keep open.sh"
+cp "$P/HmgApi.apk" "$D/HmgApi.apk" && chmod 644 "$D/HmgApi.apk" || fail "keep a copy of the app"
 
 # the hook maps (HMG-API runs only on a car with a good one): replaced as a whole
 if [ -d "$P/maps" ]; then
@@ -186,13 +189,20 @@ fi
 # the app: pm only takes our signature while sys.boot_completed is 0 (OEM
 # allowlist), so set it for the pm call only. Android down: app-pending.sh puts it
 # in once Android is up (started now, and by the boot hook until it's in).
-if [ -z "$ROOT" ] && [ "$(getprop sys.boot_completed)" = 1 ]; then
+# Failed with Android up: kept waiting like that, so the next restart tries again (the boot
+# hook), and NEMESIS Manager's Launch (or open.sh over adb) tries at once.
+# HMGAPI_TEST_ANDROID: off-car tests take this branch with stand-ins for pm, getprop and am.
+if { [ -z "$ROOT" ] || [ "$HMGAPI_TEST_ANDROID" = 1 ]; } && [ "$(getprop sys.boot_completed)" = 1 ]; then
     setprop sys.boot_completed 0
     r=$(pm install -r "$P/HmgApi.apk" 2>&1)
     setprop sys.boot_completed 1
     case "$r" in
         *Success*) rm -f "$D/public/HmgApi.apk"; log "installed the HMG-API app" ;;
-        *) log "WARNING: the HMG-API app didn't install: $r" ;;
+        *)
+            cp "$P/HmgApi.apk" "$D/public/HmgApi.apk" && chmod 644 "$D/public/HmgApi.apk"
+            log "WARNING: the HMG-API app didn't install: $r. It's tried again at the next restart; or NEMESIS Manager > HMG-API > Launch, or over adb: hmgapid sh 'sh /data/hmgapi/open.sh'"
+            t="HMG-API: the app didn't install. Restart the head unit to try again, or use Launch in NEMESIS Manager."
+            am broadcast -a com.hkmc.intent.action.TOAST -e com.hkmc.intent.extra.TOAST_MESSAGE "$t" --ez com.hkmc.intent.extra.TOAST_POPUPSHOWING true >/dev/null 2>&1 ;;
     esac
 else
     cp "$P/HmgApi.apk" "$D/public/HmgApi.apk" && chmod 644 "$D/public/HmgApi.apk" || fail "keep the app for later"

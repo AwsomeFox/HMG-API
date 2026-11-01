@@ -34,5 +34,10 @@ incompatible. `short-desc` at most 64 characters, `detailed-desc` at most 256.
 `packages/hmgapi.zip` in the USB stick download). An update needs a higher
 `package-version`.
 
-The package declares no `[app.N]`: the app is HMG-API's to install and remove, so a
-NEMESIS update doesn't uninstall it.
+The package's one `[app.N]` is `kind=sh` (`bin/open.sh`), with no `package` or
+`component`: Manager's **Launch** opens the HMG-API app (installing it first from
+`/data/hmgapi/HmgApi.apk` if it's missing; `install/common/app-open.sh`, installed as
+`/data/hmgapi/open.sh`), and NEMESIS never runs `pm uninstall` on the app (it would on
+an update, for an entry naming the app's package). The app stays HMG-API's to install
+and remove. Launch needs no hooks, so it's also the way into the app on a car without
+a hook map, where the launcher tile and the star key choice aren't added.

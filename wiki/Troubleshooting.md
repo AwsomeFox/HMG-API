@@ -1,5 +1,14 @@
 # Troubleshooting
 
+## The HMG-API app isn't there, or there's no tile for it
+
+- **No tile, no ★ choice:** those come from HMG-API's hooks, which need your car's hook
+  map. Open the app from **NEMESIS Manager → My Packages → HMG-API → Launch**, or over
+  adb: `adb shell hmgapid sh 'sh /data/hmgapi/open.sh'`.
+- **The app didn't install** (a message says so; `/data/hmgapi/install.log` has the
+  reason): restart the head unit and HMG-API tries again, or use **Launch** above,
+  which installs it first and then opens it.
+
 ## The top bar says "Hooks off for this car"
 
 HMG-API still works; only the parts of mods that change the car's own apps wait.

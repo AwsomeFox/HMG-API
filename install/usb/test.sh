@@ -41,6 +41,9 @@ check "package: short-desc at most 64 characters" yes "$([ -n "$(val short-desc)
 check "package: detailed-desc at most 256 characters" yes "$(python3 -c 'import sys; print("yes" if len(sys.argv[1]) <= 256 else "no")' "$(val detailed-desc)")"
 check "package: os, models and depends set" yes "$([ -n "$(val os)" ] && [ -n "$(val models)" ] && unzip -p "$NZ" NEMESIS.data | grep -q '^depends=' && echo yes)"
 check "package: the tested car is a full match" yes "$(python3 -c 'import fnmatch,sys; print("yes" if any(fnmatch.fnmatchcase(sys.argv[2], g.strip()) for g in sys.argv[1].split(",")) else "no")' "$(val os)" CVEV.USA.0000.V015.012.260507)"
+check "package: NEMESIS Manager's Launch runs bin/open.sh" "kind=sh path=bin/open.sh" "$(echo $(unzip -p "$NZ" NEMESIS.data | grep -A3 '^\[app.0\]' | grep '^kind=\|^path='))"
+check "... naming no app, so NEMESIS never pm uninstalls HMG-API's app" "" "$(unzip -p "$NZ" NEMESIS.data | grep '^package=\|^component=')"
+check "... and the script is in the package" yes "$(unzip -Z1 "$NZ" | grep -qx bin/open.sh && echo yes)"
 check "the package on its own (for the Package Store) is the one in the NEMESIS download" "$(md5sum < "$NZ")" "$(md5sum < "$PWD/out/dist/hmgapi-$V-nemesis-package.zip")"
 # every download unzips the same on a FAT/exFAT stick, Windows and macOS: no two names that differ
 # only in case (payload/MAPS next to payload/maps lost one of them there), nothing FAT can't name
@@ -81,9 +84,9 @@ BEFORE=$(tree)
 mkdir -p $S/HMGAPI/install
 unzip -q "$NZ" 'payload/*' -d $T/pk
 P=$S/HMGAPI/install/payload; mv $T/pk/payload $P
-cp install/common/install.sh install/common/uninstall.sh install/common/lib.sh install/common/stock.txt install/common/app-pending.sh $P/
+cp install/common/install.sh install/common/uninstall.sh install/common/lib.sh install/common/stock.txt install/common/app-pending.sh install/common/app-open.sh $P/
 [ -f "$STOCK" ] || echo "$(md5sum < $R/system/bin/app_process | cut -c1-32) test stock" > $P/stock.txt
-(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS.md5 > MANIFEST)
+(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh app-open.sh MAPS.md5 > MANIFEST)
 TS=$PWD/install/usb/troubleShooter
 
 mv $S/HMGAPI $S/X

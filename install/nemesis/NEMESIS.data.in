@@ -11,3 +11,8 @@ models="any"
 depends=""
 postinstall=scripts/postinstall.sh
 preuninstall=scripts/preuninstall.sh
+
+[app.0]
+kind=sh
+path=bin/open.sh
+uid=root

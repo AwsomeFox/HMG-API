@@ -17,7 +17,13 @@ has() { case "$3" in *"$2"*) echo "ok    $1" ;; *) echo "FAIL  $1: wanted [$2] i
 mkdir -p $T/bin
 printf '#!/bin/sh\n[ -f "$1" ] || exit 1\nset -- $(md5sum "$1"); echo "$1 $2"\n' > $T/bin/md5
 printf '#!/bin/sh\nexit 0\n' > $T/bin/chown
+# Android's tools, for the app's install and open.sh: what they're asked goes to calls.log
+printf '#!/bin/sh\necho "${FAKE_BOOT:-0}"\n' > $T/bin/getprop
+printf '#!/bin/sh\necho "setprop $*" >> "%s/calls.log"\n' "$T" > $T/bin/setprop
+printf '#!/bin/sh\necho "pm $*" >> "%s/calls.log"\ncase "$1" in path) [ -n "$FAKE_HAVE_APP" ] && echo package:/data/app/hmgapi.app-1.apk ;; install) echo "${FAKE_PM:-Success}" ;; esac\nexit 0\n' "$T" > $T/bin/pm
+printf '#!/bin/sh\necho "am $*" >> "%s/calls.log"\n' "$T" > $T/bin/am
 chmod +x $T/bin/*
+calls() { cat $T/calls.log 2>/dev/null || true; : > $T/calls.log; }
 run() { set +e; out=$(cd $T && env PATH="$T/bin:$PATH" ROOT=$R CAPCHECK=0 $SH "$@" 2>&1); rc=$?; set -e; }
 tree() { (cd $R/system && find . -type f | sort | while read f; do echo "$(md5sum < "$f" | cut -c1-32) $f"; done) }
 
@@ -31,9 +37,9 @@ echo stock > $R/system/lib/libc.so
 BEFORE=$(tree)
 # the payload's binaries, with this tree's scripts (so a script edit needs no rebuild)
 P=$T/payload; cp -r $PL $P
-cp install/common/install.sh install/common/uninstall.sh install/common/lib.sh install/common/stock.txt install/common/app-pending.sh $P/
+cp install/common/install.sh install/common/uninstall.sh install/common/lib.sh install/common/stock.txt install/common/app-pending.sh install/common/app-open.sh $P/
 [ -f "$STOCK" ] || echo "$(md5sum < $R/system/bin/app_process | cut -c1-32) test stock" > $P/stock.txt
-(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh MAPS.md5 > MANIFEST)
+(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh app-open.sh MAPS.md5 > MANIFEST)
 
 # refusals first: nothing may change
 cp $R/system/bin/app_process $T/real; echo x >> $R/system/bin/app_process
@@ -70,6 +76,8 @@ check "Android down: app kept for later, readable by the package manager" "-rw-r
 check "... and its installer kept" yes "$([ -f $R/data/hmgapi/app-pending.sh ] && echo yes)"
 has "boot hook starts it while the app waits" "app-pending.sh" "$(cat $R/system/etc/install-recovery.sh)"
 check "uninstaller kept on the unit" yes "$([ -f $R/data/hmgapi/uninstall.sh ] && echo yes)"
+check "a copy of the app kept, readable by the package manager" "-rw-r--r--" "$(ls -l $R/data/hmgapi/HmgApi.apk | cut -c1-10)"
+check "open.sh kept" yes "$([ -f $R/data/hmgapi/open.sh ] && echo yes)"
 check "hook maps installed" yes "$([ -f $R/data/hmgapi/maps/kia/ev6/usa/260507/car.json ] && [ -s $R/data/hmgapi/maps/points.txt ] && echo yes)"
 has "install record" "file $(md5sum < $P/app_process | cut -c1-32) /system/bin/app_process" "$(cat $R/data/hmgapi/installed.txt)"
 echo '{"updates": true}' > $R/data/hmgapi/settings/hmgapi.json
@@ -80,8 +88,47 @@ check "update keeps the stock copy" "$(md5sum < $T/real)" "$(md5sum < $R/system/
 check "update keeps one boot hook" 1 "$(grep -c 'HMGAPI_HOOK begin' $R/system/etc/install-recovery.sh)"
 check "update keeps the owner's settings" '{"updates": true}' "$(cat $R/data/hmgapi/settings/hmgapi.json)"
 
+# the app's install with Android up (stand-ins for pm and the rest)
+rm -f $R/data/hmgapi/public/HmgApi.apk; calls >/dev/null
+FAKE_BOOT=1 FAKE_PM='Failure [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]' HMGAPI_TEST_ANDROID=1 run $P/install.sh $P
+has "app install failed: said, with the ways to fix it" "the HMG-API app didn't install: Failure [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]. It's tried again at the next restart; or NEMESIS Manager > HMG-API > Launch" "$out"
+check "... kept waiting, so the next restart tries again" yes "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes)"
+c=$(calls)
+has "... pm ran with sys.boot_completed 0" "setprop sys.boot_completed 0
+pm install -r $P/HmgApi.apk
+setprop sys.boot_completed 1" "$c"
+has "... a toast on the screen" "Restart the head unit to try again, or use Launch in NEMESIS Manager" "$c"
+FAKE_BOOT=1 HMGAPI_TEST_ANDROID=1 run $P/install.sh $P
+has "app install works: said" "installed the HMG-API app" "$out"
+check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes || echo no)"
+
+# open.sh: open the app, installing it first if it's missing
+calls >/dev/null
+FAKE_BOOT=1 FAKE_HAVE_APP=1 run $R/data/hmgapi/open.sh
+check "open.sh: app there, opened" "opened the HMG-API app" "$out"
+check "... nothing installed" "pm path hmgapi.app
+am start -n hmgapi.app/.MainActivity" "$(calls)"
+cp $P/HmgApi.apk $R/data/hmgapi/public/HmgApi.apk
+FAKE_BOOT=1 run $R/data/hmgapi/open.sh
+has "open.sh: app missing, installed from the kept copy" "installed the HMG-API app" "$out"
+has "... then opened" "opened the HMG-API app" "$out"
+has "... pm on the kept copy, then am start" "pm install -r $R/data/hmgapi/HmgApi.apk
+setprop sys.boot_completed 1
+am start -n hmgapi.app/.MainActivity" "$(calls)"
+check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes || echo no)"
+FAKE_BOOT=1 FAKE_PM='Failure [X]' run $R/data/hmgapi/open.sh
+check "open.sh: install fails, says why" "1 the app didn't install: Failure [X]" "$rc $out"
+has "... on screen too" "TOAST_MESSAGE HMG-API: the app didn't install: Failure [X]" "$(calls)"
+run $R/data/hmgapi/open.sh
+check "open.sh: Android not up" "1 Android isn't up yet: try again in a minute" "$rc $out"
+mv $R/data/hmgapi/HmgApi.apk $T/apk.away
+FAKE_BOOT=1 run $R/data/hmgapi/open.sh
+has "open.sh: no copy of the app" "there's no copy to install: install HMG-API again" "$out"
+mv $T/apk.away $R/data/hmgapi/HmgApi.apk
+
 run $R/data/hmgapi/uninstall.sh
 has "uninstall finishes" "HMG-API uninstalled" "$out"
+check "the app's copy and open.sh gone" no "$([ -e $R/data/hmgapi/HmgApi.apk ] || [ -e $R/data/hmgapi/open.sh ] && echo yes || echo no)"
 check "/system byte-identical to stock" "$BEFORE" "$(tree)"
 check "settings kept without --purge" yes "$([ -f $R/data/hmgapi/settings/hmgapi.json ] && echo yes)"
 check "hooks off" no "$([ -f $R/data/hmgapi/hook/enable ] && echo yes || echo no)"

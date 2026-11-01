@@ -2,6 +2,12 @@
 
 Open **HMG-API** from the app menu (or put it on a ★ key).
 
+**No HMG-API tile in the app menu?** The tile and the ★ choice are added by HMG-API's
+hooks, so a car without a hook map yet doesn't get them. Open the app from **NEMESIS
+Manager → My Packages → HMG-API → Launch** instead, or over adb:
+`adb shell hmgapid sh 'sh /data/hmgapi/open.sh'`. Both install the app first if it's
+missing.
+
 ## The top bar
 
 - **Status**: whether HMG-API's hooks are on for your car, **Changes not applied**

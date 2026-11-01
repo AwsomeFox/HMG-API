@@ -3,7 +3,8 @@
 A Car Report is how a car, region or software version gets added to HMG-API, and how
 anything missing on your car gets fixed. It takes about a minute.
 
-1. HMG-API app → **Car Report** → **Make report**.
+1. HMG-API app → **Car Report** → **Make report**. (No HMG-API tile on your car?
+   Open the app from NEMESIS Manager → My Packages → HMG-API → **Launch**.)
 2. Scan the QR code with your phone. It opens a GitHub issue with the summary filled
    in.
 3. Get the report file and attach it to the issue, then submit.

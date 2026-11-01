@@ -134,7 +134,7 @@ if [ -z "$ROOT" ]; then
     done
     [ -s "$D/state/apps.installed" ] && : > "$D/state/apps.alloff"   # a reinstall turns them on again
 fi
-rm -f "$D/installed.txt" "$D/hook/enable" "$D/public/HmgApi.apk"
+rm -f "$D/installed.txt" "$D/hook/enable" "$D/public/HmgApi.apk" "$D/HmgApi.apk" "$D/open.sh"
 if [ "$1" = --purge ]; then
     rm -r "$D"
     echo "removed /data/hmgapi (mods, settings, backups)"
