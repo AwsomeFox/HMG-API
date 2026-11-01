@@ -5,6 +5,8 @@
 #   hmgapi-<v>-nemesis.zip  for NEMESIS, laid out like NEMESIS's own downloads: unzipped
 #                           onto a stick, its NEMESIS.data (type=install) installs
 #                           packages/hmgapi.zip, the package itself (NEMESIS.data [nemesis])
+#   hmgapi-<v>-nemesis-package.zip  the package itself, for NEMESIS's Package Store (the
+#                           portal) and nemesis install
 #   hmgapi-<v>-adb.zip      hmgapi-adb.sh and the payload
 # Every one carries the same payload (out/payload) and ends in install/common/install.sh.
 # HMGAPI/updates gets the signed release (tools/mkrelease.sh, if the release key is
@@ -15,7 +17,22 @@ cd "$(dirname "$0")/.."
 V=$(cat out/payload/VERSION)
 D=$PWD/out/dist
 mkdir -p "$D"
-rm -f "$D/hmgapi-$V-usb.zip" "$D/hmgapi-$V-nemesis.zip" "$D/hmgapi-$V-adb.zip"
+rm -f "$D/hmgapi-$V-usb.zip" "$D/hmgapi-$V-nemesis.zip" "$D/hmgapi-$V-nemesis-package.zip" "$D/hmgapi-$V-adb.zip"
+# NEMESIS's package-version: dotted numbers only (04-Packages.md; meta.c refuses anything else). A beta
+# comes before its release: the version before it, then .99.<beta> (1.0.0-beta.4 is 0.99.4, below 1.0.0)
+PV=$(python3 - "$V" <<'PY'
+import re, sys
+v = sys.argv[1]
+if re.fullmatch(r"\d+(\.\d+)*", v):
+    print(v)
+    sys.exit()
+m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-beta\.(\d+)", v)
+if not m:
+    sys.exit("no NEMESIS package-version for %s: add a rule to tools/mkinstallers.sh" % v)
+x, y, z, n = map(int, m.groups())
+print("%d.%d.%d.99.%d" % (x, y, z - 1, n) if z else "%d.%d.99.%d" % (x, y - 1, n) if y else "%d.99.%d" % (x - 1, n))
+PY
+)
 W=$(mktemp -d); trap 'rm -rf "$W"' EXIT
 
 # zipdir <dir> <zip>: fixed order and times, so the same input gives the same zip
@@ -26,11 +43,12 @@ readme() { sed "s/@VERSION@/$V/" "$1" > "$2"; }
 # only reads a NEMESIS.data at the stick's root, with type= and a relative path= (native/usb.c)
 N=$W/nemesis
 mkdir -p "$N"
-sed "s/@VERSION@/$V/" install/nemesis/NEMESIS.data.in > "$N/NEMESIS.data"
+sed "s/@VERSION@/$V/; s/@PACKAGE_VERSION@/$PV/" install/nemesis/NEMESIS.data.in > "$N/NEMESIS.data"
 cp -r install/nemesis/scripts "$N/scripts"
 cp -r out/payload "$N/payload"
 chmod 755 "$N"/scripts/*.sh
 zipdir "$N" "$W/hmgapi.zip"
+cp "$W/hmgapi.zip" "$D/hmgapi-$V-nemesis-package.zip"
 NB=$W/nemesis-stick
 mkdir -p "$NB/packages"
 cp "$W/hmgapi.zip" "$NB/packages/hmgapi.zip"
@@ -70,4 +88,4 @@ for z in out/packages/*.zip; do [ -f "$z" ] && cp "$z" "$U/HMGAPI/updates/"; don
 readme install/usb/README.txt "$U/README.txt"
 zipdir "$U" "$D/hmgapi-$V-usb.zip"
 
-for z in usb nemesis adb; do echo "$D/hmgapi-$V-$z.zip $(du -k "$D/hmgapi-$V-$z.zip" | cut -f1) KB"; done
+for z in usb nemesis nemesis-package adb; do echo "$D/hmgapi-$V-$z.zip $(du -k "$D/hmgapi-$V-$z.zip" | cut -f1) KB"; done

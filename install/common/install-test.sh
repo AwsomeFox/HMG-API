@@ -46,6 +46,11 @@ echo junk >> $P/lpatch
 run $P/install.sh $P
 has "damaged payload refused" "payload file lpatch is damaged" "$out"
 cp $PL/lpatch $P/lpatch
+mv $P/maps $T/maps.away   # unzipped where MAPS.md5 and maps/ were one name (beta 3 and earlier)
+run $P/install.sh $P
+has "payload without its hook maps refused" "the hook maps folder (payload/maps) is missing" "$out"
+has "... before anything changed" "Nothing was changed." "$out"
+mv $T/maps.away $P/maps
 check "still stock after refusals" "$BEFORE" "$(tree)"
 
 run $P/install.sh $P

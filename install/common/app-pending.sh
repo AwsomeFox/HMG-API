@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # HMG-API: install the HMG-API app once Android is up. An install that ran while
-# Android was down (NEMESIS installs then without asking) leaves the app in
+# Android was down (adb, or a NEMESIS stick with NEMESIS.emergency) leaves the app in
 # /data/hmgapi/public/HmgApi.apk (readable by the package manager); install.sh
 # and the boot hook start this in the background through hmgapid. One at a time;
 # done when the apk is gone. pm takes HMG-API's signature only while

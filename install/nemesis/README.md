@@ -16,8 +16,23 @@ layouts against those rules.
   HMG-API's own files back to stock; `/data/hmgapi` is kept).
 - NEMESIS updates a package by uninstalling the old one first. `preuninstall`
   sees the new package staged and does nothing, so an update keeps HMG-API's mods.
-- With Android down (NEMESIS installs without asking then), the HMG-API app goes
-  in by itself once Android is up.
+- Installed with Android down (a stick with `NEMESIS.emergency`; NEMESIS otherwise
+  waits for Android), the HMG-API app goes in by itself once Android is up.
+
+**Descriptor (1.1, 04-Packages.md §2; 07-Submit-a-Package.md for the Package Store).**
+`version=1.1` is the descriptor format, not HMG-API's version. `package-version` is
+HMG-API's version as dotted numbers only (NEMESIS refuses anything else); a beta
+comes before its release, so it's the version before it plus `.99.<beta>`
+(`1.0.0-beta.4` is `0.99.4`, below `1.0.0`; `tools/mkinstallers.sh`, which stops on a
+version form it has no rule for). `os` names what's tested (`ro.build.product` globs:
+the US EV6 260507), and `models="any"`, so other cars show as partial, not
+incompatible. `short-desc` at most 64 characters, `detailed-desc` at most 256.
+`install/usb/test.sh` checks all of it.
+
+**For the Package Store** (portal.xwtk.cloud/nemesis): upload
+`hmgapi-<version>-nemesis-package.zip`, the package itself (the same bytes as
+`packages/hmgapi.zip` in the USB stick download). An update needs a higher
+`package-version`.
 
 The package declares no `[app.N]`: the app is HMG-API's to install and remove, so a
 NEMESIS update doesn't uninstall it.

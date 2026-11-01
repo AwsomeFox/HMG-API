@@ -81,6 +81,13 @@ while read m f; do
     [ -n "$f" ] || continue
     [ "$(sum "$P/$f")" = "$m" ] || fail "payload file $f is damaged or missing (copy it again)"
 done < "$P/MANIFEST"
+# ... the hook maps too (MAPS.md5, in the MANIFEST, lists them), before anything changes
+if [ -s "$P/MAPS.md5" ]; then
+    [ -d "$P/maps" ] || fail "the hook maps folder (payload/maps) is missing: unzip the download again, onto the stick itself (see the README). Nothing was changed."
+    while read m f; do
+        [ "$(sum "$P/$f")" = "$m" ] || fail "hook map file $f is damaged or missing (copy the payload again). Nothing was changed."
+    done < "$P/MAPS.md5"
+fi
 
 # a dev build from before the rename (Leafia) has its own wrapper in place: it uninstalls itself first
 if [ -f "$ROOT/system/bin/app_process.leafia-stock" ]; then
@@ -155,7 +162,6 @@ rm -f "$D/hook/disable"
 cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh"
 
 # the hook maps (HMG-API runs only on a car with a good one): replaced as a whole
-[ -s "$P/MAPS.md5" ] && [ ! -d "$P/maps" ] && fail "the hook maps folder (payload/maps) is missing: unzip the download again, onto the stick itself (see the README)"
 if [ -d "$P/maps" ]; then
     rm -r "$D/maps.new" 2>/dev/null
     cp -r "$P/maps" "$D/maps.new" || fail "copy the hook maps"

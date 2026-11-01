@@ -1,12 +1,22 @@
 #!/system/bin/sh
-# NEMESIS preuninstall (full root). NEMESIS runs it for an uninstall and also
-# before an update (its update is uninstall + install, with the new package
-# already staged in /data/local/tmp/nemesis/stage/hmgapi). An update keeps
+# NEMESIS preuninstall (full root, a child of the nemesis process). NEMESIS runs it
+# for an uninstall and also before an update: its update runs the old package's
+# preuninstall with the new package already staged in
+# /data/local/tmp/nemesis/stage/hmgapi (native/pkg.c cmd_install). An update keeps
 # HMG-API installed: the new postinstall updates it in place, mods and all.
+# Only an HMG-API package in the stage counts, and never when the nemesis command
+# that runs this is an uninstall: a stage left by an interrupted install mustn't
+# turn an uninstall into nothing. A failure here keeps NEMESIS's package (exit 5).
 umask 077
-if [ -d "${ROOT:-}/data/local/tmp/nemesis/stage/hmgapi" ]; then
-    echo "update: HMG-API stays installed, the new package updates it"
-    exit 0
-fi
+STAGE=${ROOT:-}/data/local/tmp/nemesis/stage/hmgapi
+caller=$(cat /proc/$PPID/cmdline 2>/dev/null)
+case $caller in
+    *uninstall*) ;;
+    *)
+        if grep -q '^id=hmgapi$' "$STAGE/NEMESIS.data" 2>/dev/null; then
+            echo "update: HMG-API stays installed, the new package updates it"
+            exit 0
+        fi ;;
+esac
 [ -f "${ROOT:-}/data/hmgapi/uninstall.sh" ] || { echo "HMG-API isn't installed"; exit 0; }
 exec sh "${ROOT:-}/data/hmgapi/uninstall.sh"

@@ -30,6 +30,18 @@ for z in "$NB" "$UZ"; do
     check "$n: the package it installs is HMG-API's" hmgapi "$(ini $T/inner.zip NEMESIS.data id)"
 done
 unzip -p "$NB" "$(ini "$NB" NEMESIS.data path)" > "$NZ"
+# the package's own NEMESIS.data, descriptor 1.1 as NEMESIS reads it (04-Packages.md, native/meta.c) and as
+# the Package Store takes it (07-Submit-a-Package.md): version= is the descriptor's, package-version= ours
+val() { ini "$NZ" NEMESIS.data "$1" | sed 's/^"\(.*\)"$/\1/'; }
+check "package: descriptor version 1.1" 1.1 "$(val version)"
+check "package: type= (1.1), not types=" "application " "$(val type) $(val types)"
+check "package: package-version is dotted numbers" yes "$(val package-version | grep -qxE '[0-9]+(\.[0-9]+)*' && echo yes)"
+check "package: a beta's package-version comes before its release" yes "$(case $V in *-beta.*) python3 -c 'import sys; a=[int(x) for x in sys.argv[1].split(".")]; b=[int(x) for x in sys.argv[2].split("-")[0].split(".")]; print("yes" if a < b else "no")' "$(val package-version)" "$V" ;; *) echo yes ;; esac)"
+check "package: short-desc at most 64 characters" yes "$([ -n "$(val short-desc)" ] && [ ${#V} -gt 0 ] && python3 -c 'import sys; print("yes" if len(sys.argv[1]) <= 64 else "no")' "$(val short-desc)")"
+check "package: detailed-desc at most 256 characters" yes "$(python3 -c 'import sys; print("yes" if len(sys.argv[1]) <= 256 else "no")' "$(val detailed-desc)")"
+check "package: os, models and depends set" yes "$([ -n "$(val os)" ] && [ -n "$(val models)" ] && unzip -p "$NZ" NEMESIS.data | grep -q '^depends=' && echo yes)"
+check "package: the tested car is a full match" yes "$(python3 -c 'import fnmatch,sys; print("yes" if any(fnmatch.fnmatchcase(sys.argv[2], g.strip()) for g in sys.argv[1].split(",")) else "no")' "$(val os)" CVEV.USA.0000.V015.012.260507)"
+check "the package on its own (for the Package Store) is the one in the NEMESIS download" "$(md5sum < "$NZ")" "$(md5sum < "$PWD/out/dist/hmgapi-$V-nemesis-package.zip")"
 # every download unzips the same on a FAT/exFAT stick, Windows and macOS: no two names that differ
 # only in case (payload/MAPS next to payload/maps lost one of them there), nothing FAT can't name
 names() {   # names <zip>: what's wrong with its names, nothing if all is well
@@ -124,13 +136,14 @@ CWD=$A run scripts/postinstall.sh
 has "NEMESIS install: done" "installed. Restart the head unit" "$out"
 check "NEMESIS install: HMG-API is in" yes "$(installed)"
 mkdir -p $R/data/local/tmp/nemesis/stage/hmgapi
+cp $A/NEMESIS.data $R/data/local/tmp/nemesis/stage/hmgapi/   # the new package, staged by nemesis install --update
 CWD=$A run scripts/preuninstall.sh
 has "NEMESIS update: preuninstall keeps HMG-API" "HMG-API stays installed" "$out"
 check "... still installed" yes "$(installed)"
 CWD=$A run scripts/postinstall.sh
 has "... and the new postinstall updates it" "HMG-API's wrapper is in place" "$out"
-rm -r $R/data/local/tmp/nemesis/stage
+rm $R/data/local/tmp/nemesis/stage/hmgapi/NEMESIS.data   # left over from an interrupted install: not a package
 CWD=$A run scripts/preuninstall.sh
-has "NEMESIS uninstall: uninstalled" "HMG-API uninstalled" "$out"
+has "NEMESIS uninstall: uninstalled (a leftover stage doesn't stop it)" "HMG-API uninstalled" "$out"
 check "/system byte-identical to stock again" "$BEFORE" "$(tree)"
 exit $fail

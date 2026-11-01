@@ -10,8 +10,8 @@ A. The head unit has nothing installed yet (no NEMESIS):
    3. Messages show "HMG-API ... installing", then "HMG-API installed, restarting".
       The OTA screen then shows error 684. That's expected: nothing is undone.
 
-B. NEMESIS is installed: plug the stick in and confirm the install of "HMG-API"
-   (with Android still starting, NEMESIS installs it without asking).
+B. NEMESIS is installed: plug the stick in once Android is up and confirm the
+   install of "HMG-API".
 
 C. HMG-API is installed: the HMG-API app offers the update from HMGAPI/updates.
    That folder also holds the mods (install them from the app).

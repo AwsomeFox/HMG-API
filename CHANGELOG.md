@@ -60,6 +60,18 @@ map lacks, only those parts stay off and the app says why.
   `packages/hmgapi.zip`. Before, it was the bare package, which NEMESIS's USB handler
   reports as invalid when it's unzipped onto a stick, and doesn't see as a zip copied
   onto one.
+- **NEMESIS descriptor 1.1** (since beta 4): `version=1.1` (the descriptor's),
+  `type`, `package-version` (dotted numbers: a beta of 1.0.0 is 0.99.<beta>),
+  `short-desc`, `detailed-desc`, `os` (the tested US EV6 260507), `models`, `depends`, as
+  NEMESIS's Package Store takes them. `hmgapi-<v>-nemesis-package.zip` is the package
+  itself, for the store and `nemesis install`.
+- **Install and uninstall scripts** (since beta 4): the installer checks the hook maps
+  with the rest of the payload, before anything changes (it used to find them
+  missing after `/system` was already changed); NEMESIS's preuninstall only takes an
+  update for one when an HMG-API package is staged and the command isn't an
+  uninstall (a stage left by an interrupted install made an uninstall do nothing);
+  the uninstaller starts hmgapid if it isn't running, since restoring the mods'
+  changes goes through it.
 - **Hook maps lost when unzipping** (since beta 4): the payload had a file `MAPS` next
   to the folder `maps`. On FAT/exFAT sticks, Windows and macOS those are the same name,
   so one was lost when the download was unzipped there, and HMG-API installed without
