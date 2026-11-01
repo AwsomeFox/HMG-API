@@ -5,7 +5,7 @@
 set -e
 cd "$(dirname "$0")"
 # what the daemon runs gets the unit's PATH (/sbin:/system/bin:...): host commands by full path
-SLEEP=$(command -v sleep); CAT=$(command -v cat)
+SLEEP=$(command -v sleep); CAT=$(command -v cat); SH=$(command -v sh)
 T=$(mktemp -d)
 cleanup() {
     pkill -f "$T/" 2>/dev/null || true   # the test daemons (their paths contain $T)
@@ -126,7 +126,7 @@ mkdir -p "$S/mods/svc/bin"
 printf 'echo "started $HMGAPI_MOD/$HMGAPI_SERVICE data=$HMGAPI_DATA android_data=$ANDROID_DATA args=$*"\necho run >> "$HMGAPI_DATA/runs"\nexec '"$SLEEP"' 60\n' > "$S/mods/svc/bin/loop.sh"
 printf 'echo crash >> "$HMGAPI_DATA/runs"\nexit 3\n' > "$S/mods/svc/bin/crash.sh"
 printf 'echo once\n' > "$S/mods/svc/bin/once.sh"
-printf '"$1" whoami > "$HMGAPI_DATA/who"; sh -c "\\"$1\\" whoami > \\"$HMGAPI_DATA/who2\\""\n' > "$S/mods/svc/bin/ask.sh"
+printf '"$1" whoami > "$HMGAPI_DATA/who"; '"$SH"' -c "\\"$1\\" whoami > \\"$HMGAPI_DATA/who2\\""\n' > "$S/mods/svc/bin/ask.sh"
 cat > "$S/state/services.txt" <<EOS
 svc loop root boot yes script bin/loop.sh - a b
 svc crash root boot yes script bin/crash.sh -

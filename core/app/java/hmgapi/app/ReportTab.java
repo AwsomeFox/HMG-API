@@ -106,14 +106,11 @@ final class ReportTab {
         if (!check.isEmpty()) s.append("Map check: ").append(check).append("\n");
         s.append("Found from this car's own files: ").append(found).append("\n\n");
         s.append("Report file: ").append(file).append(".json\n");
-        if (usb.length() > 0) {
-            message.setText("Done. Scan the code with your phone: it opens a GitHub issue with this summary. Attach the "
-                    + "report file from the USB stick (folder \"HMG-API reports\") and send it.");
-            s.append("On the USB stick: ").append(usb);
-        } else {
-            message.setText("Done, but no USB stick was found: plug one in and make the report again to get the file to "
-                    + "attach. (It's also in HMG-API's folder, for adb: /data/hmgapi/public/reports.)");
-        }
+        message.setText("Done. Scan the code with your phone: it opens a GitHub issue with this summary. Attach the report "
+                + "file to it, from the USB stick or over adb (below), and send it.");
+        if (usb.length() > 0) s.append("USB stick: ").append(usb).append("folder \"HMG-API reports\" on the stick\n");
+        else s.append("USB stick: none found (plug one in and make the report again)\n");
+        s.append("adb (from a computer, the head unit's adb on):\n    adb pull /data/hmgapi/public/reports/").append(file).append(".json\n");
         result.setText(s.toString());
         if (url != null) {
             try {

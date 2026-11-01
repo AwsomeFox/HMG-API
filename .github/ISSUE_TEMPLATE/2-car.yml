@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         The easiest way: HMG-API app → **Car Report** → Make report, then scan the QR code; this form opens filled in.
-        Attach the report file from the USB stick (folder "HMG-API reports").
+        Attach the report file: from the USB stick (folder "HMG-API reports"), or over adb with `adb pull /data/hmgapi/public/reports/`.
         The report holds model-level facts only (model, region, software version, which hook points your car has). No VIN, serial numbers, phone numbers or account details.
 
         HMG-API supports each region's newest head unit software. If yours is older, updating it is usually the quickest fix.

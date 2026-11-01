@@ -3,14 +3,26 @@
 A Car Report is how a car, region or software version gets added to HMG-API, and how
 anything missing on your car gets fixed. It takes about a minute.
 
-1. Plug a USB stick into the car (to get the file).
-2. HMG-API app → **Car Report** → **Make report**.
-3. Scan the QR code with your phone. It opens a GitHub issue with the summary filled
+1. HMG-API app → **Car Report** → **Make report**.
+2. Scan the QR code with your phone. It opens a GitHub issue with the summary filled
    in.
-4. Attach the report file from the stick (folder `HMG-API reports`) and submit.
+3. Get the report file and attach it to the issue, then submit.
 
-No stick? The report is also saved on the head unit:
-`adb pull /data/hmgapi/public/reports/`.
+## Getting the file
+
+**USB stick:** plug one in before making the report. The file is in the folder
+`HMG-API reports` on the stick.
+
+**adb** (a computer with adb, the head unit's adb on): the file name is on the screen.
+
+```
+adb pull /data/hmgapi/public/reports/
+```
+
+That copies every report HMG-API made into a `reports` folder on your computer.
+
+The USB port works for one or the other: while adb over USB is on, the port is in
+computer mode and doesn't read sticks.
 
 ## What's in it
 

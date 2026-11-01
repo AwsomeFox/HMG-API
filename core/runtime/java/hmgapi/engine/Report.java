@@ -261,7 +261,7 @@ final class Report {
         String body = "Product: " + unit.get("product") + "\nHMG-API: " + r.get("hmgapi") + "\nMap: " + map.get("status")
                 + (Boolean.TRUE.equals(map.get("hooks_on")) ? " (hooks on)" : " (hooks off)")
                 + "\nFound on this car: " + pj.get("found") + " points, " + (nf == null ? 0 : nf.size()) + " not found"
-                + "\n\nPlease attach " + name + ".json (USB stick: HMG-API reports).";
+                + "\n\nPlease attach " + name + ".json (USB stick: HMG-API reports; adb: adb pull /data/hmgapi/public/reports/).";
         // the "Car or firmware support" issue form (.github/ISSUE_TEMPLATE/2-car.yml), its summary field filled in
         return "https://github.com/" + REPO + "/issues/new?template=2-car.yml&title=" + URLEncoder.encode(title, "UTF-8")
                 + "&summary=" + URLEncoder.encode(body, "UTF-8");

@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for reporting. Please don't post your VIN, serial numbers, phone numbers or account details: nothing here needs them.
-        A **Car Report** (HMG-API app → Car Report) helps a lot: attach its `.json` file from the USB stick (folder "HMG-API reports").
+        A **Car Report** (HMG-API app → Car Report) helps a lot: attach its `.json` file, from the USB stick (folder "HMG-API reports") or over adb (`adb pull /data/hmgapi/public/reports/`).
   - type: input
     id: car
     attributes:
