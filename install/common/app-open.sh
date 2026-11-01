@@ -9,11 +9,10 @@
 # signature only while sys.boot_completed is 0 (OEM allowlist): set for the pm call only.
 D=${ROOT:-}/data/hmgapi
 LOG=$D/install.log
-say() {
-    echo "$1"
-    am broadcast -a com.hkmc.intent.action.TOAST -e com.hkmc.intent.extra.TOAST_MESSAGE "HMG-API: $1" --ez com.hkmc.intent.extra.TOAST_POPUPSHOWING true >/dev/null 2>&1
-}
-[ "$(getprop sys.boot_completed)" = 1 ] || { echo "Android isn't up yet: try again in a minute"; exit 1; }
+# Output only, no toasts of its own: NEMESIS Manager shows a launch script's output as a
+# toast (pkg.c cmd_pkg_launch), and over adb it's printed.
+say() { echo "HMG-API: $1"; }
+[ "$(getprop sys.boot_completed)" = 1 ] || { say "Android isn't up yet: try again in a minute"; exit 1; }
 case "$(pm path hmgapi.app 2>/dev/null)" in
     package:*) ;;
     *)
@@ -26,7 +25,7 @@ case "$(pm path hmgapi.app 2>/dev/null)" in
             *Success*)
                 rm -f "$D/public/HmgApi.apk"
                 echo "installed the HMG-API app (open.sh)" >> "$LOG"
-                echo "installed the HMG-API app" ;;
+                say "installed the app" ;;
             *)
                 echo "WARNING: the HMG-API app didn't install (open.sh): $r" >> "$LOG"
                 say "the app didn't install: $r"
@@ -34,4 +33,3 @@ case "$(pm path hmgapi.app 2>/dev/null)" in
         esac ;;
 esac
 am start -n hmgapi.app/.MainActivity >/dev/null 2>&1 || { say "couldn't open the app"; exit 1; }
-echo "opened the HMG-API app"

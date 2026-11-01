@@ -105,22 +105,21 @@ check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] &
 # open.sh: open the app, installing it first if it's missing
 calls >/dev/null
 FAKE_BOOT=1 FAKE_HAVE_APP=1 run $R/data/hmgapi/open.sh
-check "open.sh: app there, opened" "opened the HMG-API app" "$out"
+check "open.sh: app there, opened (quietly: Manager would toast any output)" "" "$out"
 check "... nothing installed" "pm path hmgapi.app
 am start -n hmgapi.app/.MainActivity" "$(calls)"
 cp $P/HmgApi.apk $R/data/hmgapi/public/HmgApi.apk
 FAKE_BOOT=1 run $R/data/hmgapi/open.sh
-has "open.sh: app missing, installed from the kept copy" "installed the HMG-API app" "$out"
-has "... then opened" "opened the HMG-API app" "$out"
+check "open.sh: app missing, installed from the kept copy, then opened" "HMG-API: installed the app" "$out"
 has "... pm on the kept copy, then am start" "pm install -r $R/data/hmgapi/HmgApi.apk
 setprop sys.boot_completed 1
 am start -n hmgapi.app/.MainActivity" "$(calls)"
 check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes || echo no)"
 FAKE_BOOT=1 FAKE_PM='Failure [X]' run $R/data/hmgapi/open.sh
-check "open.sh: install fails, says why" "1 the app didn't install: Failure [X]" "$rc $out"
-has "... on screen too" "TOAST_MESSAGE HMG-API: the app didn't install: Failure [X]" "$(calls)"
+check "open.sh: install fails, says why" "1 HMG-API: the app didn't install: Failure [X]" "$rc $out"
+check "... once (Manager toasts the output; no toast of its own)" "" "$(calls | grep TOAST || true)"
 run $R/data/hmgapi/open.sh
-check "open.sh: Android not up" "1 Android isn't up yet: try again in a minute" "$rc $out"
+check "open.sh: Android not up" "1 HMG-API: Android isn't up yet: try again in a minute" "$rc $out"
 mv $R/data/hmgapi/HmgApi.apk $T/apk.away
 FAKE_BOOT=1 run $R/data/hmgapi/open.sh
 has "open.sh: no copy of the app" "there's no copy to install: install HMG-API again" "$out"
