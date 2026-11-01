@@ -4,6 +4,8 @@
 # test the three kinds of caller: shell/root, the hmgapi.app uid, anyone else.
 set -e
 cd "$(dirname "$0")"
+# what the daemon runs gets the unit's PATH (/sbin:/system/bin:...): host commands by full path
+SLEEP=$(command -v sleep); CAT=$(command -v cat)
 T=$(mktemp -d)
 cleanup() {
     pkill -f "$T/" 2>/dev/null || true   # the test daemons (their paths contain $T)
@@ -21,8 +23,8 @@ build() {
     mkdir -p "$T/$1/root/mods"
     printf '%s\n' "$3" > "$T/$1/packages.list"
     printf '#!/bin/sh\necho "fake logcat $*"\n' > "$T/$1/logcat"
-    printf '#!/bin/sh\necho "$*" >> "%s/engine.log"\ncase "$*" in *--trial*) sleep 2; : > "%s/engine.done" ;; esac\necho "app_process $* CLASSPATH=$CLASSPATH ROOT=$ANDROID_ROOT KEEP=$KEEPME PRELOAD=${LD_PRELOAD:-none}"\n' "$T/$1" "$T/$1" > "$T/$1/app_process"
-    printf '#!/bin/sh\ncat "%s/bootprop" 2>/dev/null\n' "$T/$1" > "$T/$1/getprop"
+    printf '#!/bin/sh\necho "$*" >> "%s/engine.log"\ncase "$*" in *--trial*) '"$SLEEP"' 2; : > "%s/engine.done" ;; esac\necho "app_process $* CLASSPATH=$CLASSPATH ROOT=$ANDROID_ROOT KEEP=$KEEPME PRELOAD=${LD_PRELOAD:-none}"\n' "$T/$1" "$T/$1" > "$T/$1/app_process"
+    printf '#!/bin/sh\n'"$CAT"' "%s/bootprop" 2>/dev/null\n' "$T/$1" > "$T/$1/getprop"
     chmod +x "$T/$1/logcat" "$T/$1/app_process" "$T/$1/getprop"
     OUT="$T/$1" sh build.sh -DNOCAPCHECK -DROOTDIR="\"$T/$1/root\"" -DSH="\"/bin/sh\"" -DLOGCAT="\"$T/$1/logcat\"" \
         -DREBOOT="\"/bin/true\"" -DAPP_PROCESS="\"$T/$1/app_process\"" -DPACKAGES_LIST="\"$T/$1/packages.list\"" -DGETPROP="\"$T/$1/getprop\"" -DUSBROOT="\"$T/$1/usb\"" -DSOCK_NAME="\"hmgapid-test-$1-$$\"" -DVEHICLE_SOCK="\"hmgapi-vehicle-test-$$\"" \
@@ -85,7 +87,7 @@ check "binds: app may not" "13" "$(code app binds)"
 rm -f "$T/root/root/state/binds.txt" "$T/root/root/state/binds.failed"
 # a client that goes away: sh is stopped, an engine command finishes
 rm -f "$T/root/sh.done" "$T/root/engine.done"
-"$T/root/hmgapid" sh "sleep 2; echo x; sleep 1; : > $T/root/sh.done" >/dev/null 2>&1 & c1=$!
+"$T/root/hmgapid" sh "$SLEEP 2; echo x; $SLEEP 1; : > $T/root/sh.done" >/dev/null 2>&1 & c1=$!
 "$T/root/hmgapid" engine apply --trial >/dev/null 2>&1 & c2=$!
 sleep 1; kill $c1 $c2 2>/dev/null || true
 sleep 4
@@ -121,7 +123,7 @@ check "other: engine refused" "13" "$(code other engine status)"
 # --- services (the supervisor runs them as this user: off-car tests aren't root)
 S=$T/root/root
 mkdir -p "$S/mods/svc/bin"
-printf 'echo "started $HMGAPI_MOD/$HMGAPI_SERVICE data=$HMGAPI_DATA android_data=$ANDROID_DATA args=$*"\necho run >> "$HMGAPI_DATA/runs"\nexec sleep 60\n' > "$S/mods/svc/bin/loop.sh"
+printf 'echo "started $HMGAPI_MOD/$HMGAPI_SERVICE data=$HMGAPI_DATA android_data=$ANDROID_DATA args=$*"\necho run >> "$HMGAPI_DATA/runs"\nexec '"$SLEEP"' 60\n' > "$S/mods/svc/bin/loop.sh"
 printf 'echo crash >> "$HMGAPI_DATA/runs"\nexit 3\n' > "$S/mods/svc/bin/crash.sh"
 printf 'echo once\n' > "$S/mods/svc/bin/once.sh"
 printf '"$1" whoami > "$HMGAPI_DATA/who"; sh -c "\\"$1\\" whoami > \\"$HMGAPI_DATA/who2\\""\n' > "$S/mods/svc/bin/ask.sh"

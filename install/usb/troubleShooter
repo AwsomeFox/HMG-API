@@ -6,6 +6,7 @@
 # the same stick:
 #   HMGAPI/install/payload/   install, or update an installed HMG-API
 #   HMGAPI/UNINSTALL          uninstall instead (HMGAPI/UNINSTALL-PURGE: also /data/hmgapi)
+#   HMGAPI/FORCE              install even if app_process isn't a known stock build (own risk)
 # Copies its log to HMGAPI/install.log, shows the result, and restarts the unit.
 # Toolbox and mksh only: the unit has no busybox. ROOT and HMGAPI_USB_DIRS: off-car tests.
 export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin${PATH:+:$PATH}
@@ -48,6 +49,8 @@ fi
 
 [ -n "$ROOT" ] || mount -o remount,rw /system >/dev/null 2>&1   # allowed in this process
 
+# the owner's call: an app_process HMG-API doesn't know yet (install, and its uninstall)
+[ -f "$U/HMGAPI/FORCE" ] && export HMGAPI_FORCE=1
 if [ -f "$U/HMGAPI/UNINSTALL" ] || [ -f "$U/HMGAPI/UNINSTALL-PURGE" ]; then
     if [ ! -f "$ROOT/data/hmgapi/uninstall.sh" ]; then
         toast "HMG-API isn't installed. Nothing was changed."

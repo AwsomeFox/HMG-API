@@ -102,7 +102,7 @@ elif [ -n "$known" ]; then
 elif [ "$HMGAPI_FORCE" = 1 ]; then
     log "WARNING: app_process md5 $HAVE isn't a known stock build; HMGAPI_FORCE=1, going on at your own risk"
 else
-    fail "app_process md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk, set HMGAPI_FORCE=1."
+    fail "app_process md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk: an empty file HMGAPI/FORCE on the USB stick, or HMGAPI_FORCE=1 over adb."
 fi
 
 # /data/hmgapi: root only (NEMESIS runs commands with umask 0)
