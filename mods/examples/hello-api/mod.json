@@ -1,0 +1,12 @@
+{
+  "id": "hello-api",
+  "name": "Hello API (example mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "Template for a mod other mods build on: exports example.helloapi.api and publishes a Greeter.",
+  "live": true,
+  "api": { "packages": ["example.helloapi.api"] },
+  "hooks": { "jar": "hooks.jar", "entry": "example.helloapi.impl.HelloApi", "points": {} }
+}

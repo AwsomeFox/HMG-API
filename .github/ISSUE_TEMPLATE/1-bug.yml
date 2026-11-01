@@ -1,0 +1,40 @@
+name: Something doesn't work
+description: A bug in HMG-API or one of its mods.
+title: "Bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please don't post your VIN, serial numbers, phone numbers or account details: nothing here needs them.
+        A **Car Report** (HMG-API app → Car Report) helps a lot: attach its `.json` file from the USB stick (folder "HMG-API reports").
+  - type: input
+    id: car
+    attributes:
+      label: Car
+      description: Make, model, year and region, e.g. "Kia EV6 2023, US".
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Head unit software
+      description: From the Car Report, or Settings → General → Software info (e.g. 260507).
+  - type: input
+    id: version
+    attributes:
+      label: HMG-API version and mods
+      description: Shown at the top of the HMG-API app, and the mods you have on.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log
+      description: HMG-API app → Logs → "Warnings and errors" (a photo is fine), or attach a Car Report.
+      render: text

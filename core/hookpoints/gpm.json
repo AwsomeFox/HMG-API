@@ -1,0 +1,249 @@
+{
+  "app": "gpm",
+  "package": "com.google.android.projection.sink",
+  "files": [
+    "/system/app/HKMC_GPM.odex"
+  ],
+  "points": [
+    {
+      "id": "gpm.navigation_status",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.protocol.NavigationStatus"
+      }
+    },
+    {
+      "id": "gpm.navigation_status.init",
+      "kind": "method",
+      "of": "gpm.navigation_status",
+      "find": {
+        "name": "init",
+        "params": [
+          "int",
+          "long",
+          "int",
+          "com.google.android.projection.proto.Protos$NavigationStatusService$InstrumentClusterType",
+          "int",
+          "int",
+          "int"
+        ],
+        "ret": "boolean"
+      },
+      "about": "tells the phone what the cluster takes: IMAGE (pictures) or ENUM (turn data)"
+    },
+    {
+      "id": "gpm.navigation_status.next_turn",
+      "kind": "method",
+      "of": "gpm.navigation_status",
+      "find": {
+        "name": "navigationNextTurnCallback",
+        "params": [
+          "java.lang.String",
+          "int",
+          "int",
+          "byte[]",
+          "int",
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "the phone's next turn (road, side, event, image, angle, number), from the AA library"
+    },
+    {
+      "id": "gpm.navigation_status.next_turn_distance",
+      "kind": "method",
+      "of": "gpm.navigation_status",
+      "find": {
+        "name": "navigationNextTurnDistanceCallback",
+        "params": [
+          "int",
+          "int",
+          "int",
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "distance to the next turn (meters, time, display distance x1000, unit)"
+    },
+    {
+      "id": "gpm.navigation_status.status",
+      "kind": "method",
+      "of": "gpm.navigation_status",
+      "find": {
+        "name": "navigationStatusCallback",
+        "params": [
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "the phone's guidance status (1 active, 2 inactive, 3 rerouting)"
+    },
+    {
+      "id": "gpm.navigation_status.receiver",
+      "kind": "field",
+      "of": "gpm.navigation_status",
+      "find": {
+        "name": "mGalReceiver",
+        "type": "@gpm.receiver"
+      }
+    },
+    {
+      "id": "gpm.cluster_type",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.proto.Protos$NavigationStatusService$InstrumentClusterType"
+      }
+    },
+    {
+      "id": "gpm.cluster_type.enum",
+      "kind": "field",
+      "of": "gpm.cluster_type",
+      "find": {
+        "name": "ENUM",
+        "type": "@gpm.cluster_type",
+        "static": true
+      }
+    },
+    {
+      "id": "gpm.cluster_type.image",
+      "kind": "field",
+      "of": "gpm.cluster_type",
+      "find": {
+        "name": "IMAGE",
+        "type": "@gpm.cluster_type",
+        "static": true
+      }
+    },
+    {
+      "id": "gpm.receiver",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.protocol.GalReceiver"
+      },
+      "about": "GPM's link to the AA library for one connection"
+    },
+    {
+      "id": "gpm.receiver.send_navigation_focus",
+      "kind": "method",
+      "of": "gpm.receiver",
+      "find": {
+        "name": "sendNavigationFocusState",
+        "params": [
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "the car answers who navigates: the car's own navigation (native) or the phone (projected)"
+    },
+    {
+      "id": "gpm.receiver.focus_native",
+      "kind": "field",
+      "of": "gpm.receiver",
+      "find": {
+        "name": "NAVIGATION_FOCUS_STATE_NATIVE",
+        "type": "int",
+        "static": true
+      }
+    },
+    {
+      "id": "gpm.receiver.destroy",
+      "kind": "method",
+      "of": "gpm.receiver",
+      "find": {
+        "name": "destroy",
+        "params": [],
+        "ret": "void"
+      },
+      "about": "the connection ends"
+    },
+    {
+      "id": "gpm.receiver_service",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.service.GalReceiverService"
+      },
+      "about": "GPM's service: Android Auto sessions (wired, wireless)"
+    },
+    {
+      "id": "gpm.receiver_service.disconnected",
+      "kind": "method",
+      "of": "gpm.receiver_service",
+      "find": {
+        "name": "onDisconnected",
+        "params": [
+          "int",
+          "boolean",
+          "int"
+        ],
+        "ret": "void",
+        "strings": [
+          "==> onDisconnected retry="
+        ]
+      },
+      "about": "a session ended, also when the phone is just gone (ping timeout, Wi-Fi off), where destroy isn't called"
+    },
+    {
+      "id": "gpm.video_sink",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.protocol.VideoSink"
+      },
+      "about": "Android Auto's video sink (what the car offers the phone)"
+    },
+    {
+      "id": "gpm.video_sink.nearest",
+      "kind": "method",
+      "of": "gpm.video_sink",
+      "find": {
+        "name": "nearestVideoConfiguration",
+        "params": [
+          "int",
+          "int",
+          "int",
+          "int",
+          "int",
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "one video setting: (width, height, density, real density, fps, depth); density is what AA DPI changes"
+    },
+    {
+      "id": "gpm.sensor_source",
+      "kind": "class",
+      "find": {
+        "name": "com.google.android.projection.protocol.SensorSource"
+      },
+      "about": "Android Auto's sensor service"
+    },
+    {
+      "id": "gpm.sensor_source.init",
+      "kind": "method",
+      "of": "gpm.sensor_source",
+      "find": {
+        "name": "init",
+        "params": [
+          "int",
+          "long",
+          "int[]",
+          "int",
+          "int[]",
+          "int[]"
+        ],
+        "ret": "boolean"
+      },
+      "about": "(type, native, sensors offered to the phone, location, fuel types, EV connector types): once per connection"
+    },
+    {
+      "id": "gpm.sensor_source.speed",
+      "kind": "field",
+      "of": "gpm.sensor_source",
+      "find": {
+        "name": "SENSOR_TYPE_SPEED",
+        "type": "int",
+        "static": true
+      },
+      "about": "the speed sensor (offered: the phone limits taps while moving)"
+    }
+  ]
+}

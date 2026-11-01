@@ -1,0 +1,17 @@
+out/
+*.pyc
+__pycache__/
+tools/mock/cars.local
+tools/map-trees.local
+HANDOFF.md
+tools/hook-trees.local
+# never in the repo: signing keys, stock firmware, reports from cars
+*.p12
+*.jks
+*.keystore
+*.key
+*.pass
+*.odex
+*.apk
+*.img
+car-report-*.json

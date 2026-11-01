@@ -1,0 +1,175 @@
+{
+  "app": "panel",
+  "package": "com.mobis.splitscreen.right",
+  "files": [
+    "/system/app/RightScreenHome.odex"
+  ],
+  "patterns": {
+    "test_slot": {
+      "in": "com.mobis.splitscreen.right.SplitScreenHome",
+      "regex": "invoke-static \\{\\}, Lcom/mobis/splitscreen/right/(?P<gate>[\\w/]+);->(?P<gate_m>\\w+)\\(\\)Z\\nmove-result v0\\nif-eqz v0, :cond_\\w+\\niget-object v0, p0, Lcom/mobis/splitscreen/right/SplitScreenHome;->(?P<test_f>\\w+):Lcom/mobis/splitscreen/right/(?P<test>subviewExample/\\w+);\\ngoto(/16)? :goto_\\w+"
+    }
+  },
+  "points": [
+    {
+      "id": "panel.home",
+      "kind": "class",
+      "find": {
+        "name": "com.mobis.splitscreen.right.SplitScreenHome"
+      },
+      "about": "the right-hand split-screen panel (a persistent system service drawing its own window)"
+    },
+    {
+      "id": "panel.page",
+      "kind": "class",
+      "find": {
+        "package": "com.mobis.splitscreen.right",
+        "fields": [
+          {
+            "name": "viewId",
+            "type": "int"
+          },
+          {
+            "name": "mView",
+            "type": "android.view.View"
+          },
+          {
+            "name": "mContext",
+            "type": "android.content.Context"
+          },
+          {
+            "name": "mHandler",
+            "type": "android.os.Handler"
+          }
+        ],
+        "methods": [
+          {
+            "name": "getView",
+            "params": [],
+            "ret": "android.view.View"
+          }
+        ]
+      },
+      "about": "base class of every panel page"
+    },
+    {
+      "id": "panel.page.view_id",
+      "kind": "field",
+      "of": "panel.page",
+      "find": {
+        "name": "viewId",
+        "type": "int"
+      }
+    },
+    {
+      "id": "panel.page.view",
+      "kind": "field",
+      "of": "panel.page",
+      "find": {
+        "name": "mView",
+        "type": "android.view.View"
+      }
+    },
+    {
+      "id": "panel.page.context",
+      "kind": "field",
+      "of": "panel.page",
+      "find": {
+        "name": "mContext",
+        "type": "android.content.Context"
+      }
+    },
+    {
+      "id": "panel.page.handler",
+      "kind": "field",
+      "of": "panel.page",
+      "find": {
+        "name": "mHandler",
+        "type": "android.os.Handler"
+      }
+    },
+    {
+      "id": "panel.home.page_for_id",
+      "kind": "method",
+      "of": "panel.home",
+      "find": {
+        "params": [
+          "int"
+        ],
+        "ret": "@panel.page",
+        "strings": [
+          ">>>>>> getSplitScreenViewFromId is not matched viewId = "
+        ]
+      },
+      "about": "the page for a view id"
+    },
+    {
+      "id": "panel.home.build_views",
+      "kind": "method",
+      "of": "panel.home",
+      "find": {
+        "params": [
+          "int",
+          "boolean",
+          "int"
+        ],
+        "ret": "void",
+        "code": "const/16 v\\d+, 0x16\\niget-object v\\d+, p0, Lcom/mobis/splitscreen/right/SplitScreenHome;->\\w+:Lcom/mobis/splitscreen/right/subviewExample/"
+      },
+      "about": "builds the panel's view list by id (slot 22 is the test page's)"
+    },
+    {
+      "id": "panel.test_page",
+      "kind": "class",
+      "find": {
+        "pattern": "test_slot",
+        "class_group": "test",
+        "package": "com.mobis.splitscreen.right"
+      },
+      "about": "Mobis' unused test page (slot 22, getView returns null): HMG-API's page"
+    },
+    {
+      "id": "panel.test_page.get_view",
+      "kind": "method",
+      "of": "panel.test_page",
+      "find": {
+        "name": "getView",
+        "params": [],
+        "ret": "android.view.View"
+      }
+    },
+    {
+      "id": "panel.home.test_page",
+      "kind": "field",
+      "of": "panel.home",
+      "find": {
+        "pattern": "test_slot",
+        "group": "test_f",
+        "type": "@panel.test_page"
+      },
+      "about": "never set by stock code"
+    },
+    {
+      "id": "panel.test_gate",
+      "kind": "class",
+      "find": {
+        "pattern": "test_slot",
+        "class_group": "gate",
+        "package": "com.mobis.splitscreen.right"
+      }
+    },
+    {
+      "id": "panel.test_gate.on",
+      "kind": "method",
+      "of": "panel.test_gate",
+      "find": {
+        "pattern": "test_slot",
+        "group": "gate_m",
+        "params": [],
+        "ret": "boolean",
+        "static": true
+      },
+      "about": "Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views)"
+    }
+  ]
+}

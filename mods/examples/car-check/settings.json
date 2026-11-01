@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "key": "voice",
+      "type": "choice",
+      "default": "off",
+      "title": "Steering wheel voice button",
+      "description": "Which press Car Check takes. The other one stays the car's: a long press is the phone's assistant while Android Auto or CarPlay is on.",
+      "options": [
+        {
+          "value": "phone",
+          "title": "Press: phone assistant (Android Auto/CarPlay), stays open after you let go"
+        },
+        {
+          "value": "phone_ptt",
+          "title": "Press: phone assistant; hold: phone assistant that ends when you let go"
+        },
+        {
+          "value": "short",
+          "title": "Press: Car Check notice (the long press stays the phone's assistant)"
+        },
+        {
+          "value": "hold",
+          "title": "Hold: Car Check notice (a press stays the car's assistant)"
+        },
+        {
+          "value": "off",
+          "title": "Off (the car keeps both)"
+        }
+      ]
+    }
+  ]
+}

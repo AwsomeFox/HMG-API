@@ -1,0 +1,35 @@
+name: Car or firmware support (Car Report)
+description: Ask for a car, region or head unit software version HMG-API doesn't support yet, or send what's missing on yours.
+title: "Car Report: "
+labels: [car-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The easiest way: HMG-API app → **Car Report** → Make report, then scan the QR code; this form opens filled in.
+        Attach the report file from the USB stick (folder "HMG-API reports").
+        The report holds model-level facts only (model, region, software version, which hook points your car has). No VIN, serial numbers, phone numbers or account details.
+
+        HMG-API supports each region's newest head unit software. If yours is older, updating it is usually the quickest fix.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Report summary
+      description: Filled in by the QR code. Without HMG-API installed, write your car, region and head unit software version here.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What do you need?
+      options:
+        - A car or region that isn't supported
+        - A newer head unit software version
+        - Something missing on a supported car (a mod doesn't load)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Trim, navigation or not, HUD, what you'd like to use.

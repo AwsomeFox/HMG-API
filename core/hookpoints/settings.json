@@ -1,0 +1,32 @@
+{
+  "app": "settings",
+  "package": "com.android.settings",
+  "files": [
+    "/system/app/Settings_W.odex"
+  ],
+  "points": [
+    {
+      "id": "settings.split_screen",
+      "kind": "class",
+      "find": {
+        "name": "com.android.settings.util.SplitScreenUtils"
+      },
+      "about": "Settings' split-screen page list helpers"
+    },
+    {
+      "id": "settings.split_screen.supported",
+      "kind": "method",
+      "of": "settings.split_screen",
+      "find": {
+        "name": "isSupportViewId",
+        "params": [
+          "android.content.Context",
+          "int"
+        ],
+        "ret": "boolean",
+        "static": true
+      },
+      "about": "is a panel view id supported here (unsupported ones are dropped from the page lists)"
+    }
+  ]
+}

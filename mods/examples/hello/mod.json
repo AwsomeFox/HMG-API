@@ -1,0 +1,10 @@
+{
+  "id": "hello",
+  "name": "Hello (example mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=0.1.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "Template for mods with code: logs from the zygote and the launcher, using its greeting setting.",
+  "hooks": { "jar": "hooks.jar", "entry": "example.hello.Hello" }
+}

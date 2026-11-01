@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "settings": [
+    { "key": "who", "type": "text", "default": "driver", "title": "Who to greet", "apply": "live" }
+  ]
+}

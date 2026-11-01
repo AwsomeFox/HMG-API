@@ -1,0 +1,73 @@
+# HMG-API: notes for Claude
+
+HMG-API (1.0.0, in development) is a mod manager for Hyundai/Kia/Genesis **Gen5W** head units (Telechips TCC803x/TCC897x, Android 4.4.2, Dalvik). It replaces HMG Leafia Plus 1.x (separate, archived repo). It can install through NEMESIS (xwtk/hmg_nemesis, AGPL-3.0), over adb, or with NEMESIS's DSP OTA entry. Maintainer: VysseCodes (Ko-fi vyssecodes). Reference car: 2023 Kia EV6 (CVEV.USA, firmware 260507, with HUD).
+
+## Working conventions
+
+- Root on a head unit: `hmgapid sh '...'` once hmgapid runs (`hmgapid` client works as the shell user). Before that, through NEMESIS: `adb shell /data/local/tmp/nemesis-d root -c '...'` (a non-SUID copy of `/system/xbin/nemesis`; plain `nemesis root -c` from adb is a weak root, see Gotchas).
+- Anything that writes to `/system` keeps a stock checksum gate, a one-time backup, and an uninstall that restores the exact stock bytes.
+- Test off-car first (`tools/test-all.sh`, the mock head unit), and say which cars a change was tested on.
+- Commits: plain words. No links to Claude chats or sessions, no `Claude-Session:` trailers. A `Co-Authored-By: Claude` line is fine.
+- `out/` is never committed. Signing keys live outside the repo (`~/hmg-private/keys`).
+
+## Hard rules (no overrides)
+
+- Never collect or publish per-car secrets: `/data` contents, the telesecurity partition, certificates/keys, account tokens, VIN, serials, SIM/IMEI/phone numbers. Model-level firmware keys only privately, with consent.
+- The repo holds **no full manufacturer apps or libraries**. Allowed: hash-only recipes, delta patch sets (`patches/`), checksums, our own code.
+
+## Recommendations (warn, then follow the user)
+
+Owners get to decide for their own units. Follow these by default. If the user asks to go against one, say the risk in a line or two, then do what they asked. HMG-API does the same for its users: a warning plus an override, never a silent block.
+
+- Only each car's newest firmware for its region is supported (US 260507, Canada 260206; each region has its own builds, so `patches/cars` and `compat.json` match the full region, e.g. `CVEV.USA.`). Don't port older firmware by default; ask the owner to update the head unit. On a known car with other firmware the installer falls back to basic mode and says to update (`MODE_UPDATE`).
+- Don't flash MICOM, the bootloader or modem firmware, or firmware meant for another car: these can brick the unit or the car beyond what a USB stick can fix.
+- Don't send our own CAN frames. Send vehicle commands through the stock services (BCMManager etc.), and review each new one on its own first.
+
+## Facts
+
+- Gen5W is only in navigation trims; non-navigation trims have a "Display Audio" head unit (e.g. Display Audio Gen2V on the Tucson), unsupported and absent from the update catalogue.
+- Korea: no Korean car confirmed working (every unit checked had no Wi-Fi hardware), so Korean cars are on no list; reports are still welcome.
+
+## Layout
+
+| Path | What |
+|---|---|
+| `core/hmgapid` | root daemon + client, static ARM (no libc). Ops per caller uid (root/shell: all incl. `sh`, `remount`; `hmgapi.app`: HMG-API ops; others: `ping`). Abstract socket `@hmgapid`. |
+| `core/zygote` | `app_process` wrapper (installed as `/system/bin/app_process`, stock kept as `app_process.hmgapi-stock`): `LD_PRELOAD` for the zygote when `/data/hmgapi/hook/enable`, boot guard (`hook/starts`, watcher resets after 120 s). |
+| `core/loader` | `libhmgapi_hook.so`: interposes `JNI_CreateJavaVM`, loads `/system/framework/hmgapi-hook.jar` before `ZygoteInit.main`, Dalvik method hooks (Xposed-style, offsets checked on the EV6 libdvm). |
+| `core/runtime` | `hmgapi-hook.jar`: `Bridge`, `Hooks`, `MethodHook`, `ModEntry`/`ModContext`/`LoadedApp` (mod API), `Mods` (loader), launcher/editor hooks (`HMG-API`), ★ choices (`StarKey`). |
+| `core/app` | `hmgapi.app`: status + mod list (from `HmgApiStatus.json`, set by the hooks). |
+| `install/` | `adb/`, `nemesis/`, `usb/`, `common/` (planned); `dev/`: the scripts used to bring up the core on a car. |
+| `mods/examples` | `hello`, `nemesis-shortcut`. |
+| `tools/` | `lpatch`, `mkrecipe.py`, `mkdelta.py`, `env.sh`, `push-dev.sh`, `test-all.sh`; `map-car.py` (partial maps), `test-hooks.py` (points × cars, `maps/coverage.json`), `probe-test.py` (on-car mapper vs map-car.py); cars in `tools/hook-trees.local` (private). |
+
+## Gotchas learned the hard way
+
+- **Deodex with `baksmali x -a 18`**, against the car's own framework dir with the full BOOTCLASSPATH order (core, conscrypt, okhttp, core-junit, bouncycastle, ext, framework, framework2, telephony-common, voip-common, mms-common, android.policy, services, apache-xml, webviewchromium, automotive) plus every other framework odex. `-a 19` silently mis-maps instance fields (KitKat libcore Object fields) and skips classes.
+- Abstract Binder stubs implementing in-app interfaces can still deodex with wrong method names; compare against a known-good build before trusting a class.
+- System apps: PackageManager only verifies `AndroidManifest.xml`, so stock APK + injected `classes.dex` installs fine; delete the odex and dexopt (`dexopt --preopt apk odex m=y,u=n`).
+- Every outgoing SMS on these units needs `android.permission.TMSC_SEND` (Mobis) as well as `SEND_SMS`. Only system-uid callers pass: `nemesis root 1000 -c 'service call isms 5 s16 android s16 <number> i32 -1 s16 <text> i32 0 i32 0'`.
+- `adb shell "nemesis root -c ..."` is a weak root on these units: `/system/xbin/nemesis` is SUID and the SUID bit works, so it runs locally instead of through the daemon, limited by adbd's capability bounding set (CapEff `0xc0`, only SETUID/SETGID). No remount, chown or DAC override (`/data/misc/adb` unreadable); setprop and `service call` still work. For full root from ADB use a non-SUID copy, which goes through the daemon: `adb shell cp /system/xbin/nemesis /data/local/tmp/nemesis-d`, then `adb shell /data/local/tmp/nemesis-d root -c '...'` (CapEff `3fffffffff`). Packages installed from NEMESIS Manager already run with full root. adbd never reads `ro.adb.secure` and there's no `adb_keys`: ADB doesn't check keys, with Android up or down.
+- The main log buffer only holds ~10 s on a running EV6 (BCMCanManager/NavigationCluster CAN status spam), so `logcat -d` misses anything older, boot logs included. Stream instead (`carlog.sh`, or `adb shell logcat -v time -s <tag>:V` as the shell user, which is in the `log` group). `nemesis-d root -c` buffers all output until the command ends, so don't stream through it. The NEMESIS daemon runs commands with umask 0: files our scripts create are world-writable unless the script sets `umask 077`.
+- Installing an app (`pm install`/`adb install`) while `sys.boot_completed` is 1: only OEM-allowlisted signers pass; anything else fails with `INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES` (whatever the digest). Set `sys.boot_completed` to 0 for the `pm install` call only, then back (NEMESIS does the same; `src/hmgapi-app/unit/install.sh`). Root needed, the weak SUID root is enough.
+- NEMESIS watchdog can fail to start after a reboot: `pidfile_is()` (`native/util.c`) treats the old pidfile's pid + start time as "already running" without checking the name, and boots are repeatable enough that another process (seen: a surfaceflinger thread, pid 189 at tick 268) lands on the same pair. Log shows `watchdog stale pidfile pid=N, starting` then only `already running`; `nemesis-d` says `daemon not running`. Fix: `adb shell "nemesis root -c 'rm /data/nemesis/watchdog.pid'"`, restart. HMG-API's zygote wrapper shifts early pid numbering, so it makes the collision more likely; the bug is NEMESIS's.
+- Freestanding ARM code (hmgapid, the zygote wrapper, lpatch) must use EABI system calls only: `time` (13) is OABI-only and the head units answer -ENOSYS, while qemu-arm in the off-car tests still emulates it (hmgapid's clock read -38 on the car, so its 5-second timers never fired). Use `clock_gettime` (263). Check any new syscall number against the EABI table.
+- Map a car only from **stock** files: `~/hmg-private/stock/ev6-sysimg` is a post-install image (DiPO, GPM and iAP2 modified by Leafia), so its map fails `verify-map` on a stock car. For the US EV6, use `~/hmg-private/stock/ev6/app` on top of `ev6-sysimg` (framework and the other apps); check the `car.json` md5s against the car.
+- The car's ADB TCP switch (`persist.service.adb.tcp.enable=1`; Engineering Mode, NEMESIS's Enable ADB) runs `ifconfig eth0 192.168.0.123` (`init.daudio.rc`, service `set_adb_ip`). The hotspot is `wlan0` `192.168.0.1/24` (stock), so the kernel sends DHCP offers out of `eth0` and phones join the hotspot but get no address: wireless CarPlay/Android Auto fail. Leafia moved adb over network to `persist.adb.tcp.port` at install and put the switch back at uninstall, which is how it came back on the EV6 after the move to HMG-API. The `adb` mod holds the switch at 0; the engine warns when it's on with a wireless mod and no `adb` mod.
+- Keys on 260507 reach `ModeKeyDispatcher.interceptKeyFromAndroid` (WindowManagerService.interceptKey, from the key policy's dispatch step; the queueing step calls it only before boot). `ModeManagerService.interceptKeyBefore*` exist but are never called.
+- No `tail` on the unit; use shell loops. Remount only through `nemesis remount rw|ro`: toolbox `mount -o remount` is refused even as root (NEMESIS before 1.15 could also EPERM until reboot; 1.15 fixed it and puts a `mount` wrapper first on hook PATH). Featurexml region comes from `ro.mobis.targetdir`.
+- First start after an install was slow because our APKs carry `classes.dex`: for such an APK the boot check (`dvmDexCacheStatus`) looks only in `/data/dalvik-cache`, never at the odex beside it, so the package manager re-optimised every changed app at boot (entries dated with the boot clock, 2015-01-01 04:30). Each part now copies its odex into `/data/dalvik-cache/system@app@<App>.apk@classes.dex` after `wipe_dalvik` (`prefill_dalvik`); confirmed on a US EV6 (entries keep the install time). On these units `BOOTCLASSPATH` is in `/init.environ.rc`, not `/init.rc`.
+- With Android up, the install/uninstall swapped files under running apps (DiPO/iAP2 crash loop "is package not installed?", SIGBUS). `apps_hold`/`apps_release` (`scripts/common.sh`) `pm disable` the five apps whose files change (GPM, DiPO, iAP2, navigation, BtSettings) for the swap and enable them on every way out; the list is in `/data/nemesis/wireless.carplay.aa.stopped` until then. An uninstall runs the previously installed package's scripts.
+- A USB drive in the port makes GPM start a wired Android Auto attempt (`StartReceiver: USB_DEVICE_ATTACHED`, `isStartConnection, mode: 1`), and `GalConnectionManager` (stock) can stay in "Already AA Starting mode" so wireless attempts are refused ("Already AA connecting, not start connect!") until it times out or the head unit restarts. Switching the car off and on doesn't restart the head unit (it stays on until the driver's door opens or a timeout). The turn-by-turn GPM build (`~/hmg-private/tools/srcfix/apply7.py`) now skips the wired start when every interface of the attached device is mass storage (8) or hub (9) (`StartReceiver.leafiaNotPhone`, logs `HMG-API: USB drive or hub, not starting wired Android Auto`); phones and devices with no interfaces start as before.
+- Toast: `am broadcast -a com.hkmc.intent.action.TOAST -e com.hkmc.intent.extra.TOAST_MESSAGE "..." --ez com.hkmc.intent.extra.TOAST_POPUPSHOWING true`.
+- Hook runtime facts (EV6 libdvm, all as AOSP 4.4): `sizeof(Method)` 0x38, `ClassObject.directMethods` 0x64 / `virtualMethods` 0x6c / `primitiveType` 0x44, `Method.insns` 0x20 / `nativeFunc` 0x28, `ArrayObject` data at 0x10. Stock ARM `app_process` re-execs itself once (`NO_ADDR_COMPAT_LAYOUT_FIXUP=1`): the wrapper counts and preloads on the first pass only. The zygote unsets `LD_PRELOAD` once Dalvik is up.
+- Launcher_WP3 and HomeSetting only keep saved menu items that are on their hard-coded lists; HMG-API adds entries to those lists (`a/g.load()`, `allmenuedit/z.load()`) with made-up resource ids (`0x7f7e00xx`) answered by `Resources` hooks. Saved HMG-API items use `itemId` 9000+.
+- ★ keys: the saved action is the intent action a press sends (startService + ordered broadcast). ButtonSettings lists: `CustomButtonSetting` (head unit), `CustomButtonSettingSWRC` (wheel); HMG-API adds rows after `initList()` and skips `initCustomKey()` while a mod's action is selected. Ids `0x7f7d00xx`.
+- OTA updates: `com.hkmc.system.app.OTAClient` (HKMC_DMClient_OTA, Redbend vDM: FUMO/SCOMO/SCINV/LAWMO, infotainment + map + other control units) downloads them, all networking in Java. Engineering Mode's DSP "Update OTA" (the NEMESIS/HMG-API USB install path) also needs it: `DspUpdate` copies `ota_package.tar` and broadcasts `OTA_DEBUG_SET_TO_DL_ENDED`, which only OTAClient handles before MAP_PREPARE. So never `pm disable` it; HMG-API's "updates" option (default off) hooks `libcore.io.IoBridge.connect` in its processes (before `handleBindApplication`) to refuse non-loopback connects, and turns `Settings.System gen_auto_update` (Settings → General → "Install Infotainment System Updates Automatically") off. A USB stick and USB adb can't be used at the same time (the port is in device mode for adb).
+- This head unit's activity manager checks `GET_TASKS` even in `Activity.finish()` (NEMESIS Manager's close button crashes on it); HMG-API's app declares it.
+- Library for the zygote: built against the unit's own `libc.so`/`liblog.so`/`libdl.so` (no NDK), `--hash-style=sysv`; bionic 4.4 `setuid()` is per-thread (no threads started in a forked child to act as system_server).
+
+## Testing without a car
+
+`tools/test-all.sh`: hmgapid (real daemon/client under qemu-arm), zygote wrapper, lpatch, and the dev install scripts (needs an ARM busybox and a stock `app_process`). Stock trees and full builds stay out of the repo (`~/hmg-private`).
+

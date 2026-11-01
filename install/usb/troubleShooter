@@ -1,0 +1,85 @@
+#!/system/bin/sh
+# HMG-API's USB installer, for a head unit with nothing installed yet (NEMESIS not
+# needed). Engineering Mode > USB Copy > DSP > Update OTA extracts ota_package.tar
+# from the stick and runs this as root, before it checks for a signed update (it
+# then shows error 684: expected, nothing is undone). Works on the HMGAPI folder of
+# the same stick:
+#   HMGAPI/install/payload/   install, or update an installed HMG-API
+#   HMGAPI/UNINSTALL          uninstall instead (HMGAPI/UNINSTALL-PURGE: also /data/hmgapi)
+# Copies its log to HMGAPI/install.log, shows the result, and restarts the unit.
+# Toolbox and mksh only: the unit has no busybox. ROOT and HMGAPI_USB_DIRS: off-car tests.
+export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin${PATH:+:$PATH}
+export LD_LIBRARY_PATH=/vendor/lib:/system/lib
+umask 077
+ROOT=${ROOT:-}
+STAGE=$ROOT/data/local/tmp/hmgapi-usb
+
+toast() {
+    echo "$1"
+    [ -n "$ROOT" ] && return
+    am broadcast -a com.hkmc.intent.action.TOAST -e com.hkmc.intent.extra.TOAST_MESSAGE "$1" \
+        --ez com.hkmc.intent.extra.TOAST_POPUPSHOWING true >/dev/null 2>&1
+}
+
+# restart once the DSP agent has the result; the rest runs from /data (deleting
+# /storage/upgrade cuts off this script, which lives there)
+finish() {
+    [ -n "$ROOT" ] && exit "$1"
+    sync
+    cat > /data/local/tmp/hmgapi-ota-finish.sh << 'END'
+#!/system/bin/sh
+sleep 8
+rm -rf /storage/upgrade/*
+sync
+reboot
+END
+    chmod 755 /data/local/tmp/hmgapi-ota-finish.sh
+    exec /data/local/tmp/hmgapi-ota-finish.sh
+}
+
+U=
+for d in ${HMGAPI_USB_DIRS:-/storage/usb0 /storage/usb1 /storage/usb2 /mnt/media_rw/usb0 /mnt/media_rw/usb1 /mnt/media_rw/usb2}; do
+    if [ -d "$d/HMGAPI" ]; then U=$d; break; fi
+done
+if [ -z "$U" ]; then
+    toast "HMG-API: no HMGAPI folder on the USB stick. Nothing was changed."
+    finish 1
+fi
+
+[ -n "$ROOT" ] || mount -o remount,rw /system >/dev/null 2>&1   # allowed in this process
+
+if [ -f "$U/HMGAPI/UNINSTALL" ] || [ -f "$U/HMGAPI/UNINSTALL-PURGE" ]; then
+    if [ ! -f "$ROOT/data/hmgapi/uninstall.sh" ]; then
+        toast "HMG-API isn't installed. Nothing was changed."
+        finish 1
+    fi
+    toast "HMG-API: uninstalling..."
+    PURGE=
+    [ -f "$U/HMGAPI/UNINSTALL-PURGE" ] && PURGE=--purge
+    sh "$ROOT/data/hmgapi/uninstall.sh" $PURGE > "$STAGE.log" 2>&1
+    rc=$?
+    cp "$STAGE.log" "$U/HMGAPI/install.log" 2>/dev/null
+    rm -f "$STAGE.log"
+    if [ $rc = 0 ]; then toast "HMG-API uninstalled, restarting."; else toast "HMG-API uninstall failed: see HMGAPI/install.log on the stick."; fi
+    finish $rc
+fi
+
+P=$U/HMGAPI/install/payload
+if [ ! -f "$P/MANIFEST" ]; then
+    toast "HMG-API: no HMGAPI/install/payload on the USB stick. Nothing was changed."
+    finish 1
+fi
+toast "HMG-API $(cat "$P/VERSION" 2>/dev/null): installing..."
+# from /data: the stick may be pulled, and it may not allow running files
+rm -r "$STAGE" 2>/dev/null
+mkdir -p "${STAGE%/*}" && cp -r "$P" "$STAGE" || { toast "HMG-API: can't copy from the USB stick. Nothing was changed."; finish 1; }
+sh "$STAGE/install.sh" "$STAGE" > "$STAGE.log" 2>&1
+rc=$?
+cp "$STAGE.log" "$U/HMGAPI/install.log" 2>/dev/null
+rm -r "$STAGE" "$STAGE.log" 2>/dev/null
+if [ $rc = 0 ]; then
+    toast "HMG-API installed, restarting."
+else
+    toast "HMG-API install failed: see HMGAPI/install.log on the stick."
+fi
+finish $rc

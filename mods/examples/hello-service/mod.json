@@ -1,0 +1,15 @@
+{
+  "id": "hello-service",
+  "name": "Hello Service (example mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "Template for a mod that runs a background service: started and watched by HMG-API, with its own folder, log, settings, USB folder and vehicle readings.",
+  "live": true,
+  "services": [
+    { "name": "hello", "script": "svc/hello.sh", "user": "system", "start": "android", "restart": true }
+  ],
+  "usb": ["HelloService"],
+  "vehicle": { "read": ["gear.park", "speed", "battery12v.soc"] }
+}

@@ -1,0 +1,123 @@
+{
+  "app": "homesetting",
+  "package": "com.hkmc.system.app.homesetting",
+  "files": [
+    "/system/app/HKMC_HomeSetting_WP.odex"
+  ],
+  "points": [
+    {
+      "id": "homesetting.edit_list",
+      "kind": "class",
+      "find": {
+        "package": "com.hkmc.system.app.homesetting",
+        "super": "java.lang.Object",
+        "ctors": [
+          [
+            "android.content.Context"
+          ]
+        ],
+        "fields": [
+          {
+            "type": "java.util.List",
+            "static": true
+          },
+          {
+            "name": "mContext",
+            "type": "android.content.Context"
+          }
+        ],
+        "methods": [
+          {
+            "name": "getContext",
+            "params": [],
+            "ret": "android.content.Context"
+          },
+          {
+            "name": "load",
+            "params": [],
+            "ret": "boolean"
+          },
+          {
+            "name": "getCount",
+            "params": [],
+            "ret": "int"
+          }
+        ]
+      },
+      "about": "Edit menu's list of entries (as the launcher's, so the tile can be moved and saved)"
+    },
+    {
+      "id": "homesetting.edit_list.load",
+      "kind": "method",
+      "of": "homesetting.edit_list",
+      "find": {
+        "name": "load",
+        "params": [],
+        "ret": "boolean"
+      }
+    },
+    {
+      "id": "homesetting.edit_list.items",
+      "kind": "field",
+      "of": "homesetting.edit_list",
+      "find": {
+        "type": "java.util.List",
+        "static": true
+      }
+    },
+    {
+      "id": "homesetting.edit_list.get_context",
+      "kind": "method",
+      "of": "homesetting.edit_list",
+      "find": {
+        "name": "getContext",
+        "params": [],
+        "ret": "android.content.Context"
+      }
+    },
+    {
+      "id": "homesetting.edit_entry",
+      "kind": "class",
+      "find": {
+        "package": "com.hkmc.system.app.homesetting",
+        "ctors": [
+          [
+            "@homesetting.edit_list",
+            "android.content.Context",
+            "java.lang.String",
+            "java.lang.String",
+            "int",
+            "int",
+            "int"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "homesetting.edit_entry.new",
+      "kind": "ctor",
+      "of": "homesetting.edit_entry",
+      "find": {
+        "params": [
+          "@homesetting.edit_list",
+          "android.content.Context",
+          "java.lang.String",
+          "java.lang.String",
+          "int",
+          "int",
+          "int"
+        ]
+      }
+    },
+    {
+      "id": "homesetting.edit_entry.get_class_name",
+      "kind": "method",
+      "of": "homesetting.edit_entry",
+      "find": {
+        "name": "getClassName",
+        "params": [],
+        "ret": "java.lang.String"
+      }
+    }
+  ]
+}

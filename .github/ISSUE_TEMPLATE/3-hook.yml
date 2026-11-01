@@ -1,0 +1,38 @@
+name: New hook point
+description: Ask for a place in the car's software that mods can hook (a mod you're writing needs it).
+title: "Hook: "
+labels: [hook-request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Hook points are HMG-API's stable names for the car's own classes and methods (`core/hookpoints`), mapped for every car.
+        A new one is added to the catalogue, mapped for every car we have files for (`tools/test-hooks.py`), and checked on a real car.
+  - type: input
+    id: app
+    attributes:
+      label: App or framework
+      description: e.g. the Android Auto app (HKMC_GPM), the launcher, the framework (automotive.jar).
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What the mod needs to do
+      description: The behaviour you want to observe or change, not just the method.
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where you found it
+      description: Class and method as baksmali shows them on your car (and its software version), strings in its code, anything that identifies it on other cars.
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How the mod uses it
+      options:
+        - observe (reads arguments or the result)
+        - change (changes arguments or the result)
+        - replace (skips the car's own code)
+        - call (calls it)

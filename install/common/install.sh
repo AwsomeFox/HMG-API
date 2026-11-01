@@ -1,0 +1,195 @@
+#!/system/bin/sh
+# HMG-API: install or update on the head unit, from an unpacked payload folder.
+# Every way in (adb script, NEMESIS package, USB stick) ends up here, as full root:
+#   sh install.sh <payload dir>
+# Puts hmgapid, lpatch, the zygote wrapper, the hook loader and runtime in /system,
+# adds the boot hook, installs the HMG-API app, and turns the hooks on at the next
+# restart. Every /system file it replaces is backed up once (stock bytes, md5
+# checked) into /data/hmgapi/stock; uninstall.sh puts them back.
+# HMGAPI_FORCE=1: go on when app_process isn't a known stock build (own risk).
+# ROOT prefixes every path, for off-car tests only.
+umask 077
+P=${1:-${0%/*}}
+ROOT=${ROOT:-}
+. "$P/lib.sh"
+D=$ROOT/data/hmgapi
+LOG=$D/install.log
+VERSION=$(cat "$P/VERSION" 2>/dev/null)
+
+mkdir -p "$D" 2>/dev/null
+log() { echo "$1"; echo "$1" >> "$LOG" 2>/dev/null; }
+sum() { set -- $(md5 "$1" 2>/dev/null); echo "$1"; }
+REMOUNTED=
+fail() {
+    log "FAIL: $1"
+    [ -n "$REMOUNTED" ] && remount ro >/dev/null 2>&1
+    exit 1
+}
+
+capcheck() {
+    [ "${CAPCHECK:-1}" = 1 ] || return 0
+    local k v
+    while read k v; do [ "$k" = "CapEff:" ] && break; done < /proc/self/status
+    v=${v#????????}
+    [ $((0x$v & 0x200003)) = $((0x200003)) ] && return 0
+    echo "FAIL: not full root (CapEff ${v}). From adb, use install/adb/hmgapi-adb.sh, or run it"
+    echo "through the NEMESIS daemon (a non-SUID copy of nemesis) or hmgapid."
+    exit 1
+}
+
+# remount rw|ro: NEMESIS if it's there, else a running hmgapid, else toolbox
+# mount (refused on these units, even as root, except in the DSP OTA's process,
+# where the USB installer runs)
+remount() {
+    [ -n "$ROOT" ] && return 0
+    if [ -x /system/xbin/nemesis ] && nemesis remount "$1" >/dev/null 2>&1; then return 0; fi
+    "$P/hmgapid" remount "$1" >/dev/null 2>&1 && return 0
+    mount -o remount,"$1" /system >/dev/null 2>&1
+}
+
+# put <payload file> <path> <mode> <group>: copy, md5 check, rename into place
+put() {
+    local src=$P/$1 dst=$ROOT$2 want
+    want=$(sum "$src")
+    [ "$(sum "$dst")" = "$want" ] && return 0
+    cp "$src" "$dst.hmgapi-new" || fail "copy $1"
+    chmod "$3" "$dst.hmgapi-new"; chown root:"$4" "$dst.hmgapi-new" 2>/dev/null
+    [ "$(sum "$dst.hmgapi-new")" = "$want" ] || { rm -f "$dst.hmgapi-new"; fail "md5 mismatch after copying $1"; }
+    mv "$dst.hmgapi-new" "$dst" || { rm -f "$dst.hmgapi-new"; fail "rename onto $2"; }
+    log "installed $2"
+}
+
+# backup <path>: the stock file, once (a later install never overwrites it)
+backup() {
+    local src=$ROOT$1 bak=$D/stock$1
+    [ -f "$bak" ] && return 0
+    mkdir -p "${bak%/*}" || fail "backup folder for $1"
+    if [ -f "$src" ]; then
+        cp "$src" "$bak" || fail "backup $1"
+        [ "$(sum "$bak")" = "$(sum "$src")" ] || { rm -f "$bak"; fail "backup md5 mismatch for $1"; }
+    else
+        : > "$bak.absent"
+        : > "$bak"
+    fi
+}
+
+capcheck
+log "HMG-API $VERSION install $(date)"
+
+# the payload is whole
+while read m f; do
+    [ -n "$f" ] || continue
+    [ "$(sum "$P/$f")" = "$m" ] || fail "payload file $f is damaged or missing (copy it again)"
+done < "$P/MANIFEST"
+
+# a dev build from before the rename (Leafia) has its own wrapper in place: it uninstalls itself first
+if [ -f "$ROOT/system/bin/app_process.leafia-stock" ]; then
+    fail "an earlier dev build (Leafia) is installed. Uninstall it first, as root: sh /data/leafia/uninstall.sh (then restart). Nothing was changed."
+fi
+
+# app_process: stock (a known build), or already our wrapper
+B=$ROOT/system/bin/app_process
+KEEP=$ROOT/system/bin/app_process.hmgapi-stock
+WRAP=$(sum "$P/app_process")
+HAVE=$(sum "$B")
+known=
+while read m label; do [ "$m" = "$HAVE" ] && known=$label; done < "$P/stock.txt"
+if [ "$HAVE" = "$WRAP" ] || { [ -f "$KEEP" ] && [ -f "$D/stock/system/bin/app_process" ]; }; then
+    log "app_process: HMG-API's wrapper is in place (stock kept as app_process.hmgapi-stock)"
+    UPDATE=1
+elif [ -n "$known" ]; then
+    log "app_process: stock ($known)"
+elif [ "$HMGAPI_FORCE" = 1 ]; then
+    log "WARNING: app_process md5 $HAVE isn't a known stock build; HMGAPI_FORCE=1, going on at your own risk"
+else
+    fail "app_process md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk, set HMGAPI_FORCE=1."
+fi
+
+# /data/hmgapi: root only (NEMESIS runs commands with umask 0)
+for d in "" /stock /state /mods /settings /hook /inbox /dalvik-cache /public; do
+    mkdir -p "$D$d" && chmod 700 "$D$d" || fail "make $D$d"
+done
+# apps may traverse (not list) /data/hmgapi and mods, and read public/ (live state)
+chmod 711 "$D" "$D/mods"; chmod 755 "$D/public"
+[ -f "$D/settings/hmgapi.json" ] || echo '{"updates": false}' > "$D/settings/hmgapi.json"
+chmod 600 "$D/settings/hmgapi.json"
+
+backup /system/bin/app_process
+backup /system/etc/install-recovery.sh
+backup /system/etc/qb_runtime.sh
+
+remount rw || fail "can't remount /system rw (needs NEMESIS or a running hmgapid)"
+REMOUNTED=1
+put hmgapid /system/bin/hmgapid 755 shell
+put lpatch /system/bin/lpatch 755 shell
+put libhmgapi_hook.so /system/lib/libhmgapi_hook.so 644 root
+put hmgapi-hook.jar /system/framework/hmgapi-hook.jar 644 root
+rm -f "$ROOT/data/dalvik-cache/system@framework@hmgapi-hook.jar@classes.dex"
+if [ -z "$UPDATE" ]; then
+    cp "$B" "$KEEP.hmgapi-new" || fail "copy app_process"
+    chmod 755 "$KEEP.hmgapi-new"; chown root:shell "$KEEP.hmgapi-new" 2>/dev/null
+    [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }
+    mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
+fi
+put app_process /system/bin/app_process 755 shell
+hook_add /system/etc/install-recovery.sh top || fail "boot hook in install-recovery.sh"
+hook_add /system/etc/qb_runtime.sh end || fail "boot hook in qb_runtime.sh"
+sync
+remount ro || log "note: /system stays rw until the next restart (it's busy; NEMESIS also mounts it rw at boot)"
+REMOUNTED=
+
+# hooks on at the next restart (the zygote wrapper's boot guard counts from 0)
+echo 0 > "$D/hook/starts"
+rm -f "$D/hook/disable"
+: > "$D/hook/enable"
+
+# what's installed, for uninstall.sh and the app
+{
+    echo "version $VERSION"
+    echo "build $(cat "$P/BUILD" 2>/dev/null)"
+    echo "date $(date)"
+    for f in /system/bin/hmgapid /system/bin/lpatch /system/bin/app_process /system/lib/libhmgapi_hook.so /system/framework/hmgapi-hook.jar; do
+        echo "file $(sum "$ROOT$f") $f"
+    done
+} > "$D/installed.txt"
+cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh"
+
+# the hook maps (HMG-API runs only on a car with a good one): replaced as a whole
+if [ -d "$P/maps" ]; then
+    rm -r "$D/maps.new" 2>/dev/null
+    cp -r "$P/maps" "$D/maps.new" || fail "copy the hook maps"
+    while read m f; do
+        [ "$(sum "$D/maps.new/${f#maps/}")" = "$m" ] || fail "hook map file $f is damaged (copy the payload again)"
+    done < "$P/MAPS"
+    rm -r "$D/maps" 2>/dev/null
+    mv "$D/maps.new" "$D/maps" || fail "put the hook maps in place"
+    chmod -R 700 "$D/maps" 2>/dev/null
+    log "hook maps: $(cat "$P/MAPS" | grep -c car.json) car(s)"
+fi
+
+# start hmgapid now if none runs. A running one (maybe an older build) is left
+# alone: this script may be its child (hmgapid sh), and the restart swaps it.
+if [ -z "$ROOT" ] && ! /system/bin/hmgapid ping >/dev/null 2>&1; then
+    /system/bin/hmgapid daemon >/dev/null 2>&1
+elif [ -z "$ROOT" ]; then
+    # the running vehicle service still has the old jar loaded
+    /system/bin/hmgapid service-restart hmgapi vehicle >/dev/null 2>&1 && log "restarted the vehicle service"
+fi
+
+# the app: pm only takes our signature while sys.boot_completed is 0 (OEM
+# allowlist), so set it for the pm call only. Android down: app-pending.sh puts it
+# in once Android is up (started now, and by the boot hook until it's in).
+if [ -z "$ROOT" ] && [ "$(getprop sys.boot_completed)" = 1 ]; then
+    setprop sys.boot_completed 0
+    r=$(pm install -r "$P/HmgApi.apk" 2>&1)
+    setprop sys.boot_completed 1
+    case "$r" in
+        *Success*) rm -f "$D/public/HmgApi.apk"; log "installed the HMG-API app" ;;
+        *) log "WARNING: the HMG-API app didn't install: $r" ;;
+    esac
+else
+    cp "$P/HmgApi.apk" "$D/public/HmgApi.apk" && chmod 644 "$D/public/HmgApi.apk" || fail "keep the app for later"
+    [ -n "$ROOT" ] || /system/bin/hmgapid sh "sh /data/hmgapi/app-pending.sh </dev/null >/dev/null 2>&1 &" >/dev/null 2>&1
+    log "Android isn't up: the HMG-API app installs by itself once it is"
+fi
+log "HMG-API $VERSION installed. Restart the head unit to turn it on."

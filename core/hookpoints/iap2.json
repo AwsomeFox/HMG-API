@@ -1,0 +1,155 @@
+{
+  "app": "iap2",
+  "package": "com.tcc.iap2server",
+  "files": [
+    "/system/app/Iap2ServerApp.odex"
+  ],
+  "points": [
+    {
+      "id": "iap2.init_info",
+      "kind": "class",
+      "find": {
+        "name": "com.tcc.iap2server.Iap2InitInformationMsg"
+      },
+      "about": "what the head unit tells an iPhone it supports (iAP2 identification)"
+    },
+    {
+      "id": "iap2.init_info.check_supports_features",
+      "kind": "method",
+      "of": "iap2.init_info",
+      "find": {
+        "name": "checkSupportsFeatures",
+        "params": [],
+        "ret": "void"
+      },
+      "about": "sets the supported-feature flags; route guidance only if stepofspec >= 999 (US/Canada: 105)"
+    },
+    {
+      "id": "iap2.init_info.route_guidance",
+      "kind": "field",
+      "of": "iap2.init_info",
+      "find": {
+        "name": "iAP2UsedRouteGuidance",
+        "type": "int",
+        "static": true
+      },
+      "about": "1: offer RouteGuidance (CarPlay turn-by-turn) to the iPhone"
+    },
+    {
+      "id": "iap2.service",
+      "kind": "class",
+      "find": {
+        "name": "com.tcc.iap2server.Iap2Service",
+        "super": "android.app.Service"
+      },
+      "about": "the iAP2 server (CarPlay's control link)"
+    },
+    {
+      "id": "iap2.service.on_create",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "onCreate",
+        "params": [],
+        "ret": "void"
+      }
+    },
+    {
+      "id": "iap2.service.is_connected",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "isConnected",
+        "params": [],
+        "ret": "boolean",
+        "static": true
+      }
+    },
+    {
+      "id": "iap2.service.get_component",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "getComponent",
+        "params": [],
+        "ret": "int",
+        "static": true
+      }
+    },
+    {
+      "id": "iap2.service.set_device_serial",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "setDeviceSerial",
+        "params": [
+          "java.lang.String"
+        ],
+        "ret": "void"
+      }
+    },
+    {
+      "id": "iap2.service.receive_connect",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "receiveConnect",
+        "params": [
+          "int"
+        ],
+        "ret": "void"
+      },
+      "about": "start an iAP2 session on a transport component (3..5: Bluetooth)"
+    },
+    {
+      "id": "iap2.service.receive_disconnect",
+      "kind": "method",
+      "of": "iap2.service",
+      "find": {
+        "name": "receiveDisconnect",
+        "params": [
+          "int"
+        ],
+        "ret": "void"
+      }
+    },
+    {
+      "id": "iap2.service_receiver",
+      "kind": "class",
+      "find": {
+        "package": "com.tcc.iap2server",
+        "super": "android.content.BroadcastReceiver",
+        "strings": [
+          "android.hardware.usb.action.CARPLAY_DEVICE_ATTACHED"
+        ],
+        "fields": [
+          {
+            "type": "@iap2.service"
+          }
+        ]
+      },
+      "about": "the iAP2 service's own broadcast receiver (USB CarPlay attach and more); an inner class, so its number can differ"
+    },
+    {
+      "id": "iap2.service_receiver.on_receive",
+      "kind": "method",
+      "of": "iap2.service_receiver",
+      "find": {
+        "name": "onReceive",
+        "params": [
+          "android.content.Context",
+          "android.content.Intent"
+        ],
+        "ret": "void"
+      }
+    },
+    {
+      "id": "iap2.service_receiver.service",
+      "kind": "field",
+      "of": "iap2.service_receiver",
+      "find": {
+        "type": "@iap2.service"
+      }
+    }
+  ]
+}

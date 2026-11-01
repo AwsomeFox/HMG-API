@@ -1,0 +1,30 @@
+{
+  "app": "launcher",
+  "package": "com.android.launcher3",
+  "files": ["/system/app/Launcher_WP3.odex"],
+  "points": [
+    { "id": "launcher.menu_list", "kind": "class",
+      "find": { "package": "com.android.launcher3", "super": "java.lang.Object",
+                "ctors": [["android.content.Context"]],
+                "fields": [{ "type": "java.util.List" }, { "name": "mContext", "type": "android.content.Context" },
+                           { "name": "mLock", "type": "java.lang.Object" }],
+                "methods": [{ "name": "getContext", "params": [], "ret": "android.content.Context" },
+                            { "name": "load", "params": [], "ret": "boolean" },
+                            { "name": "getCount", "params": [], "ret": "int" }] },
+      "about": "the all-apps menu's list of built-in entries (the launcher drops saved entries not in it)" },
+    { "id": "launcher.menu_list.load", "kind": "method", "of": "launcher.menu_list",
+      "find": { "name": "load", "params": [], "ret": "boolean" }, "about": "fills the list; HMG-API adds mod entries after it" },
+    { "id": "launcher.menu_list.items", "kind": "field", "of": "launcher.menu_list",
+      "find": { "type": "java.util.List", "static": false } },
+    { "id": "launcher.menu_list.lock", "kind": "field", "of": "launcher.menu_list",
+      "find": { "name": "mLock", "type": "java.lang.Object" } },
+    { "id": "launcher.menu_list.get_context", "kind": "method", "of": "launcher.menu_list",
+      "find": { "name": "getContext", "params": [], "ret": "android.content.Context" } },
+    { "id": "launcher.menu_entry", "kind": "class",
+      "find": { "package": "com.android.launcher3",
+                "ctors": [["@launcher.menu_list", "android.content.Context", "java.lang.String", "java.lang.String", "int", "int", "int"]] },
+      "about": "one menu entry: package, activity, enabled/disabled icon and title resource ids" },
+    { "id": "launcher.menu_entry.new", "kind": "ctor", "of": "launcher.menu_entry",
+      "find": { "params": ["@launcher.menu_list", "android.content.Context", "java.lang.String", "java.lang.String", "int", "int", "int"] } }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "side-panel",
+  "name": "Side Panel (example mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "Template for a page in the right-hand split-screen panel: a standard Android app widget from the mod's own app, here showing vehicle readings; the steering wheel star key pressed twice refreshes it. Add HMG-API's page in the car's split-screen settings.",
+  "live": true,
+  "apps": [
+    { "apk": "app/SidePanel.apk", "package": "dev.hmgapi.example.panel" }
+  ],
+  "provides": {
+    "panel": [
+      { "title": "Car", "widget": "dev.hmgapi.example.panel/.CarWidget" }
+    ]
+  },
+  "vehicle": { "read": ["gear.park", "speed", "hv.soc", "battery12v.soc"] },
+  "input": [
+    { "key": "wheel_custom", "press": "hold", "broadcast": "dev.hmgapi.example.panel.REFRESH" }
+  ]
+}

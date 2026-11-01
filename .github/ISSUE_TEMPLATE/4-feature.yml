@@ -1,0 +1,22 @@
+name: Feature idea
+description: Something HMG-API or a mod could do.
+title: "Idea: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you'd like and why it helps you in the car.
+    validations:
+      required: true
+  - type: input
+    id: car
+    attributes:
+      label: Your car
+      description: Make, model, year and region.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: How the car does it today, other projects that do it, safety concerns (vehicle commands always go through the car's own services).

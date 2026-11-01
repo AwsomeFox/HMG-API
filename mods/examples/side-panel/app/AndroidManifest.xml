@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.hmgapi.example.panel"
+    android:versionCode="1"
+    android:versionName="1.0.0">
+
+    <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="19" />
+
+    <application android:label="Side Panel" android:allowBackup="false">
+        <!-- a standard app widget: HMG-API shows it in the side panel (mod.json provides.panel) -->
+        <receiver android:name=".CarWidget" android:label="Car">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="dev.hmgapi.example.panel.REFRESH" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/car_widget" />
+        </receiver>
+    </application>
+</manifest>

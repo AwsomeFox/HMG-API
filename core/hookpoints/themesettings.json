@@ -1,0 +1,127 @@
+{
+  "app": "themesettings",
+  "package": "com.android.themesettings",
+  "files": [
+    "/system/app/ThemeSettings.odex"
+  ],
+  "points": [
+    {
+      "id": "themesettings.split_item",
+      "kind": "class",
+      "find": {
+        "name": "com.android.themesettings.splitscreensettings.SplitScreenItem"
+      },
+      "about": "one page in the split-screen page editor"
+    },
+    {
+      "id": "themesettings.split_item.new",
+      "kind": "ctor",
+      "of": "themesettings.split_item",
+      "find": {
+        "params": [
+          "int",
+          "java.lang.String",
+          "boolean"
+        ]
+      },
+      "about": "(view id, title, on)"
+    },
+    {
+      "id": "themesettings.split_item.type",
+      "kind": "method",
+      "of": "themesettings.split_item",
+      "find": {
+        "params": [],
+        "ret": "int",
+        "code": "iget v0, p0, Lcom/android/themesettings/splitscreensettings/SplitScreenItem;->splitViewType:I\\nreturn v0"
+      }
+    },
+    {
+      "id": "themesettings.split_items",
+      "kind": "class",
+      "find": {
+        "package": "com.android.themesettings.splitscreensettings",
+        "methods": [
+          {
+            "params": [
+              "android.content.Context",
+              "java.util.LinkedHashMap"
+            ],
+            "ret": "java.util.ArrayList",
+            "static": true,
+            "strings": [
+              "makeSplitScreenItemsList"
+            ]
+          }
+        ]
+      },
+      "about": "the editor's page list helpers"
+    },
+    {
+      "id": "themesettings.split_items.make",
+      "kind": "method",
+      "of": "themesettings.split_items",
+      "find": {
+        "params": [
+          "android.content.Context",
+          "java.util.LinkedHashMap"
+        ],
+        "ret": "java.util.ArrayList",
+        "static": true,
+        "strings": [
+          "makeSplitScreenItemsList"
+        ]
+      },
+      "about": "the editor's items from {view id: on/off}; unknown ids are skipped"
+    },
+    {
+      "id": "themesettings.split_items.view_name",
+      "kind": "method",
+      "of": "themesettings.split_items",
+      "find": {
+        "params": [
+          "android.content.Context",
+          "int"
+        ],
+        "ret": "java.lang.String",
+        "static": true,
+        "strings": [
+          "getViewName viewID : "
+        ]
+      }
+    },
+    {
+      "id": "themesettings.split_items.string_id",
+      "kind": "method",
+      "of": "themesettings.split_items",
+      "find": {
+        "params": [
+          "int"
+        ],
+        "ret": "int",
+        "static": true,
+        "strings": [
+          "getItemStringId type error = "
+        ]
+      },
+      "about": "a page's title (string resource id) by view id; 0 for an id it doesn't know, which the saved-list builder passes to getString"
+    },
+    {
+      "id": "themesettings.split_items.available",
+      "kind": "method",
+      "of": "themesettings.split_items",
+      "find": {
+        "params": [
+          "int",
+          "android.content.Context"
+        ],
+        "ret": "boolean",
+        "static": true,
+        "strings": [
+          "checkItemAvailable type : "
+        ]
+      },
+      "about": "whether the editor keeps a page (view id); false for ids it doesn't know, and the editor then saves its list without them"
+    }
+  ]
+}

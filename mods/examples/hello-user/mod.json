@@ -1,0 +1,12 @@
+{
+  "id": "hello-user",
+  "name": "Hello user (example mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "Template for a mod that uses another mod's API (hello-api), with a setting that changes without a restart.",
+  "live": true,
+  "requires": ["hello-api ^1.0"],
+  "hooks": { "jar": "hooks.jar", "entry": "example.hellouser.HelloUser", "points": {} }
+}

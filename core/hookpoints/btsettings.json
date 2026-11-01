@@ -1,0 +1,83 @@
+{
+  "app": "btsettings",
+  "package": "com.android.btsettings",
+  "files": [
+    "/system/app/HKMC_BtSettings.odex"
+  ],
+  "patterns": {
+    "phone_projection_menu": {
+      "in": "com.android.settings2.bluetooth.BluetoothSettings",
+      "regex": "const-string v0, \"com\\.hkmc\\.software\\.connectivity\\.carplay_wireless\"\\ninvoke-static \\{v0\\}, Lcom/hkmc/Feature;->hasFeature\\(Ljava/lang/String;\\)Z\\nmove-result v0\\nif-nez v0, (?P<l1>:cond_\\w+)\\nconst-string v0, \"com\\.hkmc\\.software\\.connectivity\\.androidauto_wireless\"\\ninvoke-static \\{v0\\}, Lcom/hkmc/Feature;->hasFeature\\(Ljava/lang/String;\\)Z\\nmove-result v0\\nif-eqz v0, (?P<l2>:cond_\\w+)\\n(?P=l1)\\ninvoke-virtual \\{p0\\}, Lcom/android/settings2/bluetooth/BluetoothSettings;->getApplicationContext\\(\\)Landroid/content/Context;\\nmove-result-object v0\\ninvoke-static \\{v0\\}, Lcom/android/settings2/bluetooth/(?P<helper>\\w+);->(?P<wireless>\\w+)\\(Landroid/content/Context;\\)V\\ngoto/16 :goto_\\w+\\n(?P=l2)\\nsget v0, Lcom/hkmc/BuildInfo;->REGION:I\\nif-eq v0, v2, (?P<l3>:cond_\\w+)\\nsget v0, Lcom/hkmc/BuildInfo;->REGION:I\\nconst/4 v1, 0x4\\nif-ne v0, v1, (?P<l4>:cond_\\w+)\\n(?P=l3)\\ninvoke-static \\{\\}, Lcom/android/settings2/bluetooth/(?P=helper);->(?P<available>\\w+)\\(\\)Z\\nmove-result v0\\nif-eqz v0, (?P=l4)\\ninvoke-virtual \\{p0\\}, Lcom/android/settings2/bluetooth/BluetoothSettings;->getApplicationContext\\(\\)Landroid/content/Context;\\nmove-result-object v0\\ninvoke-static \\{v0, v2\\}, Lcom/android/settings2/bluetooth/(?P=helper);->(?P<dc>\\w+)\\(Landroid/content/Context;I\\)V\\ngoto/16 :goto_\\w+\\n(?P=l4)\\ninvoke-virtual \\{p0\\}, Lcom/android/settings2/bluetooth/BluetoothSettings;->getApplicationContext\\(\\)Landroid/content/Context;\\nmove-result-object v0\\ninvoke-static \\{v0\\}, Lcom/android/settings2/bluetooth/(?P=helper);->(?P<other>\\w+)\\(Landroid/content/Context;\\)V\\n",
+      "about": "Settings > Phone Projection: wireless features -> wireless page; else US/Canada (REGION 1/4) with Device Connections -> it; else the other page"
+    }
+  },
+  "points": [
+    {
+      "id": "btsettings.projection_helper",
+      "kind": "class",
+      "find": {
+        "pattern": "phone_projection_menu",
+        "class_group": "helper",
+        "package": "com.android.settings2.bluetooth"
+      },
+      "about": "BtSettings' static helper that opens the Phone Projection pages"
+    },
+    {
+      "id": "btsettings.projection_helper.open_wireless_page",
+      "kind": "method",
+      "of": "btsettings.projection_helper",
+      "find": {
+        "pattern": "phone_projection_menu",
+        "group": "wireless",
+        "params": [
+          "android.content.Context"
+        ],
+        "ret": "void",
+        "static": true,
+        "only_caller": true
+      },
+      "about": "opens the wireless projection page (its only caller is the Phone Projection menu)"
+    },
+    {
+      "id": "btsettings.projection_helper.device_connections_available",
+      "kind": "method",
+      "of": "btsettings.projection_helper",
+      "find": {
+        "pattern": "phone_projection_menu",
+        "group": "available",
+        "params": [],
+        "ret": "boolean",
+        "static": true
+      }
+    },
+    {
+      "id": "btsettings.projection_helper.open_device_connections",
+      "kind": "method",
+      "of": "btsettings.projection_helper",
+      "find": {
+        "pattern": "phone_projection_menu",
+        "group": "dc",
+        "params": [
+          "android.content.Context",
+          "int"
+        ],
+        "ret": "void",
+        "static": true
+      }
+    },
+    {
+      "id": "btsettings.projection_helper.open_other_page",
+      "kind": "method",
+      "of": "btsettings.projection_helper",
+      "find": {
+        "pattern": "phone_projection_menu",
+        "group": "other",
+        "params": [
+          "android.content.Context"
+        ],
+        "ret": "void",
+        "static": true
+      }
+    }
+  ]
+}

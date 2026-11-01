@@ -1,0 +1,7 @@
+[nemesis]
+id=hmgapi
+name=HMG-API
+version=@VERSION@
+types=application
+postinstall=scripts/postinstall.sh
+preuninstall=scripts/preuninstall.sh

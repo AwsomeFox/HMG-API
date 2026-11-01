@@ -1,0 +1,40 @@
+{
+  "id": "car-check",
+  "name": "Car Check (test mod)",
+  "version": "1.0.0",
+  "hmgapi": ">=1.0.0",
+  "authors": ["VysseCodes"],
+  "license": "AGPL-3.0",
+  "description": "For test sessions: shows a notice for every button binding and projection event it gets, sets Android Auto to 200 DPI without the tap limit, and may use every vehicle reading and command. Remove it after testing.",
+  "live": true,
+  "apps": [
+    { "apk": "app/CarCheck.apk", "package": "dev.hmgapi.example.carcheck" }
+  ],
+  "input": [
+    { "key": "map", "press": "hold", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "mute", "press": "short", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "tune_enter", "press": "hold", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "ptt", "press": "short", "stock": "replace", "when": "settings.voice=short", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "ptt", "press": "hold", "when": "settings.voice=hold", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "ptt", "press": "short", "when": "settings.voice=phone", "send": "ptt hold" },
+    { "key": "ptt", "press": "short", "when": "settings.voice=phone_ptt", "send": "ptt hold" },
+    { "key": "ptt", "press": "hold", "when": "settings.voice=phone_ptt", "send": "ptt hold", "release": "ptt short" },
+    { "key": "seek_up", "press": "hold", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "custom", "press": "hold", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "call", "press": "short", "broadcast": "dev.hmgapi.example.carcheck.KEY" },
+    { "key": "tune_up", "press": "down", "broadcast": "dev.hmgapi.example.carcheck.KEY" }
+  ],
+  "projection": {
+    "aa_density": 200,
+    "aa_sensors": { "remove": ["speed"] },
+    "events": true
+  },
+  "vehicle": {
+    "read": ["gear.park", "parking_brake", "speed", "moving", "driving.restricted", "steering.angle", "pedal.accel",
+             "brake.pressure", "battery12v.soc", "hv.soc", "hv.health", "hv.ready", "hv.conditioning", "charging",
+             "odometer", "seat_heat.driver", "seat_heat.passenger", "seat_heat.rear_left", "seat_heat.rear_right",
+             "seat_vent.driver", "seat_vent.passenger", "wheel_heat", "defogger",
+             "seat_state.driver", "seat_state.passenger", "outside_temp", "outside_temp_f", "guide_lines"],
+    "commands": ["charge_door", "seat_heat", "seat_vent", "wheel_heat", "conditioning", "ambient_light", "guide_lines", "rear_camera"]
+  }
+}

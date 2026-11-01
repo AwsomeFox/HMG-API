@@ -1,0 +1,5 @@
+{
+  "settings": [
+    { "key": "every", "title": "Say hello every (seconds)", "type": "int", "default": 60 }
+  ]
+}

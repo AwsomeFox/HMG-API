@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "settings": [
+    { "key": "greeting", "type": "text", "default": "hello from settings.json",
+      "title": "Greeting", "apply": "rebuild" }
+  ]
+}

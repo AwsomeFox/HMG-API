@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "type": "bind",
+      "src": "files/hmgapi-adbd",
+      "target": "/sbin/adbd",
+      "service": "adbd"
+    }
+  ]
+}
