@@ -1,48 +1,88 @@
-# Build everything and run every off-car test (tools/test-all.sh) on each push and
-# pull request. No private files: the loader links against stand-ins
-# (core/loader/syslib-stubs.sh), the app is signed with a throwaway key, and tests
-# that need stock car files skip. The downloads it makes are for testing only.
+# Off-car tests for what a change touches (tools/test-select.py: a change to the app
+# runs the app's tests, a mod its own, the build or an unknown path everything); a
+# change to documentation only (docs/, wiki/, *.md, issue forms) runs nothing.
+# Every test, weekly and on demand (Actions > CI > Run workflow).
+# No private files: the loader links against stand-ins (core/loader/syslib-stubs.sh),
+# the app is signed with a throwaway key, tests that need stock car files skip.
 name: CI
 
 on:
   push:
     branches: [main]
+    paths-ignore: ["docs/**", "wiki/**", "**.md", ".github/ISSUE_TEMPLATE/**", ".github/release-notes/**", "LICENSE"]
   pull_request:
+    paths-ignore: ["docs/**", "wiki/**", "**.md", ".github/ISSUE_TEMPLATE/**", ".github/release-notes/**", "LICENSE"]
+  schedule:
+    - cron: "17 6 * * 1"   # Mondays: every test
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: What changed, which tests
+        id: pick
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          case "$GITHUB_EVENT_NAME" in
+            pull_request) range="$BASE...HEAD" ;;
+            push) case "$BEFORE" in ""|0000000000000000000000000000000000000000) range="" ;; *) range="$BEFORE..HEAD" ;; esac ;;
+            *) range="" ;;
+          esac
+          if [ -n "$range" ]; then
+            git diff --name-only $range | tee changed.txt
+            tests=$(python3 tools/test-select.py < changed.txt | tr '\n' ' ')
+          else
+            tests="all"   # schedule, manual run, first push: everything
+          fi
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          echo "### Tests: ${tests:-none (nothing they cover changed)}" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/setup-java@v4
+        if: steps.pick.outputs.tests != ''
         with:
           distribution: temurin
           java-version: "17"
 
       - uses: actions/setup-python@v5
+        if: steps.pick.outputs.tests != ''
         with:
           python-version: "3.12"
 
       - name: Tools (clang, lld, qemu for the ARM tests)
+        if: steps.pick.outputs.tests != ''
         run: |
           sudo apt-get update -q
           sudo apt-get install -yq clang lld qemu-user-static binfmt-support zip unzip
           pip install --require-hashes -r tools/requirements.txt
 
       - name: Build
+        if: steps.pick.outputs.tests != ''
         run: ./build.sh
 
-      - name: Downloads
+      - name: Tests
+        if: steps.pick.outputs.tests != ''
+        env:
+          TESTS: ${{ steps.pick.outputs.tests }}
+        run: |
+          if [ "$TESTS" = all ]; then tools/test-all.sh; else tools/test-all.sh $TESTS; fi
+
+      - name: Test downloads
+        if: steps.pick.outputs.tests == 'all'
         run: tools/mkinstallers.sh
 
-      - name: Off-car tests
-        run: tools/test-all.sh
-
       - uses: actions/upload-artifact@v4
+        if: steps.pick.outputs.tests == 'all'
         with:
           name: hmgapi-test-build
           path: out/dist/*.zip

@@ -48,6 +48,16 @@ python3 tools/mkdelta.py $R/system/lib/libx.so $T/libx.new $T/m/libx.lpd > /dev/
 python3 tools/mkdelta.py $T/other.odex $T/libx.new $T/m/nofit.lpd > /dev/null
 echo '<permissions/>' > $T/m/a.xml
 
+# ---- a change's path: a plain /system path only
+mod a '{"type": "add", "path": "/system/bin/../bin/app_process", "src": "a.xml"}'
+eng plan; has "a path through .. refused (HMG-API's own and critical files are checked by exact path)" "isn't a plain /system file path" "$out"; check "... refusal exit" 3 $rc
+mod a '{"type": "add", "path": "/system/app/x;reboot.apk", "src": "a.xml"}'
+eng plan; has "shell characters in a path refused" "isn't a plain /system file path" "$out"
+mod a '{"type": "add", "path": "/data/local/tmp/x", "src": "a.xml"}'
+eng plan; has "a path outside /system refused" "isn't a plain /system file path" "$out"
+mod a '{"type": "add", "path": "/system/etc/permissions/x.xml", "src": "a.xml"}'
+eng plan; check "a plain /system path accepted" 0 $rc
+
 # ---- build.prop
 mod a '{"type": "props", "path": "/system/build.prop", "set": {"ro.build.product": "X"}, "stock": "any"}'
 eng plan; has "ro.* key refused" "ro.* properties set how the firmware identifies" "$out"; check "refusal exit" 3 $rc

@@ -889,6 +889,11 @@ public final class Engine {
                     continue;
                 }
                 String path = String.valueOf(c.get("path")).replace("{onebin}", onebin == null ? "" : onebin);
+                if (!systemPath(path)) {
+                    problems.add(m.id + ": \"" + c.get("path") + "\" isn't a plain /system file path (letters, digits, . _ + - and /;"
+                            + " no .. or //): a change's path must say plainly which file it is");
+                    continue;
+                }
                 Target t = p.targets.get(path);
                 if (t == null) {
                     t = new Target();
@@ -968,6 +973,16 @@ public final class Engine {
 
     /** null if mods may change this file this way, else why not. */
     @SuppressWarnings("unchecked")
+    /**
+     * A mod's file path: a plain /system path, so the plan shows the real file and the
+     * checks on HMG-API's own and boot-critical files (exact paths) can't be stepped
+     * around (/system/bin/../bin/app_process), and nothing a shell would read specially.
+     */
+    static boolean systemPath(String path) {
+        return path.matches("/system/[A-Za-z0-9._+-]+(/[A-Za-z0-9._+-]+)*") && !path.contains("/../") && !path.endsWith("/..")
+                && !path.contains("/./") && !path.endsWith("/.");
+    }
+
     String guard(Target t) {
         for (String x : HMGAPI_OWNED) if (x.equals(t.path)) return t.path + ": belongs to HMG-API's own install; mods can't change it";
         for (Ch ch : t.changes) {
