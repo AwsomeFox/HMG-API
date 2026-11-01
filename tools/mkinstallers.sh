@@ -2,7 +2,9 @@
 # Make HMG-API's install downloads in out/dist/:
 #   hmgapi-<v>-usb.zip      a USB stick: DSP OTA (nothing installed yet), NEMESIS
 #                           (NEMESIS.data type=install) and the app (HMGAPI/updates)
-#   hmgapi-<v>-nemesis.zip  a NEMESIS package
+#   hmgapi-<v>-nemesis.zip  for NEMESIS, laid out like NEMESIS's own downloads: unzipped
+#                           onto a stick, its NEMESIS.data (type=install) installs
+#                           packages/hmgapi.zip, the package itself (NEMESIS.data [nemesis])
 #   hmgapi-<v>-adb.zip      hmgapi-adb.sh and the payload
 # Every one carries the same payload (out/payload) and ends in install/common/install.sh.
 # HMGAPI/updates gets the signed release (tools/mkrelease.sh, if the release key is
@@ -20,14 +22,21 @@ W=$(mktemp -d); trap 'rm -rf "$W"' EXIT
 zipdir() { (cd "$1" && find . -type f | TZ=UTC xargs touch -d 2026-01-01T00:00:00 && find . -type f | sed 's#^\./##' | sort | zip -q -X -D "$2" -@); }
 readme() { sed "s/@VERSION@/$V/" "$1" > "$2"; }
 
-# NEMESIS package
+# the NEMESIS package (id hmgapi), and the stick that installs it: NEMESIS's USB handler
+# only reads a NEMESIS.data at the stick's root, with type= and a relative path= (native/usb.c)
 N=$W/nemesis
 mkdir -p "$N"
 sed "s/@VERSION@/$V/" install/nemesis/NEMESIS.data.in > "$N/NEMESIS.data"
 cp -r install/nemesis/scripts "$N/scripts"
 cp -r out/payload "$N/payload"
 chmod 755 "$N"/scripts/*.sh
-zipdir "$N" "$D/hmgapi-$V-nemesis.zip"
+zipdir "$N" "$W/hmgapi.zip"
+NB=$W/nemesis-stick
+mkdir -p "$NB/packages"
+cp "$W/hmgapi.zip" "$NB/packages/hmgapi.zip"
+printf '[nemesis]\nversion=1.0\ntype=install\npath=packages/hmgapi.zip\n' > "$NB/NEMESIS.data"
+readme install/nemesis/README.txt "$NB/README.txt"
+zipdir "$NB" "$D/hmgapi-$V-nemesis.zip"
 
 # adb
 A=$W/adb/hmgapi-$V-adb
@@ -49,8 +58,8 @@ with tarfile.open(sys.argv[2], "w", format=tarfile.GNU_FORMAT) as t:
     t.addfile(i, io.BytesIO(data))
 PY
 cp -r out/payload "$U/HMGAPI/install/payload"
-cp "$D/hmgapi-$V-nemesis.zip" "$U/HMGAPI/install/"
-printf '[nemesis]\nversion=1.0\ntype=install\npath=HMGAPI/install/hmgapi-%s-nemesis.zip\n' "$V" > "$U/NEMESIS.data"
+cp "$W/hmgapi.zip" "$U/HMGAPI/install/hmgapi.zip"
+printf '[nemesis]\nversion=1.0\ntype=install\npath=HMGAPI/install/hmgapi.zip\n' > "$U/NEMESIS.data"
 RK=${HMGAPI_RELEASE_KEY:-$HOME/hmg-private/keys/leafia-release.key}
 if [ -f "$RK" ]; then
     cp "$(tools/mkrelease.sh "$RK" | tail -1)" "$U/HMGAPI/updates/"

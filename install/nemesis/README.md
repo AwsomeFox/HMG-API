@@ -1,9 +1,14 @@
 # HMG-API as a NEMESIS package
 
-`tools/mkinstallers.sh` builds `hmgapi-<version>-nemesis.zip`: this folder's
-`NEMESIS.data` and `scripts/`, plus HMG-API's payload in `payload/`. Install it from
-NEMESIS Manager, `nemesis install [--update] <zip>`, or a USB stick with a
-`NEMESIS.data` of `type=install` (the HMG-API USB stick has one).
+`tools/mkinstallers.sh` builds the package, `hmgapi.zip`: this folder's
+`NEMESIS.data` (from `NEMESIS.data.in`) and `scripts/`, plus HMG-API's payload in
+`payload/`. NEMESIS's USB handler only reads a `NEMESIS.data` at a stick's root, with
+`type=install` and a relative `path=` (`native/usb.c`), so the download
+`hmgapi-<version>-nemesis.zip` is laid out like NEMESIS's own (`Packages/*.zip`): that
+`NEMESIS.data`, `packages/hmgapi.zip` and `README.txt` (for owners), unzipped onto a
+stick. The USB download carries the same package as `HMGAPI/install/hmgapi.zip`. From
+a shell: `nemesis install [--update] <hmgapi.zip>`. `install/usb/test.sh` checks both
+layouts against those rules.
 
 - install / update: `postinstall` runs `payload/install.sh`, which works out
   whether it's a first install or an update.

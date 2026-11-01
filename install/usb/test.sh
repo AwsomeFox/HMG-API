@@ -7,13 +7,31 @@ set -e
 cd "$(dirname "$0")/../.."
 SH=${UNIT_SH:-sh}
 V=$(cat out/payload/VERSION 2>/dev/null)
-NZ=$PWD/out/dist/hmgapi-$V-nemesis.zip
-[ -f "$NZ" ] || tools/mkinstallers.sh >/dev/null
+NB=$PWD/out/dist/hmgapi-$V-nemesis.zip UZ=$PWD/out/dist/hmgapi-$V-usb.zip
+[ -f "$NB" ] && [ -f "$UZ" ] || tools/mkinstallers.sh >/dev/null
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
+NZ=$T/hmgapi.zip   # the package itself, from inside the NEMESIS download
 R=$T/root; S=$T/stick
 fail=0
 check() { if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted [$2], got [$3]"; fail=1; fi; }
 has() { case "$3" in *"$2"*) echo "ok    $1" ;; *) echo "FAIL  $1: wanted [$2] in [$3]"; fail=1 ;; esac; }
+# the downloads, as NEMESIS's USB handler reads a stick (native/usb.c): NEMESIS.data at the root with
+# type=install and a relative path= (no leading /, no .., no shell characters) to the package zip,
+# whose own NEMESIS.data names it
+ini() { unzip -p "$1" "$2" | grep "^$3=" | cut -d= -f2-; }
+relok() { case "$1" in ''|/*|*..*|*[\;\|\&\`\$\'\"\(\)\<\>]*) echo no ;; *) echo yes ;; esac; }
+for z in "$NB" "$UZ"; do
+    n=${z##*/}
+    check "$n: NEMESIS.data says install" install "$(ini "$z" NEMESIS.data type)"
+    rel=$(ini "$z" NEMESIS.data path)
+    check "$n: path= is one NEMESIS takes ($rel)" yes "$(relok "$rel")"
+    check "$n: path= is in the zip" "$rel" "$(unzip -Z1 "$z" | grep -x "$rel" || true)"
+    unzip -p "$z" "$rel" > $T/inner.zip
+    check "$n: the package it installs is HMG-API's" hmgapi "$(ini $T/inner.zip NEMESIS.data id)"
+done
+unzip -p "$NB" "$(ini "$NB" NEMESIS.data path)" > "$NZ"
+check "the NEMESIS download says how to use it" yes "$(unzip -p "$NB" README.txt | grep -q 'top level of a USB stick' && echo yes)"
+
 mkdir -p $T/bin
 printf '#!/bin/sh\n[ -f "$1" ] || exit 1\nset -- $(md5sum "$1"); echo "$1 $2"\n' > $T/bin/md5
 printf '#!/bin/sh\nexit 0\n' > $T/bin/chown

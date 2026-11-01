@@ -55,6 +55,11 @@ map lacks, only those parts stay off and the app says why.
   file a mod adds that a package already added names the package to uninstall
   first. NEMESIS packages' own backup names (`featurexml.<onebin>.cfg`, `perm.*`,
   `*.absent`) are recognized.
+- **The NEMESIS download** (since beta 3) is laid out like NEMESIS's own packages:
+  unzipped onto a stick, its `NEMESIS.data` (`type=install`) installs
+  `packages/hmgapi.zip`. Before, it was the bare package, which NEMESIS's USB handler
+  reports as invalid when it's unzipped onto a stick, and doesn't see as a zip copied
+  onto one.
 - **The network keeper** leaves another tool's rules ahead of HMG-API's if they can't
   drop anything (accept, return, log, mark), instead of moving itself back to the top
   every 10 s.

@@ -71,7 +71,7 @@ hook point, or an idea. Guides are in the [wiki](https://github.com/VysseCodes/H
 | Download | For |
 |---|---|
 | `hmgapi-<v>-usb.zip` | a USB stick. Nothing installed yet: Engineering Mode > USB Copy > DSP > Update OTA. NEMESIS installed: its USB install. HMG-API installed: the app's updates (`HMGAPI/updates`, with the mods). An empty `HMGAPI/UNINSTALL` file uninstalls through the DSP route. |
-| `hmgapi-<v>-nemesis.zip` | a NEMESIS package (an update keeps HMG-API and its mods) |
+| `hmgapi-<v>-nemesis.zip` | for NEMESIS: unzipped onto a stick, like NEMESIS's own packages (`NEMESIS.data` installs `packages/hmgapi.zip`; an update keeps HMG-API and its mods) |
 | `hmgapi-<v>-adb.zip` | `hmgapi-adb.sh install \| uninstall \| status` over adb (first install: root from NEMESIS) |
 
 Uninstalling puts every file and setting HMG-API or a mod changed back to the stock bytes.

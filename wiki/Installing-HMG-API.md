@@ -26,9 +26,12 @@ What happened is written to `HMGAPI/install.log` on the stick.
 
 ## NEMESIS
 
-1. Copy `hmgapi-<version>-nemesis.zip` to a USB stick.
-2. Plug it in and confirm the install of "HMG-API" in NEMESIS Manager.
-3. Take the stick out when it's done.
+1. Unzip `hmgapi-<version>-nemesis.zip` onto the top level of a USB stick (FAT32 or
+   exFAT), the same way as NEMESIS's own packages: the stick gets `NEMESIS.data`,
+   `packages/hmgapi.zip` and a README. Only one NEMESIS package on the stick at a time.
+2. Plug it in and confirm the install of "HMG-API" (with Android still starting,
+   NEMESIS installs it without asking).
+3. Restart the head unit when it says so, and take the stick out.
 
 Updating through NEMESIS later keeps your mods.
 
