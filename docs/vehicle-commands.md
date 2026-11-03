@@ -21,7 +21,7 @@ charge_door open` or `api.command("charge_door", "open")`.
 | `seat_heat` | `driver` / `passenger` / `rear_left` / `rear_right`, `off` / `low` / `medium` / `high` (a two-level seat, the EV6's rear: `off` / `low` / `high`, from the seat's own option) |
 | `seat_vent` | `driver` / `passenger` (no rear ventilation), `off` / `low` / `medium` / `high` (added at the owner's request, 2026-10-31) |
 | `wheel_heat` | `on` / `off` |
-| `conditioning` | `start` / `auto-start` (both optionally `<km> <minutes>`) / `route <km> <minutes>` / `stop` |
+| `conditioning` | `start` / `auto-start` (both optionally `<km> <minutes>`, then optionally `warm`) / `route <km> <minutes>` / `stop` / `status` |
 | `ambient_light` | `color <rrggbb>` / `brightness <0-10>` / `release` / `owner_change release\|keep` |
 | `guide_lines` | `on` / `off` / `restore` (cars with a plain rear camera; a 360-view car draws its own and refuses, EV6 2026-10-31) |
 | `startup_notice` | `dismiss` (only after the owner turns on "Startup notice" in the HMG-API app, or `hmgapid allow startup_notice on`) |
@@ -106,6 +106,24 @@ P (`ISystemService.getGearPStatus`, 36), HEV status flags (`IHEVService.getHEVSt
   (260507) the car's conditioning indicator (`IBCMService` 109) then stayed off.
   The EV6 can take up to 5 minutes to switch on (Launchpad's field notes; about a
   minute on the Ioniq 5), and may not heat a pack at 20 °C / 68 °F or warmer.
+- **Checks before a start** (as Launchpad's `PreconditioningController`): refused
+  when the car isn't READY (HEV `EV_RDY`, 44), Battery Conditioning is off in the EV
+  settings (HEV `EV_BATTERYCONDITIONING`, 94: 2 on), or the indicator (`IBCMService`
+  `getBattCondIndSta`, 109) already shows the car conditioning on its own. A warm pack
+  is refused with a way past it: a last word `warm` sends it anyway (a warning and an
+  override, never a silent block). The limit is the pack's minimum temperature
+  (`IClusterService.requestBatteryInfoReq`, answered by
+  `INavigationClusterListener.onHandleBatteryInfoResp(int[8])`, `[1]`): EV6 and Ioniq 6
+  20 °C / 68 °F, Ioniq 5 21 °C / 70 °F (Launchpad's `PreconditioningProfile`, from a Kia
+  bulletin and owners' reports, not BMS calibration). A value that can't be read
+  (no map point, no answer, a temperature outside -40..60 °C) doesn't block.
+- **Activation:** after a start the indicator is read every tick (2 s). Not on within
+  5 minutes on the EV6 (Launchpad, field-tested) or 2 minutes on other cars (the
+  Ioniq 5 takes about 60-70 s): stopped, reported as `timed_out`, and automatic starts
+  wait for a manual one (no retry loop). Once on, no deadline; off again while
+  requested is the car ending it: stopped, `ended`. A stop is done once the indicator
+  is off (`stopping` until then). Without an indicator reading there's no deadline
+  (`requested`). Mods read it as `conditioning.state` or `conditioning status`.
 
 ## 5. Ambient light
 

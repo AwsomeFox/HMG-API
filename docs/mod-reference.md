@@ -87,6 +87,10 @@ the HMG-API app, and hooks see new values at once.
 | `battery12v.soc` | % | telematics CAN service (`getBatSoc`) |
 | `hv.soc` | %, 0.5 steps | HEV service, `DISPLAY_SOC` |
 | `hv.health`, `hv.ready`, `hv.conditioning`, `charging` | raw | telematics CAN / HEV service |
+| `hv.conditioning_active` | 0/1 | the car's battery conditioning indicator (body control `getBattCondIndSta`): conditioning now |
+| `hv.battery_temp_min` | °C, whole | the pack's minimum temperature (cluster battery info, asked for on each read; `-` outside -40..60 °C) |
+| `hv.conditioning_failure` | raw | the BMS's conditioning failure popup flag (HEV `BMS_BATTCONDFAILPOPUP`); meaning of the values not known yet |
+| `conditioning.state` | text | HMG-API's conditioning request: `off`, `requested` (the indicator can't be read), `waiting`, `active`, `stopping`, `ended` (by the car), `timed_out` |
 | `odometer` | km | HEV service, `ODOMETER` |
 | `seat_heat.<seat>` (driver, passenger, rear_left, rear_right), `seat_vent.<seat>` (driver, passenger: the rear seats have none) | level 0-3 | body control's seat climate step (one value per seat: off, ventilation 1-3 or heat 1-3) |
 | `wheel_heat`, `defogger` | raw | body control's heating status: steering wheel heat (0 off), rear defogger (1 on, 0 off); pushed by the car, `-` until it has said |
