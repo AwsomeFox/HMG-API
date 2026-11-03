@@ -67,7 +67,7 @@ map lacks, only those parts stay off and the app says why.
   onto one.
 - **NEMESIS descriptor 1.1** (since beta 4): `version=1.1` (the descriptor's),
   `type`, `package-version` (dotted numbers: a beta of 1.0.0 is 0.99.<beta>),
-  `short-desc`, `detailed-desc`, `os` (every car whose hook map is verified), `models`, `depends`, as
+  `short-desc`, `detailed-desc`, `os` (`any`: every Gen5W car), `models`, `depends`, as
   NEMESIS's Package Store takes them. `hmgapi-<v>-nemesis-package.zip` is the package
   itself, for the store and `nemesis install`.
 - **Opening the app without a tile** (since beta 5): NEMESIS Manager's **Launch** for
@@ -96,8 +96,8 @@ map lacks, only those parts stay off and the app says why.
   trims) and 260903 (2023 on), Canadian Kia EV6 260206 and Hyundai Ioniq 5 260206.
   Made from official update files and owners' Car Reports. All but 260903 are verified
   on a car (`tools/mark-verified.py` records each `engine verify-map` in the map's
-  `car.json`); HMG-API's NEMESIS package lists the verified ones (`os`), so NEMESIS shows
-  them as fully compatible. 260903 isn't confirmed yet.
+  `car.json`, so hooks run there without checking each car first). 260903 isn't
+  confirmed yet. In NEMESIS, HMG-API shows as fully compatible on every Gen5W car.
 - **The NEMESIS download is a Package Store list** (`type=list`, NEMESIS 1.16 or
   newer): HMG-API and each mod's NEMESIS package, picked on screen. Mod packages need
   HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), so NEMESIS installs HMG-API first.

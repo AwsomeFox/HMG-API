@@ -55,12 +55,10 @@ off-car with the real engine.
 HMG-API's version as dotted numbers only (NEMESIS refuses anything else); a beta
 comes before its release, so it's the version before it plus `.99.<beta>`
 (`1.0.0-beta.4` is `0.99.4`, below `1.0.0`; `tools/mkinstallers.sh`, which stops on a
-version form it has no rule for). `os` names every car whose hook map is verified on
-a car (`ro.build.product` globs from each `maps/*/*/*/*/car.json` with status
-`verified`, `tools/nemesis-meta.py os`; a map is marked verified by
-`tools/mark-verified.py` from that car's `engine verify-map` report), and
-`models="any"`, so other cars show as partial, not incompatible. With no verified map
-the build stops.
+version form it has no rule for). `os="any"` and `models="any"`: HMG-API runs on every
+Gen5W navigation unit (on a car without a hook map only the hook parts stay off, and
+the app says why), so NEMESIS shows it as fully compatible everywhere. A mod's
+package keeps the `os` from its `mod.json` `"system"`.
 
 **Incompatibilities** (`conflicts.txt`): NEMESIS packages that change files or
 settings HMG-API or a mod changes too go in `depends` as `!<id>`
