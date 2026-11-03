@@ -21,7 +21,7 @@ charge_door open` or `api.command("charge_door", "open")`.
 | `seat_heat` | `driver` / `passenger` / `rear_left` / `rear_right`, `off` / `low` / `medium` / `high` (a two-level seat, the EV6's rear: `off` / `low` / `high`, from the seat's own option) |
 | `seat_vent` | `driver` / `passenger` (no rear ventilation), `off` / `low` / `medium` / `high` (added at the owner's request, 2026-10-31) |
 | `wheel_heat` | `on` / `off` |
-| `conditioning` | `start` / `auto-start` / `stop` |
+| `conditioning` | `start` / `auto-start` (both optionally `<km> <minutes>`) / `route <km> <minutes>` / `stop` |
 | `ambient_light` | `color <rrggbb>` / `brightness <0-10>` / `release` / `owner_change release\|keep` |
 | `guide_lines` | `on` / `off` / `restore` (cars with a plain rear camera; a 360-view car draws its own and refuses, EV6 2026-10-31) |
 | `startup_notice` | `dismiss` (only after the owner turns on "Startup notice" in the HMG-API app, or `hmgapid allow startup_notice on`) |
@@ -88,8 +88,17 @@ P (`ISystemService.getGearPStatus`, 36), HEV status flags (`IHEVService.getHEVSt
 - **Guard:** one conditioning state for the unit, requests logged with the mod;
   a manual stop wins over an automatic start; values limited to what the car's
   navigation sends; stopped (values cleared) when the mod that started it is
-  turned off. Open question: whether the car's own navigation overrides these
-  when it has a route; to check on a car.
+  turned off.
+- **Route values (EV routing):** the BMS times the heating from the distance and
+  time it's given, so a mod routing to a real charger (EGMP AA EV: Google Maps'
+  charging stop) starts with `auto-start <km> <minutes>` and keeps them current with
+  `route <km> <minutes>` (only the mod conditioning may); without values it's 9 km,
+  18 min (Launchpad's). 0-2046 km and 0-1022 min, as the navigation sends them
+  (2047 / 1023 mean "no route"). The mod whose automatic request it is ending it
+  (it arrived, or the route ended) isn't a manual stop: its next automatic start
+  isn't blocked. A stop by the owner or another mod still is. Open question:
+  whether the car's own navigation overrides these when it has a route; to check
+  on a car.
 
 ## 5. Ambient light
 
