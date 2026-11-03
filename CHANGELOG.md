@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-11-03)
 
 HMG-API replaces HMG Leafia Plus 1.x. Leafia was one NEMESIS package for wireless
 CarPlay and Android Auto; HMG-API is a mod manager. Any number of mods can be
@@ -91,6 +91,21 @@ map lacks, only those parts stay off and the app says why.
 - **The network keeper** leaves another tool's rules ahead of HMG-API's if they can't
   drop anything (accept, return, log, mark), instead of moving itself back to the top
   every 10 s.
+- **Hook maps for four more cars** (since beta 6): US Hyundai Ioniq 5 260507 (all
+  trims) and 260903 (2023 on), Canadian Kia EV6 260206 and Hyundai Ioniq 5 260206.
+  Made from official update files and owners' Car Reports; not yet checked on those
+  cars (Settings → *Check the map on this car*).
+- **Install anyway** (since beta 6): a mod whose author didn't list your car or
+  software can be installed at your own risk, with a warning first (`--any-car` over
+  adb); every file it changes is still backed up and put back on removal.
+- **"No Wi-Fi chip found"** (fixed in beta 6, #10): the chip is only powered once Wi-Fi
+  or the hotspot has been on, so HMG-API now also recognises it from its driver and
+  remembers it once seen.
+- **Two mods with code** (fixed in beta 6) could stop the head unit from starting: both
+  `hooks.jar` files shared one cache, and the boot guard then turned hooks off. Each
+  mod has its own cache now.
+- **The app's menu tile** is HMG-API's logo in the launcher's own style, day and night,
+  with a greyed-out version.
 
 ### For mod authors
 
@@ -132,7 +147,11 @@ side with it: `tools/mod-draft.py` drafts its `mod.json`.
   ports only on the wired link.
 - **Not while driving:** your app follows the car's own driving restriction and
   popup.
-- **USB folders, tiles with day and night icons, the car's notices.**
+- **USB folders, tiles with day and night icons, the car's notices.** Tile pictures
+  in the stock style from any PNG, JPEG or SVG: `tools/mkicon.sh`.
+- **iAP2 (CarPlay) hook points** (since beta 6): the service starting and stopping, and
+  the vehicle information and vehicle status switches, for mods such as EV routing.
+  A mod's code file can now have any name, not only `hooks.jar`.
 - **Shared files and settings:** feature flags, the Wi-Fi client, `media_codecs.xml`
   by codec name, list settings (enabled keyboards), and an install-time probe for
   decisions made on the unit.
