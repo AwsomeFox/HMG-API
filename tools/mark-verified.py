@@ -5,7 +5,7 @@ usage: tools/mark-verified.py <map-check.json> --by <who> [--maps DIR]
 
   <map-check.json>  the car's /data/hmgapi/state/map-check.json, copied off the unit
                     right after `hmgapid engine verify-map` passed there:
-                      adb shell hmgapid sh 'cat /data/hmgapi/state/map-check.json' > map-check.json
+                      adb shell "hmgapid sh 'cat /data/hmgapi/state/map-check.json'" > map-check.json
 
 Checks that the report passed (ok, nothing failed), names a map in this repo, was made
 from the same stock files as that map (car.json "files"), and comes from one of the
@@ -22,7 +22,16 @@ ap.add_argument("--by", required=True)
 ap.add_argument("--maps", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "maps"))
 a = ap.parse_args()
 
-rep = json.load(open(a.report))
+raw = open(a.report, "rb").read().decode("utf-8", "replace").replace("\r", "").strip()
+try:
+    rep = json.loads(raw)
+except ValueError:
+    sys.exit("%s isn't verify-map's report (map-check.json): %s\n"
+             "Copy it again, right after `adb shell hmgapid engine verify-map` passed:\n"
+             "  adb shell \"hmgapid sh 'cat /data/hmgapi/state/map-check.json'\" > map-check.json"
+             % (a.report, "it's empty" if not raw else "it starts with %r" % raw[:200]))
+if not isinstance(rep, dict):
+    sys.exit("%s isn't verify-map's report (not a JSON object)" % a.report)
 folder = str(rep.get("folder") or "")
 if not folder or ".." in folder.split("/") or folder.startswith("/"):
     sys.exit("the report names no map folder")
