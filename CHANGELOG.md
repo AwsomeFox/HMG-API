@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-11-03)
 
 HMG-API replaces HMG Leafia Plus 1.x. Leafia was one NEMESIS package for wireless
 CarPlay and Android Auto; HMG-API is a mod manager. Any number of mods can be
@@ -9,8 +9,10 @@ exactly what it changed.
 
 **Tested on:** a US Kia EV6 260507 (2026-10-31, `docs/car-test.md`): the hook runtime,
 mods, the app, buttons, the side panel, Android Auto turn-by-turn and projection events,
-the MICOM recording, the Car Report. Not yet: CarPlay on HMG-API, installs without adb,
-other cars.
+the MICOM recording, the Car Report, wireless CarPlay and Android Auto. HMG-API's
+hook map verified on the US EV6 260507 (331 of 331 points); US Ioniq 5 260507 and Canadian
+EV6 and Ioniq 5 260206 mapped from their stock files, to check on a car once. Not yet:
+Ioniq 5 260903 (being checked), installs without adb, the conditioning checks below.
 HMG-API runs on any Gen5W navigation head unit. A car's hook map (US Kia EV6 260507
 today) turns on the parts that change the car's own apps; without one, or for points a
 map lacks, only those parts stay off and the app says why.
@@ -66,7 +68,7 @@ map lacks, only those parts stay off and the app says why.
   onto one.
 - **NEMESIS descriptor 1.1** (since beta 4): `version=1.1` (the descriptor's),
   `type`, `package-version` (dotted numbers: a beta of 1.0.0 is 0.99.<beta>),
-  `short-desc`, `detailed-desc`, `os` (the tested US EV6 260507), `models`, `depends`, as
+  `short-desc`, `detailed-desc`, `os` (`any`: every Gen5W car), `models`, `depends`, as
   NEMESIS's Package Store takes them. `hmgapi-<v>-nemesis-package.zip` is the package
   itself, for the store and `nemesis install`.
 - **Opening the app without a tile** (since beta 5): NEMESIS Manager's **Launch** for
@@ -91,6 +93,53 @@ map lacks, only those parts stay off and the app says why.
 - **The network keeper** leaves another tool's rules ahead of HMG-API's if they can't
   drop anything (accept, return, log, mark), instead of moving itself back to the top
   every 10 s.
+- **Hook maps for four more cars** (since beta 6): US Hyundai Ioniq 5 260507 (all
+  trims) and 260903 (2023 on), Canadian Kia EV6 260206 and Hyundai Ioniq 5 260206.
+  Made from official update files and owners' Car Reports. Until a map is marked
+  verified (`tools/mark-verified.py` records an on-car `engine verify-map` in its
+  `car.json`), hooks on that car wait for the owner's *Check the map on this car*.
+  The US EV6 260507 is verified; the others are mapped; 260903 isn't confirmed yet. In NEMESIS, HMG-API shows as fully compatible on every Gen5W car.
+- **The NEMESIS download is a Package Store list** (`type=list`, NEMESIS 1.16 or
+  newer): HMG-API and each mod's NEMESIS package, picked on screen. Mod packages need
+  HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), so NEMESIS installs HMG-API first.
+- **HMG-API and NEMESIS show the same thing** (`engine nemesis-sync`): HMG-API and every
+  mod installed by any route are listed in NEMESIS 1.16 or newer, and taken off when
+  they're removed. HMG-API does every install and uninstall; the sync runs after each
+  one, at boot and by hand, and fixes what doesn't match. Uninstalling a listed package
+  in NEMESIS Manager uninstalls through HMG-API. HMG-API's NEMESIS uninstall no longer
+  runs a second time after HMG-API was uninstalled another way.
+- **Battery conditioning starts once:** the `conditioning` command's 5-second keep-alive
+  resent the station event (the start) with the route data, so the car was asked to
+  start again every 5 s; on a US EV6 its conditioning indicator stayed off. It now
+  resends the route data only, as Launchpad does.
+- **Battery conditioning checks the car** ([#68](https://github.com/VysseCodes/HMG-API/issues/68),
+  Launchpad's checks): a start is refused when the car isn't READY, Battery Conditioning
+  is off in the EV settings, or the car is already conditioning; a warm pack (EV6 and
+  Ioniq 6 20 °C / 68 °F, Ioniq 5 21 °C / 70 °F) is refused unless the request ends with
+  `warm`. If the car's indicator isn't on within 5 minutes (EV6) or 2 (others), the
+  request is stopped and reported. New readings `hv.conditioning_active`,
+  `hv.battery_temp_min`, `hv.conditioning_failure`, `conditioning.state`; 12 new hook
+  points, mapped on every car with stock files. Not yet tested on a car.
+- **Boot hooks kept after a NEMESIS update:** NEMESIS's install and its updates write
+  `/system/etc/install-recovery.sh` as a whole new file, which dropped one of HMG-API's
+  two boot hooks (the one in `qb_runtime.sh` still started it). At each start
+  `hook-check.sh` puts a missing hook back and says so in `install.log`.
+- **Incompatible NEMESIS packages** (`install/nemesis/conflicts.txt`, `!<id>` in
+  `depends`): HMG-API with HMG Leafia Plus (`wireless.carplay.aa`), and with
+  `carplay.session` and `voicehandler.vr-gates` until we know they don't clash; the wireless mod with
+  `wireless.projection` and `projection.tbt`; the adb mod with `adb.tcp`. NEMESIS
+  refuses to install one while the other is installed.
+- **Install anyway** (since beta 6): a mod whose author didn't list your car or
+  software can be installed at your own risk, with a warning first (`--any-car` over
+  adb); every file it changes is still backed up and put back on removal.
+- **"No Wi-Fi chip found"** (fixed in beta 6, #10): the chip is only powered once Wi-Fi
+  or the hotspot has been on, so HMG-API now also recognises it from its driver and
+  remembers it once seen.
+- **Two mods with code** (fixed in beta 6) could stop the head unit from starting: both
+  `hooks.jar` files shared one cache, and the boot guard then turned hooks off. Each
+  mod has its own cache now.
+- **The app's menu tile** is HMG-API's logo in the launcher's own style, day and night,
+  with a greyed-out version.
 
 ### For mod authors
 
@@ -108,8 +157,8 @@ side with it: `tools/mod-draft.py` drafts its `mod.json`.
 - **The client library** (`hmgapi-client.jar`): your app and services ask HMG-API
   for their settings, services, logs, USB folders, readings and commands, without
   root.
-- **Vehicle readings** (18, by name: gear, speed, steering angle, pedals, 12V and HV
-  battery, conditioning, charging, odometer, seat heat, guide lines), read through
+- **Vehicle readings** (22, by name: gear, speed, steering angle, pedals, 12V and HV
+  battery, conditioning and its indicator, pack temperature, charging, odometer, seat heat, guide lines), read through
   the car's own services and shared between mods.
 - **Vehicle commands**, each reviewed and guarded: charge door (park only), seat
   heat, wheel heat, battery conditioning, ambient light (one mod at a time), parking
@@ -132,7 +181,11 @@ side with it: `tools/mod-draft.py` drafts its `mod.json`.
   ports only on the wired link.
 - **Not while driving:** your app follows the car's own driving restriction and
   popup.
-- **USB folders, tiles with day and night icons, the car's notices.**
+- **USB folders, tiles with day and night icons, the car's notices.** Tile pictures
+  in the stock style from any PNG, JPEG or SVG: `tools/mkicon.sh`.
+- **iAP2 (CarPlay) hook points** (since beta 6): the service starting and stopping, and
+  the vehicle information and vehicle status switches, for mods such as EV routing.
+  A mod's code file can now have any name, not only `hooks.jar`.
 - **Shared files and settings:** feature flags, the Wi-Fi client, `media_codecs.xml`
   by codec name, list settings (enabled keyboards), and an install-time probe for
   decisions made on the unit.

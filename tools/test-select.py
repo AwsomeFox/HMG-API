@@ -13,7 +13,7 @@ REPO = os.path.dirname(HERE)
 
 ALL = 'ALL'
 RUNTIME = ['core/runtime/*-test.sh']
-INSTALL = ['install/common/test.sh', 'install/common/install-test.sh', 'install/usb/test.sh', 'install/nemesis/mod-test.sh']
+INSTALL = ['install/common/test.sh', 'install/common/install-test.sh', 'install/usb/test.sh', 'install/nemesis/mod-test.sh', 'install/nemesis/sync-test.sh']
 MODS = ['mods/*/test.sh', 'mods/*/tools/*/test.sh', 'tools/check-scripts.sh']
 HOOKS = ['core/hookpoints/test.sh']
 

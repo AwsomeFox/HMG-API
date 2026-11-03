@@ -159,10 +159,14 @@ rm -f "$D/hook/disable"
         echo "file $(sum "$ROOT$f") $f"
     done
 } > "$D/installed.txt"
-cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh"
+cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$P/hook-check.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh" "$D/hook-check.sh"
 # open.sh (NEMESIS Manager's Launch, adb) installs the app from this copy if it's missing, then opens it
 cp "$P/app-open.sh" "$D/open.sh" && chmod 700 "$D/open.sh" || fail "keep open.sh"
 cp "$P/HmgApi.apk" "$D/HmgApi.apk" && chmod 644 "$D/HmgApi.apk" || fail "keep a copy of the app"
+# HMG-API's NEMESIS scripts and incompatible packages: engine nemesis-sync lists HMG-API and its mods in NEMESIS with them
+if [ -d "$P/nemesis" ]; then
+    rm -rf "$D/nemesis" && cp -r "$P/nemesis" "$D/nemesis" && chmod -R 700 "$D/nemesis" || fail "keep the NEMESIS scripts"
+fi
 
 # the hook maps (HMG-API runs only on a car with a good one): replaced as a whole
 if [ -d "$P/maps" ]; then
@@ -208,5 +212,15 @@ else
     cp "$P/HmgApi.apk" "$D/public/HmgApi.apk" && chmod 644 "$D/public/HmgApi.apk" || fail "keep the app for later"
     [ -n "$ROOT" ] || /system/bin/hmgapid sh "sh /data/hmgapi/app-pending.sh </dev/null >/dev/null 2>&1 &" >/dev/null 2>&1
     log "Android isn't up: the HMG-API app installs by itself once it is"
+fi
+# NEMESIS's package list: HMG-API and its mods listed there too (not when NEMESIS runs this: it's listing it already)
+if [ "$HMGAPI_FROM_NEMESIS" != 1 ] && [ -x "$ROOT/system/xbin/nemesis" ]; then
+    if [ -z "$ROOT" ]; then
+        r=$(CLASSPATH=/system/framework/hmgapi-hook.jar ANDROID_ROOT=/system ANDROID_DATA=/data /system/bin/app_process /system/bin hmgapi.engine.Engine nemesis-sync 2>&1)
+        log "$r"
+    elif [ -n "$HMGAPI_TEST_ENGINE" ]; then
+        r=$($HMGAPI_TEST_ENGINE nemesis-sync 2>&1)
+        log "$r"
+    fi
 fi
 log "HMG-API $VERSION installed. Restart the head unit to turn it on."

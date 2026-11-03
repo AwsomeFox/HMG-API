@@ -4,7 +4,7 @@
 
 - **No tile, no ★ choice:** those come from HMG-API's hooks, which need your car's hook
   map. Open the app from **NEMESIS Manager → My Packages → HMG-API → Launch**, or over
-  adb: `adb shell hmgapid sh 'sh /data/hmgapi/open.sh'`.
+  adb: `adb shell "hmgapid sh 'sh /data/hmgapi/open.sh'"`.
 - **The app didn't install** (a message says so; `/data/hmgapi/install.log` has the
   reason): restart the head unit and HMG-API tries again, or use **Launch** above,
   which installs it first and then opens it.
@@ -34,7 +34,7 @@ head unit starts normally, and the app says the hooks aren't running. Turn off o
 remove the mod you added last, then reset the counter and restart:
 
 ```
-adb shell hmgapid sh 'echo 0 > /data/hmgapi/hook/starts'
+adb shell "hmgapid sh 'echo 0 > /data/hmgapi/hook/starts'"
 ```
 
 ## A mod isn't doing anything

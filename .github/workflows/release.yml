@@ -77,8 +77,7 @@ jobs:
         run: |
           rm -rf out/packages
           grep -v '^#' tools/release-mods.txt | while read -r m; do [ -n "$m" ] && tools/mkmodpkg.sh "$m" "$MOD_KEY_FILE"; done
-          tools/mkinstallers.sh
-          for z in out/packages/*.zip; do tools/mknemesismod.sh "$z" out/dist/mods; done
+          tools/mkinstallers.sh   # also each mod as a NEMESIS package, in out/dist/mods
           mkdir -p out/assets
           cp out/dist/hmgapi-"$VERSION"-*.zip out/assets/
           cp out/releases/hmgapi-"$VERSION".zip out/assets/hmgapi-"$VERSION"-update.zip

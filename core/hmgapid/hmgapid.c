@@ -42,7 +42,7 @@ typedef unsigned int u32;
 typedef unsigned char u8;
 typedef long sl;
 
-#define VERSION "1.0.0-beta.6"
+#define VERSION "1.0.0"
 
 #ifndef ROOTDIR
 #define ROOTDIR "/data/hmgapi"
@@ -611,9 +611,9 @@ static int op_engine(int fd, int argc, char **argv)
     if (!(seq(sub, "plan") || seq(sub, "apply") || seq(sub, "keep") || seq(sub, "restore") || seq(sub, "status")
           || seq(sub, "recover") || seq(sub, "install") || seq(sub, "remove") || seq(sub, "map") || seq(sub, "verify-map")
           || seq(sub, "usb-scan") || seq(sub, "update-hmgapi") || seq(sub, "apps") || seq(sub, "probe")
-          || seq(sub, "map-car") || seq(sub, "report"))) {
+          || seq(sub, "map-car") || seq(sub, "report") || seq(sub, "nemesis-sync"))) {
         say(fd, "usage: engine plan | apply [--trial] [--force] | keep | restore | status | recover | install <zip> | remove <id>"
-                " | map | map-car [--write] | verify-map | report [--usb]\n");
+                " | nemesis-sync | map | map-car [--write] | verify-map | report [--usb]\n");
         return 2;
     }
     a[n++] = APP_PROCESS;

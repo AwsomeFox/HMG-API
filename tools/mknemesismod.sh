@@ -1,7 +1,7 @@
 #!/bin/sh
 # Make a NEMESIS package for a signed HMG-API mod (tools/mkmodpkg.sh's zip), so it
 # installs from NEMESIS Manager, a USB stick or the Package Store. The package
-# (id hmgapi.<mod id>, depends on hmgapi) carries the mod zip as it is; its scripts
+# (id hmgapi.<mod id>, depends on hmgapi 1.0 or newer) carries the mod zip as it is; its scripts
 # (install/nemesis/mod) install and remove it with HMG-API's engine, through hmgapid.
 #   tools/mknemesismod.sh <signed mod zip> [out dir, default out/dist]
 # Makes, in the out dir:
@@ -68,6 +68,10 @@ PY
 var() { grep "^$1=" "$W/vars" | cut -d= -f2-; }
 ID=$(var ID); V=$(var VERSION); PKG=$(var PACKAGE_ID)
 PV=$(tools/nemesis-version.py "$V")
+# depends=: HMG-API 1.0 or newer (mods as NEMESIS packages are new in 1.0.0), and "!<id>" for each
+# NEMESIS package that changes what this mod changes (install/nemesis/conflicts.txt)
+DEP=$(tools/nemesis-meta.py depends "$PKG" 'hmgapi@>=1.0')
+echo "DEPENDS=$DEP" >> "$W/vars"
 # fill a template: @KEY@ from the vars (and PACKAGE_VERSION), any character in the values
 fill() { python3 - "$W/vars" "$PV" "$1" > "$2" <<'PY'
 import sys
