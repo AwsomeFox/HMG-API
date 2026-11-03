@@ -29,7 +29,7 @@ RULES = [
     (['tools/lpatch/*'], ['tools/lpatch/test.sh', 'core/runtime/native-test.sh', 'core/runtime/engine-test.sh'] + INSTALL),
     (['core/runtime/unit-commands.txt'], ['tools/check-scripts.sh']),
     (['core/runtime/*'], RUNTIME + HOOKS + MODS + INSTALL),
-    (['core/hookpoints/*', 'maps/*', 'tools/map-car.py', 'tools/check-maps.py', 'tools/test-hooks.py', 'tools/probe-test.py'], HOOKS),
+    (['core/hookpoints/*', 'maps/*', 'tools/map-car.py', 'tools/check-maps.py', 'tools/mkhookdoc.py', 'docs/hook-points.md', 'tools/test-hooks.py', 'tools/probe-test.py'], HOOKS),
     (['core/app/*'], ['core/app/qr-test.sh']),
     (['mods/examples/*'], ['core/runtime/signing-test.sh']),
     (['mods/*'], ['tools/check-scripts.sh']),   # plus the changed mod's own tests (select)

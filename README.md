@@ -58,7 +58,7 @@ hook point, or an idea. Guides are in the [wiki](https://github.com/VysseCodes/H
 | `core/app` | the HMG-API app (`hmgapi.app`) |
 | `core/client` | `hmgapi-client.jar`: for mods' own apps and services (settings, services, USB folders, notices) |
 | `install/` | installers: `adb/`, `nemesis/`, `usb/` (DSP OTA), shared `common/`; `dev/` has the scripts used while building the core |
-| `core/hookpoints`, `maps/` | the hook point catalogue (stable names) and each car's map (`maps/coverage.json`: which points every car has) |
+| `core/hookpoints`, `maps/` | the hook point catalogue (stable names; every point and the cars that have it: [docs/hook-points.md](docs/hook-points.md)) and each car's map (`maps/coverage.json`: which points every car has) |
 | `mods/` | `wireless-carplay-aa`, `adb`, `adbd`; `examples/`: `hello`, `hello-service`, `side-panel`, `car-check`, `nemesis-shortcut` and more |
 | `docs/` | `mod-reference.md` (the `mod.json` reference; `tools/mod-draft.py` drafts one from an existing package), `api-plan.md` (what each community project uses), `vehicle-commands.md`, `micom-map.md`, `car-test.md` (the on-car test session) |
 | `wiki/` | the owners' wiki (GitHub wiki pages: installing, mods, the app, troubleshooting) |
