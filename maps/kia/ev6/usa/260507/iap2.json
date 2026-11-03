@@ -74,5 +74,39 @@
     "field": "this$0",
     "type": "com.tcc.iap2server.Iap2Service",
     "static": false
+  },
+  "iap2.service.on_destroy": {
+    "method": "onDestroy",
+    "params": [],
+    "ret": "void",
+    "static": false
+  },
+  "iap2.service.on_bind": {
+    "method": "onBind",
+    "params": [
+      "android.content.Intent"
+    ],
+    "ret": "android.os.IBinder",
+    "static": false
+  },
+  "iap2.service.native_handle": {
+    "field": "mHandleIap2",
+    "static": true,
+    "type": "long"
+  },
+  "iap2.service.native_lock": {
+    "field": "mLock",
+    "static": true,
+    "type": "java.lang.Object"
+  },
+  "iap2.init_info.use_vehicle_information": {
+    "field": "iAP2UsedVehicelInformation",
+    "static": true,
+    "type": "int"
+  },
+  "iap2.init_info.use_vehicle_status": {
+    "field": "iAP2UsedVehicleStatus",
+    "static": true,
+    "type": "int"
   }
 }
