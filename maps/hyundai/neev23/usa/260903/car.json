@@ -117,6 +117,14 @@
       ]
     }
   },
+  "missing": {
+    "iap2.init_info.use_vehicle_information": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from",
+    "iap2.init_info.use_vehicle_status": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from",
+    "iap2.service.native_handle": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from",
+    "iap2.service.native_lock": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from",
+    "iap2.service.on_bind": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from",
+    "iap2.service.on_destroy": "not confirmed on 260903 yet: newer than this car's Car Reports, and no stock files to map it from"
+  },
   "by_reference": [
     "btsettings.projection_helper",
     "btsettings.projection_helper.device_connections_available",
