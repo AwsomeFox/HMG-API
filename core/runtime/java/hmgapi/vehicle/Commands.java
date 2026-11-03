@@ -79,6 +79,12 @@ final class Commands {
     static final int LINES_OFF = 1, LINES_ON = 2;
     static final long DOOR_GAP_MS = 5000, LIGHT_GAP_MS = 100, KEEP_MS = 5000;
     /**
+     * Conditioning's route values when a mod gives none (Launchpad's), and the most the
+     * car's navigation sends (2047 km and 1023 min mean "no route"): the BMS times the
+     * heating from them, so a mod routing to a real charger sends the real ones.
+     */
+    static final int ROUTE_KM = 9, ROUTE_MIN = 18, KM_MAX = 2046, MIN_MAX = 1022;
+    /**
      * The ambient light's custom colours (the vehicle settings app's 64-colour picker,
      * EV6 260507): the car ignores any other colour, so a colour is sent as the nearest one
      */
@@ -97,6 +103,9 @@ final class Commands {
     long doorAt = -DOOR_GAP_MS, lightAt = -LIGHT_GAP_MS, keptAt;
     String conditioningBy, lightBy, linesBy, cameraBy;
     boolean manualStop, noticeDone;
+    /** the conditioning request in force: an automatic one (auto-start), and its route values */
+    boolean conditioningAuto;
+    int conditioningKm = ROUTE_KM, conditioningMin = ROUTE_MIN;
     int linesBefore;
     int[] lightSaved;   // the owner's light, taken when a mod first changes it
     /** mods that let go of the light when the owner changes it in the menu (default: they keep it) */
@@ -135,15 +144,15 @@ final class Commands {
     }
 
     synchronized String handle(String mod, String cmd, String[] args) {
-        String a0 = args.length > 0 ? args[0] : "", a1 = args.length > 1 ? args[1] : "";
+        String a0 = args.length > 0 ? args[0] : "", a1 = args.length > 1 ? args[1] : "", a2 = args.length > 2 ? args[2] : "";
         String r;
         try {
             r = owner(mod, cmd, a0);
-            if (r == null) r = run(mod, cmd, a0, a1);
+            if (r == null) r = "conditioning".equals(cmd) ? conditioning(mod, a0, a1, a2) : run(mod, cmd, a0, a1);
         } catch (RuntimeException e) {
             r = "refused: the car's service failed (" + e + ")";
         }
-        car.log(mod + " " + cmd + " " + a0 + (a1.isEmpty() ? "" : " " + a1) + " -> " + r);
+        car.log(mod + " " + cmd + " " + a0 + (a1.isEmpty() ? "" : " " + a1) + (a2.isEmpty() ? "" : " " + a2) + " -> " + r);
         return r;
     }
 
@@ -172,22 +181,6 @@ final class Commands {
             if (!"on".equals(a0) && !"off".equals(a0)) return "refused: wheel_heat on|off";
             car.wheelHeat("on".equals(a0) ? 1 : 0);
             return "ok wheel heat " + a0;
-        }
-        if ("conditioning".equals(cmd)) {
-            if ("stop".equals(a0)) {
-                if (conditioningBy == null) return "ok not conditioning";
-                stopConditioning();
-                manualStop = true;   // a stop is the driver's (or a mod's) call: automatic starts wait for a manual one
-                return "ok conditioning stopped";
-            }
-            boolean auto = "auto-start".equals(a0);
-            if (!auto && !"start".equals(a0)) return "refused: conditioning start|auto-start|stop";
-            if (auto && manualStop) return "refused: stopped by hand; automatic starts wait for a manual start";
-            if (conditioningBy != null) return "ok already conditioning (" + conditioningBy + ")";
-            if (!auto) manualStop = false;
-            conditioningBy = mod;
-            startConditioning();
-            return "ok conditioning started";
         }
         if ("ambient_light".equals(cmd)) {
             if (car.lightBlocked() && !"release".equals(a0)) return "refused: the owner turned off mod light control (HMG-API app)";
@@ -274,10 +267,62 @@ final class Commands {
         return "refused: unknown command " + cmd;
     }
 
+    /**
+     * Battery conditioning: start, auto-start (a mod's own decision, e.g. routing to a
+     * charger), both with optional route values "<km> <minutes>"; route (the mod
+     * conditioning keeps its values current); stop. A stop blocks automatic starts until
+     * the next manual start, except the stop of the mod whose automatic request it is
+     * (that's the request ending, e.g. at the charger, not the driver saying no).
+     */
+    private String conditioning(String mod, String a0, String a1, String a2) {
+        if ("stop".equals(a0)) {
+            if (conditioningBy == null) return "ok not conditioning";
+            boolean ownAuto = conditioningAuto && conditioningBy.equals(mod);
+            stopConditioning();
+            if (!ownAuto) manualStop = true;   // a stop is the driver's (or another mod's) call: automatic starts wait for a manual one
+            return "ok conditioning stopped";
+        }
+        int[] route = a1.isEmpty() && a2.isEmpty() ? new int[] { ROUTE_KM, ROUTE_MIN } : route(a1, a2);
+        if (route == null) return "refused: route values are <km 0-" + KM_MAX + "> <minutes 0-" + MIN_MAX + ">";
+        if ("route".equals(a0)) {
+            if (a1.isEmpty()) return "refused: conditioning route <km> <minutes>";
+            if (conditioningBy == null || !conditioningBy.equals(mod)) {
+                return "refused: only the mod conditioning changes its route (" + (conditioningBy == null ? "not conditioning" : conditioningBy) + ")";
+            }
+            conditioningKm = route[0];
+            conditioningMin = route[1];
+            car.conditioningRoute(conditioningKm);
+            car.conditioningTime(conditioningMin);
+            keptAt = car.now();
+            return "ok conditioning route " + conditioningKm + " km " + conditioningMin + " min";
+        }
+        boolean auto = "auto-start".equals(a0);
+        if (!auto && !"start".equals(a0)) return "refused: conditioning start|auto-start|stop|route";
+        if (auto && manualStop) return "refused: stopped by hand; automatic starts wait for a manual start";
+        if (conditioningBy != null) return "ok already conditioning (" + conditioningBy + ")";
+        if (!auto) manualStop = false;
+        conditioningBy = mod;
+        conditioningAuto = auto;
+        conditioningKm = route[0];
+        conditioningMin = route[1];
+        startConditioning();
+        return "ok conditioning started";
+    }
+
+    /** "<km> <minutes>" within what the car's navigation sends, or null */
+    static int[] route(String km, String min) {
+        try {
+            int k = Integer.parseInt(km), m = Integer.parseInt(min);
+            return k < 0 || k > KM_MAX || m < 0 || m > MIN_MAX ? null : new int[] { k, m };
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     /** as the car's navigation does: route metadata, then "routed to a station" (Launchpad's order and timing) */
     void startConditioning() {
-        car.conditioningRoute(9);
-        car.conditioningTime(18);
+        car.conditioningRoute(conditioningKm);
+        car.conditioningTime(conditioningMin);
         car.pause(10);
         car.conditioningStation(2, 3);
         car.pause(130);
@@ -286,6 +331,9 @@ final class Commands {
 
     void stopConditioning() {
         conditioningBy = null;
+        conditioningAuto = false;
+        conditioningKm = ROUTE_KM;
+        conditioningMin = ROUTE_MIN;
         car.conditioningRoute(2047);
         car.conditioningTime(1023);
         car.conditioningStation(0, 0);
@@ -397,8 +445,8 @@ final class Commands {
         } else if (conditioningBy != null && car.now() - keptAt >= KEEP_MS) {
             // the station too: the car's navigation sends "no station" when it has no route of
             // its own (seen when the owner turned Battery Conditioning on), which undid ours
-            car.conditioningRoute(9);
-            car.conditioningTime(18);
+            car.conditioningRoute(conditioningKm);
+            car.conditioningTime(conditioningMin);
             car.conditioningStation(2, 3);
             keptAt = car.now();
         }
