@@ -120,7 +120,8 @@ final class Commands {
      * (release, stop, restore, off) never waits: a mod can always give back what it took.
      */
     String owner(String mod, String cmd, String a0) {
-        if (!car.askFirst() || mod == null || mod.isEmpty() || "hmgapi".equals(mod)) return null;
+        // "-" is the owner (root over adb, HMG-API's app): their own request needs no OK from themselves
+        if (!car.askFirst() || mod == null || mod.isEmpty() || "hmgapi".equals(mod) || "-".equals(mod)) return null;
         if ("release".equals(a0) || "stop".equals(a0) || "restore".equals(a0) || "off".equals(a0)) return null;
         String a = car.answer(mod, cmd);
         if ("yes".equals(a)) return null;

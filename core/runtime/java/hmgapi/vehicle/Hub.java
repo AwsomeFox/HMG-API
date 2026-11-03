@@ -370,13 +370,28 @@ public final class Hub {
             return new java.io.File(ALLOW + "cmd." + mod + "." + cmd).isFile() ? "yes" : null;
         }
 
-        public void ask(String mod, String cmd) {
-            try {
-                new ProcessBuilder("/system/bin/am", "start", "--user", "0", "-n", "hmgapi.app/.AskActivity",
-                        "--es", "mod", mod, "--es", "command", cmd).redirectErrorStream(true).start();
-            } catch (Exception e) {
-                System.out.println("vehicle: can't ask the owner: " + e);
-            }
+        public void ask(final String mod, final String cmd) {
+            // in the background (am takes a moment); what am says goes to the log when the question
+            // didn't go on screen (an app without AskActivity, Android not up), so it isn't lost
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Process p = new ProcessBuilder("/system/bin/am", "start", "--user", "0", "-n", "hmgapi.app/.AskActivity",
+                                "--es", "mod", mod, "--es", "command", cmd).redirectErrorStream(true).start();
+                        java.io.InputStream in = p.getInputStream();
+                        java.io.ByteArrayOutputStream o = new java.io.ByteArrayOutputStream();
+                        byte[] b = new byte[1024];
+                        int n;
+                        while ((n = in.read(b)) > 0) o.write(b, 0, n);
+                        int rc = p.waitFor();
+                        String out = o.toString("UTF-8").trim();
+                        if (rc != 0 || out.contains("Error")) System.out.println("vehicle: the question for " + mod + " " + cmd + " didn't go on screen: " + out.replace('\n', ' '));
+                    } catch (Exception e) {
+                        System.out.println("vehicle: can't ask the owner: " + e);
+                    }
+                }
+            }.start();
         }
 
         public long now() { return android.os.SystemClock.elapsedRealtime(); }

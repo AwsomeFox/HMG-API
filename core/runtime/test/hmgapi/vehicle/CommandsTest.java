@@ -234,6 +234,9 @@ public final class CommandsTest {
         o.answers.put("heat seat_heat", "no");
         check("not allowed: refused, says where to change it", "refused: the owner didn't allow seat_heat for heat (HMG-API app: Settings, Vehicle)",
                 oc.handle("heat", "seat_heat", new String[] { "driver", "low" }));
+        calls(o);
+        check("the owner's own command (\"-\": adb, the app): no question, it runs", "ok wheel heat on", oc.handle("-", "wheel_heat", new String[] { "on" }));
+        check("... nothing asked on screen", false, calls(o).contains("ask "));
         o.askFirst = false;
         check("asking off (trust_commands): runs", true, oc.handle("other", "wheel_heat", new String[] { "on" }).startsWith("ok"));
         System.exit(fail);
