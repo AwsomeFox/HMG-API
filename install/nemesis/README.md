@@ -3,10 +3,13 @@
 `tools/mkinstallers.sh` builds the package, `hmgapi.zip`: this folder's
 `NEMESIS.data` (from `NEMESIS.data.in`) and `scripts/`, plus HMG-API's payload in
 `payload/`. NEMESIS's USB handler only reads a `NEMESIS.data` at a stick's root, with
-`type=install` and a relative `path=` (`native/usb.c`), so the download
-`hmgapi-<version>-nemesis.zip` is laid out like NEMESIS's own (`Packages/*.zip`): that
-`NEMESIS.data`, `packages/hmgapi.zip` and `README.txt` (for owners), unzipped onto a
-stick. The USB download carries the same package as `HMGAPI/install/hmgapi.zip`. From
+a `type=` and a relative `path=` (`native/usb.c`). The download
+`hmgapi-<version>-nemesis.zip` is a NEMESIS 1.16 Package Store list (`type=list`,
+04-Packages.md §5.3, `StoreList.parseList`: `[package.0]`, `[package.1]`, … with no
+gaps): `packages/hmgapi.zip` first, then each released mod's NEMESIS package as
+`packages/hmgapi.<id>.zip`, and `README.txt` (for owners), unzipped onto a stick. The
+USB download carries the same package as `HMGAPI/install/hmgapi.zip`, with
+`type=install` (it also has to work without NEMESIS 1.16). From
 a shell: `nemesis install [--update] <hmgapi.zip>`. `install/usb/test.sh` checks both
 layouts against those rules.
 
@@ -27,8 +30,9 @@ is, in `mod/package.zip`) in a NEMESIS package from the template in `mod/`:
 release builds one for each mod in `tools/release-mods.txt`. `mod-test.sh` runs it all
 off-car with the real engine.
 
-- id `hmgapi.<mod id>` (mod ids are at most 57 characters for this), `depends="hmgapi"`
-  (NEMESIS then also refuses to uninstall HMG-API while a mod package is installed),
+- id `hmgapi.<mod id>` (mod ids are at most 57 characters for this),
+  `depends="hmgapi@>=1.0"` plus the mod's incompatibilities (below; NEMESIS then also
+  refuses to uninstall HMG-API while a mod package is installed),
   `os` from the mod's `"system"` (a firmware range like `>=260206` becomes `*`),
   `package-version` from the mod's version (`tools/nemesis-version.py`).
 - `preinstall`: refuses before NEMESIS copies anything if HMG-API isn't installed
@@ -51,9 +55,18 @@ off-car with the real engine.
 HMG-API's version as dotted numbers only (NEMESIS refuses anything else); a beta
 comes before its release, so it's the version before it plus `.99.<beta>`
 (`1.0.0-beta.4` is `0.99.4`, below `1.0.0`; `tools/mkinstallers.sh`, which stops on a
-version form it has no rule for). `os` names what's tested (`ro.build.product` globs:
-the US EV6 260507), and `models="any"`, so other cars show as partial, not
-incompatible. `short-desc` at most 64 characters, `detailed-desc` at most 256.
+version form it has no rule for). `os` names every car with a hook map
+(`ro.build.product` globs from each `maps/*/*/*/*/car.json`, `tools/nemesis-meta.py
+os`), all installed and checked by the maintainer, and `models="any"`, so other cars
+show as partial, not incompatible.
+
+**Incompatibilities** (`conflicts.txt`): NEMESIS packages that change files or
+settings HMG-API or a mod changes too go in `depends` as `!<id>`
+(`tools/nemesis-meta.py depends`). NEMESIS refuses to install either one while the
+other is installed (exit 23), so the owner uninstalls one first. HMG-API's own: HMG
+Leafia Plus (`wireless.carplay.aa`); the wireless mod's: `wireless.projection`,
+`projection.tbt`; the adb mod's: `adb.tcp`. Mods installed from the HMG-API app
+instead of NEMESIS aren't covered (the engine's own stock checks are). `short-desc` at most 64 characters, `detailed-desc` at most 256.
 `install/usb/test.sh` checks all of it.
 
 **For the Package Store** (portal.xwtk.cloud/nemesis): upload

@@ -84,7 +84,18 @@ val() { unzip -p "$P" NEMESIS.data | grep "^$1=" | cut -d= -f2- | sed 's/^"\(.*\
 check "package id is hmgapi.<mod id>" hmgapi.demo "$(val id)"
 check "descriptor version 1.1" 1.1 "$(val version)"
 check "package-version is the mod's" 1.0.0 "$(val package-version)"
-check "needs HMG-API's package" hmgapi "$(val depends)"
+check "needs HMG-API's package, 1.0 or newer" "hmgapi@>=1.0" "$(val depends)"
+printf '# test\nhmgapi.demo  other.pkg,legacy.pkg   # why\nhmgapi.else  third.pkg\n' > $T/conflicts.txt
+check "incompatible packages (conflicts.txt) go in depends as !id" "hmgapi@>=1.0,!other.pkg,!legacy.pkg" \
+    "$(HMGAPI_NEMESIS_CONFLICTS=$T/conflicts.txt tools/mknemesismod.sh $T/demo.zip $T/dist > /dev/null; val depends)"
+printf 'hmgapi.demo  hmgapi\n' > $T/conflicts.txt
+set +e; o=$(HMGAPI_NEMESIS_CONFLICTS=$T/conflicts.txt tools/mknemesismod.sh $T/demo.zip $T/dist 2>&1); r=$?; set -e
+has "a mod package refusing the HMG-API it needs: refused" "both needs and refuses hmgapi" "$o"
+check "... and it fails" 1 "$([ $r -ne 0 ] && echo 1)"
+check "the real list: the wireless mod refuses wireless.projection and projection.tbt" "hmgapi@>=1.0,!wireless.projection,!projection.tbt" \
+    "$(tools/nemesis-meta.py depends hmgapi.wireless-carplay-aa 'hmgapi@>=1.0')"
+check "... the adb mod refuses adb.tcp" "hmgapi@>=1.0,!adb.tcp" "$(tools/nemesis-meta.py depends hmgapi.adb 'hmgapi@>=1.0')"
+mk 1.0.0 on $T/author.key
 check "os from the mod's system" "CVEV.USA.*.260507" "$(val os)"
 check "name, with no double quotes left in it" "Demo 'quoted' mod" "$(val name)"
 check "short-desc at most 64 characters" yes "$([ ${#V} -ge 0 ] && python3 -c 'import sys; print("yes" if 0 < len(sys.argv[1]) <= 64 else "no")' "$(val short-desc)")"

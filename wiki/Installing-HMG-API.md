@@ -26,13 +26,27 @@ What happened is written to `HMGAPI/install.log` on the stick.
 
 ## NEMESIS
 
+Needs NEMESIS 1.16 or newer (update NEMESIS first if Manager has no Package Store).
+
 1. Unzip `hmgapi-<version>-nemesis.zip` onto the top level of a USB stick (FAT32 or
-   exFAT), the same way as NEMESIS's own packages: the stick gets `NEMESIS.data`,
-   `packages/hmgapi.zip` and a README. Only one NEMESIS package on the stick at a time.
-2. Plug it in once Android is up, and confirm the install of "HMG-API".
+   exFAT): the stick gets `NEMESIS.data`, a `packages` folder and a README. Nothing
+   else NEMESIS-related on the stick.
+2. Plug it in once Android is up. NEMESIS Manager opens its Package Store on the
+   stick's list: HMG-API and the mods it comes with. Install **HMG-API**, and any mods
+   you want (a mod on its own installs HMG-API first).
 3. Restart the head unit when it says so, and take the stick out.
 
 Updating through NEMESIS later keeps your mods.
+
+**Packages HMG-API can't be installed with.** NEMESIS refuses to install HMG-API (or
+one of its mods) while a package that changes the same files is installed, and the
+other way round. Uninstall that package in NEMESIS Manager first:
+
+| Package | Can't be installed with |
+|---|---|
+| HMG-API | HMG Leafia Plus (`wireless.carplay.aa`) |
+| Wireless CarPlay + Android Auto (mod) | NEMESIS's Wireless Projection (`wireless.projection`) and Projection TBT (`projection.tbt`) |
+| adb (mod) | NEMESIS's ADB over TCP (`adb.tcp`) |
 
 ## adb
 
