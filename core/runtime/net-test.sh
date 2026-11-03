@@ -5,9 +5,12 @@
 # fake iptables/ip6tables/ip/getprop that keep their state in files: rules in, the
 # stock firewall moving or flushing them, routes and sysctls, changes, down.
 # UNIT_SH: the shell to run the keeper with (mksh, the unit's, when it's installed).
-# It may carry arguments (UNIT_SH="<arm busybox> ash", as the other tests take it).
+# It may carry arguments. A busybox one isn't used here: busybox's shell runs its own
+# ip and iptables applets ahead of this test's stand-ins on PATH (the unit's keeper
+# runs under mksh, with no busybox), so mksh or bash runs it instead.
 set -e
 cd "$(dirname "$0")/../.."
+case "$UNIT_SH" in *busybox*) UNIT_SH= ;; esac
 UNIT_SH=${UNIT_SH:-$(command -v mksh || command -v bash)}
 CP=$(mktemp -d)
 javac --release 8 -Xlint:-options -nowarn -d "$CP" core/runtime/java/hmgapi/engine/*.java
