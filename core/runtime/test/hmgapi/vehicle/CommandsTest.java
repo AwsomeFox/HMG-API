@@ -116,6 +116,35 @@ public final class CommandsTest {
         c.tick(declared("egmp conditioning"));
         check("the mod that started it is turned off: stopped", "route 2047 | time 1023 | station 0,0", calls(car));
 
+        // route values: an automatic request to a real charger (EV routing)
+        Commands r = new Commands(car);
+        check("auto-start with route values", "ok conditioning started", r.handle("egmp", "conditioning", new String[] { "auto-start", "37", "25" }));
+        check("... sent as the route", "route 37 | time 25 | station 2,3", calls(car));
+        check("the holder updates them", "ok conditioning route 30 km 20 min", r.handle("egmp", "conditioning", new String[] { "route", "30", "20" }));
+        check("... at once", "route 30 | time 20", calls(car));
+        car.now += 5000;
+        r.tick(declared("egmp conditioning"));
+        check("kept up with the current values", "route 30 | time 20 | station 2,3", calls(car));
+        check("another mod can't change them", "refused: only the mod conditioning changes its route (egmp)", r.handle("pad", "conditioning", new String[] { "route", "1", "1" }));
+        check("values past what the navigation sends", "refused: route values are <km 0-2046> <minutes 0-1022>", r.handle("egmp", "conditioning", new String[] { "route", "2047", "20" }));
+        check("not numbers", true, r.handle("egmp", "conditioning", new String[] { "route", "ten", "20" }).startsWith("refused: route values"));
+        check("route needs both values", true, r.handle("egmp", "conditioning", new String[] { "route" }).startsWith("refused"));
+        check("an unknown subcommand is named as one, values or not", "refused: conditioning start|auto-start|stop|route", r.handle("egmp", "conditioning", new String[] { "foo", "1" }));
+        calls(car);
+        check("the holder ends its own automatic request (arrived)", "ok conditioning stopped", r.handle("egmp", "conditioning", new String[] { "stop" }));
+        calls(car);
+        check("... which isn't a manual stop: the next automatic start goes", "ok conditioning started", r.handle("egmp", "conditioning", new String[] { "auto-start", "12", "9" }));
+        check("... with its own values", "route 12 | time 9 | station 2,3", calls(car));
+        check("the owner stops it", "ok conditioning stopped", r.handle("-", "conditioning", new String[] { "stop" }));
+        calls(car);
+        check("... a manual stop: automatic starts wait", "refused: stopped by hand; automatic starts wait for a manual start", r.handle("egmp", "conditioning", new String[] { "auto-start", "12", "9" }));
+        check("route without conditioning", "refused: only the mod conditioning changes its route (not conditioning)", r.handle("egmp", "conditioning", new String[] { "route", "1", "1" }));
+        check("a manual start without values: the defaults", "ok conditioning started", r.handle("pad", "conditioning", new String[] { "start" }));
+        check("... 9 km, 18 min", "route 9 | time 18 | station 2,3", calls(car));
+        check("a manual start's own stop still counts as manual", "ok conditioning stopped", r.handle("pad", "conditioning", new String[] { "stop" }));
+        calls(car);
+        check("... automatic starts wait", "refused: stopped by hand; automatic starts wait for a manual start", r.handle("egmp", "conditioning", new String[] { "auto-start" }));
+
         check("ambient light: first mod holds it; sent as the car's nearest colour", "ok color ff6930 (the car's nearest to ff8000)", c.handle("amb", "ambient_light", new String[] { "color", "ff8000" }));
         check("... the car asked for its light first (not heard yet), then {0,r},{0,g},{0,b}", "light status | rgb 255,105,48", calls(car));
         car.now += 200;
