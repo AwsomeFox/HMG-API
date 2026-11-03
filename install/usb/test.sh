@@ -8,7 +8,8 @@ cd "$(dirname "$0")/../.."
 SH=${UNIT_SH:-sh}
 V=$(cat out/payload/VERSION 2>/dev/null)
 NB=$PWD/out/dist/hmgapi-$V-nemesis.zip UZ=$PWD/out/dist/hmgapi-$V-usb.zip
-[ -f "$NB" ] && [ -f "$UZ" ] || tools/mkinstallers.sh >/dev/null
+# made again when the build is newer than them (old downloads would test old packaging)
+[ -f "$NB" ] && [ -f "$UZ" ] && [ ! out/payload/BUILD -nt "$NB" ] || tools/mkinstallers.sh >/dev/null
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 NZ=$T/hmgapi.zip   # the package itself, from inside the NEMESIS download
 R=$T/root; S=$T/stick

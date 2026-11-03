@@ -62,7 +62,7 @@ case $1 in
 esac
 EOF
 chmod 755 $T/nemesis
-nem() { set +e; out=$(cd $T && env PATH="$T/bin:$PATH" ROOT=$R UNIT_SH=$SH HMGAPI_USB_DIRS="$S" sh $T/nemesis "$@" 2>&1); rc=$?; set -e; }
+nem() { set +e; out=$(cd $T && env PATH="$T/bin:$PATH" ROOT=$R UNIT_SH="$SH" HMGAPI_USB_DIRS="$S" sh $T/nemesis "$@" 2>&1); rc=$?; set -e; }
 
 # ---- a signed mod (tools/mkmodpkg.sh's layout), made into NEMESIS packages
 sig keygen $T/author.key > /dev/null
