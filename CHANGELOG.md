@@ -107,6 +107,10 @@ map lacks, only those parts stay off and the app says why.
   one, at boot and by hand, and fixes what doesn't match. Uninstalling a listed package
   in NEMESIS Manager uninstalls through HMG-API. HMG-API's NEMESIS uninstall no longer
   runs a second time after HMG-API was uninstalled another way.
+- **Boot hooks kept after a NEMESIS update:** NEMESIS's install and its updates write
+  `/system/etc/install-recovery.sh` as a whole new file, which dropped one of HMG-API's
+  two boot hooks (the one in `qb_runtime.sh` still started it). At each start
+  `hook-check.sh` puts a missing hook back and says so in `install.log`.
 - **Incompatible NEMESIS packages** (`install/nemesis/conflicts.txt`, `!<id>` in
   `depends`): HMG-API with HMG Leafia Plus (`wireless.carplay.aa`), and with
   `carplay.session` and `voicehandler.vr-gates` until we know they don't clash; the wireless mod with
