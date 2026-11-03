@@ -90,6 +90,13 @@ P (`ISystemService.getGearPStatus`, 36), HEV status flags (`IHEVService.getHEVSt
   navigation sends; stopped (values cleared) when the mod that started it is
   turned off. Open question: whether the car's own navigation overrides these
   when it has a route; to check on a car.
+- **The station event is the start, sent once:** distance, time, then station
+  `2,3`. HEVService puts the station back to Invalid about 120 ms after any set,
+  so it's never held. The 5 s keep-alive resends the distance and time only, as
+  Launchpad's does; resending the station too repeated the start, and on a US EV6
+  (260507) the car's conditioning indicator (`IBCMService` 109) then stayed off.
+  The EV6 can take up to 5 minutes to switch on (Launchpad's field notes; about a
+  minute on the Ioniq 5), and may not heat a pack at 20 °C / 68 °F or warmer.
 
 ## 5. Ambient light
 
