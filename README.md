@@ -2,6 +2,11 @@
 
 # HMG-API
 
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor_on_GitHub-%E2%9D%A4-bf3989?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VysseCodes)
+[![Buy me a coffee on Ko-fi](https://img.shields.io/badge/Buy_me_a_coffee-Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/vyssecodes)
+
+> **HMG-API is free.** If it saved you a dealer visit or made your drives nicer, please consider chipping in through [GitHub Sponsors](https://github.com/sponsors/VysseCodes) or [Ko-fi](https://ko-fi.com/vyssecodes). It keeps the testing and new-car ports going.
+
 A mod manager for Hyundai, Kia and Genesis **Gen5W** navigation head units.
 
 Mods add features to the head unit (wireless CarPlay and Android Auto with
