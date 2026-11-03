@@ -33,7 +33,7 @@ readme() { sed "s/@VERSION@/$V/" "$1" > "$2"; }
 # only reads a NEMESIS.data at the stick's root, with type= and a relative path= (native/usb.c)
 N=$W/nemesis
 mkdir -p "$N"
-# os=: every car with a hook map (a full match in NEMESIS); depends=: the NEMESIS packages
+# os=: every car whose hook map is verified on a car (a full match in NEMESIS); depends=: the NEMESIS packages
 # HMG-API can't live with (install/nemesis/conflicts.txt)
 OS=$(tools/nemesis-meta.py os)
 DEP=$(tools/nemesis-meta.py depends hmgapi)

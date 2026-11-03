@@ -61,8 +61,10 @@ check "package: os, models and depends set" yes "$([ -n "$(val os)" ] && [ -n "$
 full() { python3 -c 'import fnmatch,sys; print("yes" if any(fnmatch.fnmatchcase(sys.argv[2], g.strip()) for g in sys.argv[1].split(",")) else "no")' "$(val os)" "$1"; }
 check "package: the tested car is a full match" yes "$(full CVEV.USA.0000.V015.012.260507)"
 for f in maps/*/*/*/*/car.json; do
+    st=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["status"])' $f)
+    want=$([ "$st" = verified ] && echo yes || echo no)
     for p in $(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(" ".join(x + "0000.V015.012." + j["firmware"] for x in j["products"]))' $f); do
-        check "package: a mapped car is a full match ($p)" yes "$(full $p)"
+        check "package: a $st map's car is a full match: $want ($p)" $want "$(full $p)"
     done
 done
 check "package: another firmware isn't (it's partial)" no "$(full CVEV.USA.0000.V015.012.250101)"

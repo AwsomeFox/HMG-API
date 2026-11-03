@@ -5,8 +5,10 @@
       depends=: the needs (e.g. "hmgapi@>=1.0") then "!<id>" for each package that
       install/nemesis/conflicts.txt (or $HMGAPI_NEMESIS_CONFLICTS) lists for this one.
   tools/nemesis-meta.py os [maps dir]
-      os=: an ro.build.product glob for every car with a hook map (each car.json's
-      products and firmware, e.g. CVEV.USA.*.260507), so those cars are a full match.
+      os=: an ro.build.product glob for every car whose hook map is verified on a car
+      (car.json status "verified", tools/mark-verified.py; each one's products and
+      firmware, e.g. CVEV.USA.*.260507), so those cars are a full match. Maps not
+      verified yet stay out: those cars show as partial in NEMESIS.
 """
 import glob, json, os, re, sys
 
@@ -49,6 +51,8 @@ def os_globs(maps):
     globs = []
     for f in sorted(glob.glob(os.path.join(maps, "*", "*", "*", "*", "car.json"))):
         car = json.load(open(f))
+        if car.get("status") != "verified":
+            continue
         fw = str(car["firmware"])
         for p in car["products"]:
             if not re.fullmatch(r"[A-Z0-9]+\.[A-Z]+\.", p) or not fw.isdigit():
@@ -57,7 +61,8 @@ def os_globs(maps):
             if g not in globs:
                 globs.append(g)
     if not globs:
-        sys.exit("no hook maps in %s" % maps)
+        sys.exit("no hook map in %s is verified on a car yet: run hmgapid engine verify-map on the car,"
+                 " then tools/mark-verified.py" % maps)
     o = ",".join(globs)
     if len(o) > 255:   # native/meta.c: os[256]
         sys.exit("os= is %d characters, NEMESIS takes at most 255" % len(o))

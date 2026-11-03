@@ -11,8 +11,8 @@ Needs NEMESIS 1.16 or newer (its Package Store).
    the mods you want (a mod on its own installs HMG-API first).
 3. Restart the head unit when it says so, and take the stick out.
 
-NEMESIS won't install HMG-API while HMG Leafia Plus (wireless.carplay.aa) is
-installed: uninstall that first. The wireless CarPlay + Android Auto mod can't go
+NEMESIS won't install HMG-API while HMG Leafia Plus (wireless.carplay.aa),
+carplay.session or voicehandler.vr-gates is installed: uninstall those first. The wireless CarPlay + Android Auto mod can't go
 with wireless.projection or projection.tbt, the adb mod not with adb.tcp.
 
 Updating the same way keeps HMG-API's mods. Uninstall from NEMESIS Manager, or:

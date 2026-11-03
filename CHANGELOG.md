@@ -9,9 +9,9 @@ exactly what it changed.
 
 **Tested on:** a US Kia EV6 260507 (2026-10-31, `docs/car-test.md`): the hook runtime,
 mods, the app, buttons, the side panel, Android Auto turn-by-turn and projection events,
-the MICOM recording, the Car Report. HMG-API's install on every car with a hook map
-(US EV6 260507, US Ioniq 5 260507 and 260903, Canadian EV6 and Ioniq 5 260206). Not
-yet: CarPlay on HMG-API, installs without adb.
+the MICOM recording, the Car Report, wireless CarPlay and Android Auto. HMG-API's
+install and hook map verified on the US EV6 260507, US Ioniq 5 260507, and Canadian EV6
+and Ioniq 5 260206. Not yet: Ioniq 5 260903 (being checked), installs without adb.
 HMG-API runs on any Gen5W navigation head unit. A car's hook map (US Kia EV6 260507
 today) turns on the parts that change the car's own apps; without one, or for points a
 map lacks, only those parts stay off and the app says why.
@@ -67,7 +67,7 @@ map lacks, only those parts stay off and the app says why.
   onto one.
 - **NEMESIS descriptor 1.1** (since beta 4): `version=1.1` (the descriptor's),
   `type`, `package-version` (dotted numbers: a beta of 1.0.0 is 0.99.<beta>),
-  `short-desc`, `detailed-desc`, `os` (every car with a hook map), `models`, `depends`, as
+  `short-desc`, `detailed-desc`, `os` (every car whose hook map is verified), `models`, `depends`, as
   NEMESIS's Package Store takes them. `hmgapi-<v>-nemesis-package.zip` is the package
   itself, for the store and `nemesis install`.
 - **Opening the app without a tile** (since beta 5): NEMESIS Manager's **Launch** for
@@ -94,14 +94,16 @@ map lacks, only those parts stay off and the app says why.
   every 10 s.
 - **Hook maps for four more cars** (since beta 6): US Hyundai Ioniq 5 260507 (all
   trims) and 260903 (2023 on), Canadian Kia EV6 260206 and Hyundai Ioniq 5 260206.
-  Made from official update files and owners' Car Reports. HMG-API's install is tested
-  on all of them, and its NEMESIS package lists them all (`os`), so NEMESIS shows them
-  as fully compatible.
+  Made from official update files and owners' Car Reports. All but 260903 are verified
+  on a car (`tools/mark-verified.py` records each `engine verify-map` in the map's
+  `car.json`); HMG-API's NEMESIS package lists the verified ones (`os`), so NEMESIS shows
+  them as fully compatible. 260903 isn't confirmed yet.
 - **The NEMESIS download is a Package Store list** (`type=list`, NEMESIS 1.16 or
   newer): HMG-API and each mod's NEMESIS package, picked on screen. Mod packages need
   HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), so NEMESIS installs HMG-API first.
 - **Incompatible NEMESIS packages** (`install/nemesis/conflicts.txt`, `!<id>` in
-  `depends`): HMG-API with HMG Leafia Plus (`wireless.carplay.aa`); the wireless mod with
+  `depends`): HMG-API with HMG Leafia Plus (`wireless.carplay.aa`), and with
+  `carplay.session` and `voicehandler.vr-gates` until we know they don't clash; the wireless mod with
   `wireless.projection` and `projection.tbt`; the adb mod with `adb.tcp`. NEMESIS
   refuses to install one while the other is installed.
 - **Install anyway** (since beta 6): a mod whose author didn't list your car or

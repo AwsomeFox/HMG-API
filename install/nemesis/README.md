@@ -55,16 +55,20 @@ off-car with the real engine.
 HMG-API's version as dotted numbers only (NEMESIS refuses anything else); a beta
 comes before its release, so it's the version before it plus `.99.<beta>`
 (`1.0.0-beta.4` is `0.99.4`, below `1.0.0`; `tools/mkinstallers.sh`, which stops on a
-version form it has no rule for). `os` names every car with a hook map
-(`ro.build.product` globs from each `maps/*/*/*/*/car.json`, `tools/nemesis-meta.py
-os`), all installed and checked by the maintainer, and `models="any"`, so other cars
-show as partial, not incompatible.
+version form it has no rule for). `os` names every car whose hook map is verified on
+a car (`ro.build.product` globs from each `maps/*/*/*/*/car.json` with status
+`verified`, `tools/nemesis-meta.py os`; a map is marked verified by
+`tools/mark-verified.py` from that car's `engine verify-map` report), and
+`models="any"`, so other cars show as partial, not incompatible. With no verified map
+the build stops.
 
 **Incompatibilities** (`conflicts.txt`): NEMESIS packages that change files or
 settings HMG-API or a mod changes too go in `depends` as `!<id>`
 (`tools/nemesis-meta.py depends`). NEMESIS refuses to install either one while the
 other is installed (exit 23), so the owner uninstalls one first. HMG-API's own: HMG
-Leafia Plus (`wireless.carplay.aa`); the wireless mod's: `wireless.projection`,
+Leafia Plus (`wireless.carplay.aa`), and `carplay.session` and
+`voicehandler.vr-gates`, assumed to clash until someone checks what they change; the
+wireless mod's: `wireless.projection`,
 `projection.tbt`; the adb mod's: `adb.tcp`. Mods installed from the HMG-API app
 instead of NEMESIS aren't covered (the engine's own stock checks are). `short-desc` at most 64 characters, `detailed-desc` at most 256.
 `install/usb/test.sh` checks all of it.
