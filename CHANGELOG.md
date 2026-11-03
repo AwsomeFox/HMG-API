@@ -10,8 +10,9 @@ exactly what it changed.
 **Tested on:** a US Kia EV6 260507 (2026-10-31, `docs/car-test.md`): the hook runtime,
 mods, the app, buttons, the side panel, Android Auto turn-by-turn and projection events,
 the MICOM recording, the Car Report, wireless CarPlay and Android Auto. HMG-API's
-install and hook map verified on the US EV6 260507, US Ioniq 5 260507, and Canadian EV6
-and Ioniq 5 260206. Not yet: Ioniq 5 260903 (being checked), installs without adb.
+hook map verified on the US EV6 260507 (331 of 331 points); US Ioniq 5 260507 and Canadian
+EV6 and Ioniq 5 260206 mapped from their stock files, to check on a car once. Not yet:
+Ioniq 5 260903 (being checked), installs without adb, the conditioning checks below.
 HMG-API runs on any Gen5W navigation head unit. A car's hook map (US Kia EV6 260507
 today) turns on the parts that change the car's own apps; without one, or for points a
 map lacks, only those parts stay off and the app says why.
@@ -94,10 +95,10 @@ map lacks, only those parts stay off and the app says why.
   every 10 s.
 - **Hook maps for four more cars** (since beta 6): US Hyundai Ioniq 5 260507 (all
   trims) and 260903 (2023 on), Canadian Kia EV6 260206 and Hyundai Ioniq 5 260206.
-  Made from official update files and owners' Car Reports. All but 260903 are verified
-  on a car (`tools/mark-verified.py` records each `engine verify-map` in the map's
-  `car.json`, so hooks run there without checking each car first). 260903 isn't
-  confirmed yet. In NEMESIS, HMG-API shows as fully compatible on every Gen5W car.
+  Made from official update files and owners' Car Reports. Until a map is marked
+  verified (`tools/mark-verified.py` records an on-car `engine verify-map` in its
+  `car.json`), hooks on that car wait for the owner's *Check the map on this car*.
+  The US EV6 260507 is verified; the others are mapped; 260903 isn't confirmed yet. In NEMESIS, HMG-API shows as fully compatible on every Gen5W car.
 - **The NEMESIS download is a Package Store list** (`type=list`, NEMESIS 1.16 or
   newer): HMG-API and each mod's NEMESIS package, picked on screen. Mod packages need
   HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), so NEMESIS installs HMG-API first.
@@ -111,6 +112,14 @@ map lacks, only those parts stay off and the app says why.
   resent the station event (the start) with the route data, so the car was asked to
   start again every 5 s; on a US EV6 its conditioning indicator stayed off. It now
   resends the route data only, as Launchpad does.
+- **Battery conditioning checks the car** ([#68](https://github.com/VysseCodes/HMG-API/issues/68),
+  Launchpad's checks): a start is refused when the car isn't READY, Battery Conditioning
+  is off in the EV settings, or the car is already conditioning; a warm pack (EV6 and
+  Ioniq 6 20 °C / 68 °F, Ioniq 5 21 °C / 70 °F) is refused unless the request ends with
+  `warm`. If the car's indicator isn't on within 5 minutes (EV6) or 2 (others), the
+  request is stopped and reported. New readings `hv.conditioning_active`,
+  `hv.battery_temp_min`, `hv.conditioning_failure`, `conditioning.state`; 12 new hook
+  points, mapped on every car with stock files. Not yet tested on a car.
 - **Boot hooks kept after a NEMESIS update:** NEMESIS's install and its updates write
   `/system/etc/install-recovery.sh` as a whole new file, which dropped one of HMG-API's
   two boot hooks (the one in `qb_runtime.sh` still started it). At each start
@@ -148,8 +157,8 @@ side with it: `tools/mod-draft.py` drafts its `mod.json`.
 - **The client library** (`hmgapi-client.jar`): your app and services ask HMG-API
   for their settings, services, logs, USB folders, readings and commands, without
   root.
-- **Vehicle readings** (18, by name: gear, speed, steering angle, pedals, 12V and HV
-  battery, conditioning, charging, odometer, seat heat, guide lines), read through
+- **Vehicle readings** (22, by name: gear, speed, steering angle, pedals, 12V and HV
+  battery, conditioning and its indicator, pack temperature, charging, odometer, seat heat, guide lines), read through
   the car's own services and shared between mods.
 - **Vehicle commands**, each reviewed and guarded: charge door (park only), seat
   heat, wheel heat, battery conditioning, ambient light (one mod at a time), parking
