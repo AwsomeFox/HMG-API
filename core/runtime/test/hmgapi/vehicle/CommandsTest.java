@@ -129,6 +129,7 @@ public final class CommandsTest {
         check("values past what the navigation sends", "refused: route values are <km 0-2046> <minutes 0-1022>", r.handle("egmp", "conditioning", new String[] { "route", "2047", "20" }));
         check("not numbers", true, r.handle("egmp", "conditioning", new String[] { "route", "ten", "20" }).startsWith("refused: route values"));
         check("route needs both values", true, r.handle("egmp", "conditioning", new String[] { "route" }).startsWith("refused"));
+        check("an unknown subcommand is named as one, values or not", "refused: conditioning start|auto-start|stop|route", r.handle("egmp", "conditioning", new String[] { "foo", "1" }));
         calls(car);
         check("the holder ends its own automatic request (arrived)", "ok conditioning stopped", r.handle("egmp", "conditioning", new String[] { "stop" }));
         calls(car);

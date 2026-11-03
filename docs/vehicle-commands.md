@@ -96,8 +96,9 @@ P (`ISystemService.getGearPStatus`, 36), HEV status flags (`IHEVService.getHEVSt
   18 min (Launchpad's). 0-2046 km and 0-1022 min, as the navigation sends them
   (2047 / 1023 mean "no route"). The mod whose automatic request it is ending it
   (it arrived, or the route ended) isn't a manual stop: its next automatic start
-  isn't blocked. A stop by the owner or another mod still is. Open question: whether the car's own navigation overrides these
-  when it has a route; to check on a car.
+  isn't blocked. A stop by the owner or another mod still is. Open question:
+  whether the car's own navigation overrides these when it has a route; to check
+  on a car.
 
 ## 5. Ambient light
 

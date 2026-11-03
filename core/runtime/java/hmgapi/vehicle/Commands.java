@@ -282,10 +282,12 @@ final class Commands {
             if (!ownAuto) manualStop = true;   // a stop is the driver's (or another mod's) call: automatic starts wait for a manual one
             return "ok conditioning stopped";
         }
+        boolean auto = "auto-start".equals(a0);
+        if (!auto && !"start".equals(a0) && !"route".equals(a0)) return "refused: conditioning start|auto-start|stop|route";
+        if ("route".equals(a0) && a1.isEmpty()) return "refused: conditioning route <km> <minutes>";
         int[] route = a1.isEmpty() && a2.isEmpty() ? new int[] { ROUTE_KM, ROUTE_MIN } : route(a1, a2);
         if (route == null) return "refused: route values are <km 0-" + KM_MAX + "> <minutes 0-" + MIN_MAX + ">";
         if ("route".equals(a0)) {
-            if (a1.isEmpty()) return "refused: conditioning route <km> <minutes>";
             if (conditioningBy == null || !conditioningBy.equals(mod)) {
                 return "refused: only the mod conditioning changes its route (" + (conditioningBy == null ? "not conditioning" : conditioningBy) + ")";
             }
@@ -296,8 +298,6 @@ final class Commands {
             keptAt = car.now();
             return "ok conditioning route " + conditioningKm + " km " + conditioningMin + " min";
         }
-        boolean auto = "auto-start".equals(a0);
-        if (!auto && !"start".equals(a0)) return "refused: conditioning start|auto-start|stop|route";
         if (auto && manualStop) return "refused: stopped by hand; automatic starts wait for a manual start";
         if (conditioningBy != null) return "ok already conditioning (" + conditioningBy + ")";
         if (!auto) manualStop = false;
