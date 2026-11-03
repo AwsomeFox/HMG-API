@@ -107,6 +107,10 @@ map lacks, only those parts stay off and the app says why.
   one, at boot and by hand, and fixes what doesn't match. Uninstalling a listed package
   in NEMESIS Manager uninstalls through HMG-API. HMG-API's NEMESIS uninstall no longer
   runs a second time after HMG-API was uninstalled another way.
+- **Battery conditioning starts once:** the `conditioning` command's 5-second keep-alive
+  resent the station event (the start) with the route data, so the car was asked to
+  start again every 5 s; on a US EV6 its conditioning indicator stayed off. It now
+  resends the route data only, as Launchpad does.
 - **Boot hooks kept after a NEMESIS update:** NEMESIS's install and its updates write
   `/system/etc/install-recovery.sh` as a whole new file, which dropped one of HMG-API's
   two boot hooks (the one in `qb_runtime.sh` still started it). At each start

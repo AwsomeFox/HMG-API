@@ -106,7 +106,7 @@ public final class CommandsTest {
         check("a second start doesn't start again", "ok already conditioning (pad)", c.handle("egmp", "conditioning", new String[] { "auto-start" }));
         car.now += 5000;
         c.tick(declared("pad conditioning"));
-        check("kept up every 5 s, the station too (the car's navigation may clear it)", "route 9 | time 18 | station 2,3", calls(car));
+        check("kept up every 5 s: the route data only, the station event (the start) isn't repeated", "route 9 | time 18", calls(car));
         check("stop", "ok conditioning stopped", c.handle("pad", "conditioning", new String[] { "stop" }));
         check("... cleared as Launchpad does", "route 2047 | time 1023 | station 0,0", calls(car));
         check("an automatic start after a stop waits", "refused: stopped by hand; automatic starts wait for a manual start", c.handle("egmp", "conditioning", new String[] { "auto-start" }));
@@ -124,7 +124,7 @@ public final class CommandsTest {
         check("... at once", "route 30 | time 20", calls(car));
         car.now += 5000;
         r.tick(declared("egmp conditioning"));
-        check("kept up with the current values", "route 30 | time 20 | station 2,3", calls(car));
+        check("kept up with the current values (the route data only)", "route 30 | time 20", calls(car));
         check("another mod can't change them", "refused: only the mod conditioning changes its route (egmp)", r.handle("pad", "conditioning", new String[] { "route", "1", "1" }));
         check("values past what the navigation sends", "refused: route values are <km 0-2046> <minutes 0-1022>", r.handle("egmp", "conditioning", new String[] { "route", "2047", "20" }));
         check("not numbers", true, r.handle("egmp", "conditioning", new String[] { "route", "ten", "20" }).startsWith("refused: route values"));
