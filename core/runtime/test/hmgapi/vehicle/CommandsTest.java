@@ -106,7 +106,7 @@ public final class CommandsTest {
         check("a second start doesn't start again", "ok already conditioning (pad)", c.handle("egmp", "conditioning", new String[] { "auto-start" }));
         car.now += 5000;
         c.tick(declared("pad conditioning"));
-        check("kept up every 5 s, the station too (the car's navigation may clear it)", "route 9 | time 18 | station 2,3", calls(car));
+        check("kept up every 5 s: the route data only, the station event (the start) isn't repeated", "route 9 | time 18", calls(car));
         check("stop", "ok conditioning stopped", c.handle("pad", "conditioning", new String[] { "stop" }));
         check("... cleared as Launchpad does", "route 2047 | time 1023 | station 0,0", calls(car));
         check("an automatic start after a stop waits", "refused: stopped by hand; automatic starts wait for a manual start", c.handle("egmp", "conditioning", new String[] { "auto-start" }));

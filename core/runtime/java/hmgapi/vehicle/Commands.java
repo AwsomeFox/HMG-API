@@ -396,11 +396,12 @@ final class Commands {
             car.log("conditioning: " + conditioningBy + " is off; stopping");
             stopConditioning();
         } else if (conditioningBy != null && car.now() - keptAt >= KEEP_MS) {
-            // the station too: the car's navigation sends "no station" when it has no route of
-            // its own (seen when the owner turned Battery Conditioning on), which undid ours
+            // the route data only, never the station event again: that event is the start
+            // (HEVService puts the station back to Invalid about 120 ms after any set, so it's
+            // never held), and repeating it every 5 s kept the BMS from switching on (US EV6
+            // 260507: indicator BCM 109 stayed 0). Launchpad's maintain does the same.
             car.conditioningRoute(9);
             car.conditioningTime(18);
-            car.conditioningStation(2, 3);
             keptAt = car.now();
         }
         if (lightBy != null && !has(declared, lightBy, "ambient_light")) {
