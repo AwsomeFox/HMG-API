@@ -6,9 +6,17 @@
 # keeps the owner's settings, keeps a mod turned off off, and takes an update only
 # from the same author key as the installed mod.
 # HMGAPI/ANY-CAR on a USB stick: install a mod that doesn't list this car (own risk).
+# A package HMG-API's NEMESIS sync made (HMGAPI_NEMESIS_SYNC=1, or a "registered" marker
+# and no mod zip) only lists a mod HMG-API has installed: nothing to do.
 umask 077
 H=${ROOT:-}/system/bin/hmgapid
 ID=$(cat mod/id)
+if [ "$HMGAPI_NEMESIS_SYNC" = 1 ]; then echo "listed by HMG-API: nothing to install"; exit 0; fi
+if [ ! -f mod/package.zip ]; then
+    if [ -d "${ROOT:-}/data/hmgapi/mods/$ID" ]; then echo "$ID is installed in HMG-API: listed"; exit 0; fi
+    echo "this package only lists the HMG-API mod $ID, and it isn't installed: install the mod in HMG-API, or its own NEMESIS package"
+    exit 1
+fi
 say() { echo "HMG-API mod $ID: $1"; }
 toast() {
     [ "$(getprop sys.boot_completed)" = 1 ] || return 0
@@ -20,7 +28,7 @@ any=
 for d in ${HMGAPI_USB_DIRS:-/storage/usb0 /storage/usb1 /storage/usb2}; do [ -f "$d/HMGAPI/ANY-CAR" ] && any=--any-car; done
 new=yes
 [ -d "${ROOT:-}/data/hmgapi/mods/$ID" ] && new=no
-if ! "$H" engine install "$PWD/mod/package.zip" $any; then
+if ! "$H" engine install "$PWD/mod/package.zip" $any --from-nemesis; then
     say "HMG-API didn't install it (see above): nothing changed. Uninstall this package in NEMESIS Manager."
     toast "HMG-API didn't install $ID: see NEMESIS's log"
     exit 1
@@ -28,7 +36,7 @@ fi
 if ! r=$("$H" engine apply 2>&1); then
     echo "$r"
     if [ $new = yes ]; then
-        "$H" engine remove "$ID" >/dev/null 2>&1
+        "$H" engine remove "$ID" --from-nemesis >/dev/null 2>&1
         say "HMG-API couldn't apply it (see above), so it's not installed: nothing changed. Uninstall this package in NEMESIS Manager."
     else
         say "the update is in HMG-API, but it couldn't apply it (see above): the HMG-API app shows the problem; Apply changes there once it's fixed."

@@ -4,7 +4,8 @@ ROOT=${ROOT:-}
 HOOK_BEGIN="# HMGAPI_HOOK begin"
 HOOK_END="# HMGAPI_HOOK end"
 
-# The boot hook: start hmgapid (and, if the app is still waiting, its installer); if an engine apply was cut off (or a trial is
+# The boot hook: start hmgapid (and, if the app is still waiting, its installer; with NEMESIS, two minutes
+# later, engine nemesis-sync, so NEMESIS lists what HMG-API has installed); if an engine apply was cut off (or a trial is
 # waiting), roll it back, and restart once if anything was rolled back (apps
 # may already have loaded the files).
 hook_block() {
@@ -13,6 +14,7 @@ hook_block() {
     echo '    /system/bin/hmgapid daemon'
     echo '    if [ -s /data/hmgapi/state/binds.txt ]; then /system/bin/hmgapid binds > /data/hmgapi/binds.log 2>&1 & fi'
     echo '    if [ -f /data/hmgapi/public/HmgApi.apk ]; then /system/bin/hmgapid sh "sh /data/hmgapi/app-pending.sh </dev/null >/dev/null 2>&1 &" >/dev/null 2>&1; fi'
+    echo '    if [ -x /system/xbin/nemesis ]; then /system/bin/hmgapid sh "(sleep 120; /system/bin/hmgapid engine nemesis-sync) </dev/null >/data/hmgapi/nemesis-sync.log 2>&1 &" >/dev/null 2>&1; fi'
     echo '    if [ -f /data/hmgapi/state/journal.json ]; then'
     echo '        /system/bin/hmgapid engine recover > /data/hmgapi/recover.log 2>&1'
     echo '        if grep -q "rolled back" /data/hmgapi/recover.log || grep -q "trial undone" /data/hmgapi/recover.log; then /system/bin/hmgapid reboot; fi'

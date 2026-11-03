@@ -38,6 +38,12 @@ Needs NEMESIS 1.16 or newer (update NEMESIS first if Manager has no Package Stor
 
 Updating through NEMESIS later keeps your mods.
 
+**HMG-API and NEMESIS show the same thing.** However you install HMG-API or a mod
+(the app, adb, a USB stick or NEMESIS), NEMESIS 1.16 or newer lists it in My Packages,
+and removing it anywhere takes it off there too. HMG-API always does the work; a
+check after every install and uninstall, and at each start, fixes anything that
+doesn't match. To run it by hand: `adb shell hmgapid engine nemesis-sync`.
+
 **Packages HMG-API can't be installed with.** NEMESIS refuses to install HMG-API (or
 one of its mods) while a package that changes the same files is installed, and the
 other way round. Uninstall that package in NEMESIS Manager first:

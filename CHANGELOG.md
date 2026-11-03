@@ -101,6 +101,12 @@ map lacks, only those parts stay off and the app says why.
 - **The NEMESIS download is a Package Store list** (`type=list`, NEMESIS 1.16 or
   newer): HMG-API and each mod's NEMESIS package, picked on screen. Mod packages need
   HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), so NEMESIS installs HMG-API first.
+- **HMG-API and NEMESIS show the same thing** (`engine nemesis-sync`): HMG-API and every
+  mod installed by any route are listed in NEMESIS 1.16 or newer, and taken off when
+  they're removed. HMG-API does every install and uninstall; the sync runs after each
+  one, at boot and by hand, and fixes what doesn't match. Uninstalling a listed package
+  in NEMESIS Manager uninstalls through HMG-API. HMG-API's NEMESIS uninstall no longer
+  runs a second time after HMG-API was uninstalled another way.
 - **Incompatible NEMESIS packages** (`install/nemesis/conflicts.txt`, `!<id>` in
   `depends`): HMG-API with HMG Leafia Plus (`wireless.carplay.aa`), and with
   `carplay.session` and `voicehandler.vr-gates` until we know they don't clash; the wireless mod with

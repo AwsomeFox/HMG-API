@@ -7,5 +7,5 @@ if [ ! -x "${ROOT:-}/system/bin/hmgapid" ] || [ ! -f "${ROOT:-}/data/hmgapi/unin
     echo "HMG-API isn't installed on this unit: install HMG-API first, then this mod"
     exit 1
 fi
-[ -f mod/package.zip ] && [ -f mod/id ] || { echo "not a HMG-API mod package (no mod/package.zip)"; exit 1; }
+[ -f mod/id ] && { [ -f mod/package.zip ] || [ -f registered ]; } || { echo "not a HMG-API mod package (no mod/package.zip)"; exit 1; }
 exit 0

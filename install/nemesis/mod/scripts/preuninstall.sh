@@ -8,9 +8,12 @@
 # nothing, and the new postinstall updates the mod in place. Never when the nemesis
 # command running this is an uninstall: a stage left by an interrupted install
 # mustn't turn an uninstall into nothing.
+# HMG-API's NEMESIS sync (HMGAPI_NEMESIS_SYNC=1) unlists or re-lists only: HMG-API did (or
+# keeps) the real work, and the mod stays as it is in HMG-API.
 umask 077
 H=${ROOT:-}/system/bin/hmgapid
 ID=$(cat mod/id)
+if [ "$HMGAPI_NEMESIS_SYNC" = 1 ]; then echo "HMG-API's NEMESIS sync: list only, $ID stays as it is in HMG-API"; exit 0; fi
 PKG=hmgapi.$ID
 STAGE=${ROOT:-}/data/local/tmp/nemesis/stage/$PKG
 caller=$(cat /proc/$PPID/cmdline 2>/dev/null)
@@ -32,7 +35,7 @@ if [ ! -x "$H" ]; then
     exit 0
 fi
 "$H" ping >/dev/null 2>&1 || "$H" daemon >/dev/null 2>&1
-"$H" engine remove "$ID" || { echo "HMG-API didn't remove $ID (see above): nothing changed, the package stays"; exit 1; }
+"$H" engine remove "$ID" --from-nemesis || { echo "HMG-API didn't remove $ID (see above): nothing changed, the package stays"; exit 1; }
 # Removed from HMG-API either way now, so the package goes even when the apply fails:
 # the HMG-API app shows the pending change and its problem.
 if ! "$H" engine apply; then

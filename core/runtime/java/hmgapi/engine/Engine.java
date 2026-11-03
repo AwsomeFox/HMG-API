@@ -301,15 +301,25 @@ public final class Engine {
                 out.add("usage: engine install <zip|dir> [--uuid <uuid>] [--force] [--any-car] | remove <id>");
                 return 2;
             }
-            if ("remove".equals(cmd)) return Packages.remove(this, args[1]);
-            String uuid = null;
-            boolean anyCar = false;
-            for (int i = 2; i < args.length; i++) {
-                if ("--uuid".equals(args[i]) && i + 1 < args.length) uuid = args[i + 1];
-                else if ("--any-car".equals(args[i])) anyCar = true;
+            // --from-nemesis: NEMESIS's own install or uninstall of the mod's package runs this, so its list
+            // is being changed already (NemesisSync would call NEMESIS from inside NEMESIS)
+            boolean fromNemesis = java.util.Arrays.asList(args).contains("--from-nemesis");
+            int rc;
+            if ("remove".equals(cmd)) {
+                rc = Packages.remove(this, args[1]);
+            } else {
+                String uuid = null;
+                boolean anyCar = false;
+                for (int i = 2; i < args.length; i++) {
+                    if ("--uuid".equals(args[i]) && i + 1 < args.length) uuid = args[i + 1];
+                    else if ("--any-car".equals(args[i])) anyCar = true;
+                }
+                rc = Packages.install(this, args[1], uuid, force, anyCar);
             }
-            return Packages.install(this, args[1], uuid, force, anyCar);
+            if (rc == 0 && !fromNemesis) NemesisSync.run(this);   // never fails the install or remove
+            return rc;
         }
+        if ("nemesis-sync".equals(cmd)) return NemesisSync.run(this);
         if ("recover".equals(cmd)) return recover();
         if ("keep".equals(cmd)) return keep();
         if (journalFile.exists() && !"keep".equals(cmd)) {
@@ -324,7 +334,7 @@ public final class Engine {
             if (!map.runnable) out.add("hooks are off on this car (" + map.reason + "): mods apply without their hooks");
         }
         if (!restoreAll && !"plan".equals(cmd) && !"apply".equals(cmd)) {
-            out.add("usage: engine plan | apply [--trial] | keep | restore | status | recover | install <zip|dir> | remove <id> | map | map-car [--write] | verify-map | report [--usb] | usb-scan | update-hmgapi <zip> | publish-state | apps");
+            out.add("usage: engine plan | apply [--trial] | keep | restore | status | recover | install <zip|dir> | remove <id> | nemesis-sync | map | map-car [--write] | verify-map | report [--usb] | usb-scan | update-hmgapi <zip> | publish-state | apps");
             return 2;
         }
         Plan p = plan(restoreAll, force);

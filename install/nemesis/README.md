@@ -22,6 +22,37 @@ layouts against those rules.
 - Installed with Android down (a stick with `NEMESIS.emergency`; NEMESIS otherwise
   waits for Android), the HMG-API app goes in by itself once Android is up.
 
+## NEMESIS lists what HMG-API installed (engine nemesis-sync)
+
+HMG-API does every install and uninstall; NEMESIS (1.16 or newer) shows the same
+thing in My Packages. `hmgapid engine nemesis-sync` (`NemesisSync.java`) compares the
+two and fixes what differs: HMG-API or a mod installed but not listed (or at another
+version) is listed, a `hmgapi.<id>` whose mod isn't installed is unlisted. It runs
+after `engine install` and `engine remove`, at the end of `install.sh`, two minutes
+after each boot (the boot hook), and by hand; `uninstall.sh` unlists the mods and then
+HMG-API itself (the engine is gone by then). A failed listing never fails an install:
+it says why, and the next sync tries again.
+
+- A package the sync lists is a small one: `NEMESIS.data` (`os="any"`, `depends` as
+  the full packages), these scripts, `bin/open.sh`, a `registered` marker, no payload
+  or mod zip. The scripts and `conflicts.txt` are in the payload (`nemesis/`) and kept
+  in `/data/hmgapi/nemesis`.
+- The sync runs NEMESIS with `HMGAPI_NEMESIS_SYNC=1`: every script here then does
+  nothing (`nemesis` as root runs locally and passes the environment to the hooks), so
+  listing and unlisting never install or remove. Before NEMESIS runs an installed
+  package's scripts for that, the sync puts the current scripts over the package's
+  own copies (an older one would uninstall instead).
+- Uninstalling a listed package in NEMESIS Manager runs the scripts without it, so
+  HMG-API uninstalls (or removes the mod and applies) as usual. Our scripts pass
+  `--from-nemesis` to `engine install`/`remove` and set `HMGAPI_FROM_NEMESIS=1` for
+  `install.sh`/`uninstall.sh`, so nothing calls NEMESIS from inside NEMESIS (it has no
+  lock of its own; the sync takes `state/nemesis-sync.lock`).
+- HMG-API's own `preuninstall` uninstalls only if HMG-API is installed
+  (`installed.txt`): `uninstall.sh` stays in `/data/hmgapi` after an uninstall.
+
+`sync-test.sh` runs it all off-car with the real engine and a stand-in NEMESIS;
+`install/common/install-test.sh` checks the unlisting in `uninstall.sh`.
+
 ## Mods as NEMESIS packages
 
 `tools/mknemesismod.sh <signed mod zip>` wraps a mod (tools/mkmodpkg.sh's zip, as it
