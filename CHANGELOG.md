@@ -6,10 +6,9 @@
 
 - **NEMESIS starts on time again.** With 1.0.0, NEMESIS showed no packages and "daemon
   not running" for about two minutes after every start: the boot hook's background
-  NEMESIS sync (`(sleep 120; hmgapid engine nemesis-sync) &`) kept `hmgapid sh`'s output
-  pipe open, so the boot script waited on that line, above NEMESIS's own start.
-  `hmgapid` no longer lets a command's background job hold the pipe, and the boot line
-  closes the spare descriptors itself (as `hook-check.sh` and `app-pending.sh` do).
+  NEMESIS sync (`(sleep 120; hmgapid engine nemesis-sync) &`) inherited `hmgapid sh`'s
+  output pipe, so the boot script waited on that line, above NEMESIS's own start.
+  `hmgapid` now hands a command only fds 0-2.
 
 ## 1.0.0 (2026-11-03)
 
