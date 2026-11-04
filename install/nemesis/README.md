@@ -62,8 +62,11 @@ release builds one for each mod in `tools/release-mods.txt`. `mod-test.sh` runs 
 off-car with the real engine.
 
 - id `hmgapi.<mod id>` (mod ids are at most 57 characters for this),
-  `depends="hmgapi@>=1.0"` plus the mod's incompatibilities (below; NEMESIS then also
-  refuses to uninstall HMG-API while a mod package is installed),
+  `depends="hmgapi@>=1.0"`, plus `hmgapi.<id>@>=<lowest version>` for each mod its
+  `"requires"` names (an upper bound stays the engine's check; the NEMESIS sync lists
+  every installed mod as `hmgapi.<id>`, however it was installed), plus the mod's
+  incompatibilities (below; NEMESIS then also refuses to uninstall HMG-API, or a required
+  mod, while a mod package is installed),
   `os` from the mod's `"system"` (a firmware range like `>=260206` becomes `*`),
   `package-version` from the mod's version (`tools/nemesis-version.py`).
 - `preinstall`: refuses before NEMESIS copies anything if HMG-API isn't installed

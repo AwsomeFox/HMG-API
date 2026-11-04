@@ -1,7 +1,8 @@
 #!/bin/sh
 # Make a NEMESIS package for a signed HMG-API mod (tools/mkmodpkg.sh's zip), so it
 # installs from NEMESIS Manager, a USB stick or the Package Store. The package
-# (id hmgapi.<mod id>, depends on hmgapi 1.0 or newer) carries the mod zip as it is; its scripts
+# (id hmgapi.<mod id>, depends on hmgapi 1.0 or newer and on the package of each mod its
+# "requires" names) carries the mod zip as it is; its scripts
 # (install/nemesis/mod) install and remove it with HMG-API's engine, through hmgapid.
 #   tools/mknemesismod.sh <signed mod zip> [out dir, default out/dist]
 # Makes, in the out dir:
@@ -61,16 +62,48 @@ for s in sysv:
         if g not in osl:
             osl.append(g)
 os_ = "any" if not osl or "*.*.*.*" in osl else ",".join(osl)
+# depends= for the mods it requires: hmgapi.<id>, from the lowest version its range allows
+# (">=2.1", "^2.1.0", "~2.1", "=2.1.0", "2.1.0"; ">2.1" as >=2.1). An upper bound, or
+# anything else a NEMESIS depends can't say, is left to the engine's own check. HMG-API's
+# NEMESIS sync lists every installed mod as hmgapi.<id>, however it was installed.
+import subprocess
+def deps(v):
+    out = []
+    for d in (v if isinstance(v, list) else []):
+        if isinstance(d, dict):
+            rid, rng = str(d.get("id", "")), str(d.get("version") or "")
+        else:
+            p = str(d).split(None, 1)
+            rid, rng = p[0], (p[1] if len(p) > 1 else "")
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", rid) or rid == mid:
+            sys.exit("bad mod id in requires: %r" % rid)
+        low = None
+        for part in rng.split():
+            m2 = re.fullmatch(r"(>=|>|\^|~|=)?v?(\d+(?:\.\d+)*(?:-[0-9A-Za-z.]+)?)", part)
+            if m2 and m2.group(1) in (None, ">=", ">", "^", "~", "="):
+                low = m2.group(2)
+        need = "hmgapi." + rid
+        if low:
+            r = subprocess.run([sys.executable, "tools/nemesis-version.py", low], capture_output=True, text=True)
+            if r.returncode:
+                sys.exit(r.stderr.strip() or "no NEMESIS version for %s" % low)
+            need += "@>=" + r.stdout.strip()
+        if need.split("@")[0] not in [x.split("@")[0] for x in out]:
+            out.append(need)
+    return ",".join(out)
+needs = deps(m.get("requires"))
 for k, v in (("ID", mid), ("VERSION", ver), ("PACKAGE_ID", pkg), ("NAME", name), ("SHORT_DESC", short),
-             ("DETAILED_DESC", detail), ("OS", os_)):
+             ("DETAILED_DESC", detail), ("OS", os_), ("NEEDS", needs)):
     print("%s=%s" % (k, v))
 PY
 var() { grep "^$1=" "$W/vars" | cut -d= -f2-; }
 ID=$(var ID); V=$(var VERSION); PKG=$(var PACKAGE_ID)
 PV=$(tools/nemesis-version.py "$V")
-# depends=: HMG-API 1.0 or newer (mods as NEMESIS packages are new in 1.0.0), and "!<id>" for each
-# NEMESIS package that changes what this mod changes (install/nemesis/conflicts.txt)
-DEP=$(tools/nemesis-meta.py depends "$PKG" 'hmgapi@>=1.0')
+# depends=: HMG-API 1.0 or newer (mods as NEMESIS packages are new in 1.0.0), the mods it
+# requires, and "!<id>" for each NEMESIS package that changes what this mod changes
+# (install/nemesis/conflicts.txt)
+NEEDS=$(var NEEDS)
+DEP=$(tools/nemesis-meta.py depends "$PKG" "hmgapi@>=1.0${NEEDS:+,$NEEDS}")
 echo "DEPENDS=$DEP" >> "$W/vars"
 # fill a template: @KEY@ from the vars (and PACKAGE_VERSION), any character in the values
 fill() { python3 - "$W/vars" "$PV" "$1" > "$2" <<'PY'

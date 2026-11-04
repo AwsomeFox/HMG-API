@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
+  wrote `depends="hmgapi@>=1.0"` for every mod, so NEMESIS Manager and the Package Store
+  offered a mod with no word of the mods it needs. Each `"requires"` entry now adds
+  `hmgapi.<id>@>=<its lowest version>`.
+
 ## 1.0.1 (2026-11-03)
 
 ### Fixes

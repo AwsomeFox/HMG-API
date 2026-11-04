@@ -68,10 +68,10 @@ nem() { set +e; out=$(cd $T && env PATH="$T/bin:$PATH" ROOT=$R UNIT_SH="$SH" HMG
 sig keygen $T/author.key > /dev/null
 sig keygen $T/other.key > /dev/null
 EV6='[{"model": ["CVEV"], "region": "USA", "firmware": "260507"}]'
-mk() {   # mk <version> <prop value> <key> [system json]
+mk() {   # mk <version> <prop value> <key> [system json] [more mod.json fields]
     rm -rf $T/m; mkdir -p $T/m/files
-    printf '{"id": "demo", "name": "Demo \\"quoted\\" mod", "version": "%s", "hmgapi": ">=0.1.0", "description": "A test mod.", "system": %s}\n' \
-        "$1" "${4:-$EV6}" > $T/m/mod.json
+    printf '{"id": "demo", "name": "Demo \\"quoted\\" mod", "version": "%s", "hmgapi": ">=0.1.0", "description": "A test mod.", "system": %s%s}\n' \
+        "$1" "${4:-$EV6}" "${5:+, $5}" > $T/m/mod.json
     printf '{"changes": [{"type": "props", "path": "/system/build.prop", "set": {"persist.demo": "%s"}, "stock": "any"},\n {"type": "add", "path": "/system/etc/permissions/demo.xml", "src": "files/demo.xml"}]}\n' "$2" > $T/m/patches.json
     echo "<permissions/>" > $T/m/files/demo.xml
     sig sign $T/m $3 > /dev/null
@@ -95,6 +95,12 @@ check "... and it fails" 1 "$([ $r -ne 0 ] && echo 1)"
 check "the real list: the wireless mod refuses wireless.projection and projection.tbt" "hmgapi@>=1.0,!wireless.projection,!projection.tbt" \
     "$(tools/nemesis-meta.py depends hmgapi.wireless-carplay-aa 'hmgapi@>=1.0')"
 check "... the adb mod refuses adb.tcp" "hmgapi@>=1.0,!adb.tcp" "$(tools/nemesis-meta.py depends hmgapi.adb 'hmgapi@>=1.0')"
+check "a mod it requires: its package goes in depends, from the range's lowest version" "hmgapi@>=1.0,hmgapi.wireless-carplay-aa@>=2.1.0" \
+    "$(mk 1.0.0 on $T/author.key "$EV6" '"requires": ["wireless-carplay-aa >=2.1.0"]'; val depends)"
+check "... several, as objects, a beta, an upper bound left to the engine" "hmgapi@>=1.0,hmgapi.a@>=1.1.99.2,hmgapi.b,hmgapi.c@>=3.0" \
+    "$(mk 1.0.0 on $T/author.key "$EV6" '"requires": [{"id": "a", "version": "^1.2.0-beta.2"}, "b", "c >=3.0 <4"]'; val depends)"
+set +e; o=$(mk 1.0.0 on $T/author.key "$EV6" '"requires": ["Bad Id"]' 2>&1); set -e
+has "a bad mod id in requires: refused" "bad mod id in requires" "$o"
 mk 1.0.0 on $T/author.key
 check "os from the mod's system" "CVEV.USA.*.260507" "$(val os)"
 check "name, with no double quotes left in it" "Demo 'quoted' mod" "$(val name)"
