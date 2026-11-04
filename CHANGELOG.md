@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Wireless CarPlay + Android Auto 2.2.0
+
+- **Lanes from the phone only.** While a phone guides, the car's own navigation keeps
+  running with no route and sent the lanes of every intersection it passed, none marked,
+  in the same frame as the phone's: Android Auto's lanes for the next turn, with the lane
+  to take marked, were overwritten (US Ioniq 5, 2026-11-03). Its `updateLaneInfo` now
+  yields to the phone like its other turn-by-turn calls.
+- **Setting: Android Auto turns in the car's own format** (off by default). Near a
+  maneuver the cluster and HUD get what the car's navigation sends: turn, U-turn, fork,
+  exit and roundabout types with the angle and the distance bar counting down, and
+  destination left/right/ahead. On a US Ioniq 5 the AR HUD animates them as it does for
+  the car's navigation. `docs/cluster-turns.md` has what the car sends.
+
 ## 1.0.0 (2026-11-03)
 
 HMG-API replaces HMG Leafia Plus 1.x. Leafia was one NEMESIS package for wireless
