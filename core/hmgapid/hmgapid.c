@@ -563,7 +563,11 @@ static int run_env(int fd, char *const argv[], char *const extra[], int finish)
         if (nul >= 0) x_dup2(nul, 0);
         x_dup2(pfd[1], 1);
         x_dup2(pfd[1], 2);
-        x_close(pfd[0]);
+        /* only 0-2 go to the command: the pipe's own fd, the client's socket and the
+         * services' pipes stay here. A command's background job (the boot hook's
+         * "(sleep 120; ...) &") kept the pipe open otherwise, the read loop below waited
+         * for its EOF, and so did the boot script: NEMESIS started two minutes late */
+        for (i = 3; i < 1024; i++) x_close(i);
         x_execve(argv[0], argv, envp);
         x_exit(127);
     }
@@ -984,8 +988,9 @@ static int capture(char *const argv[], char *buf, ul cap)
     pid = x_fork();
     if (pid < 0) { x_close(pfd[0]); x_close(pfd[1]); return -1; }
     if (pid == 0) {
+        int i;
         x_dup2(pfd[1], 1);
-        x_close(pfd[0]);
+        for (i = 3; i < 1024; i++) x_close(i);
         x_execve(argv[0], argv, envp);
         x_exit(127);
     }

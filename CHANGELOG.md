@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **NEMESIS starts on time again.** With 1.0.0, NEMESIS showed no packages and "daemon
+  not running" for about two minutes after every start: the boot hook's background
+  NEMESIS sync (`(sleep 120; hmgapid engine nemesis-sync) &`) inherited `hmgapid sh`'s
+  output pipe, so the boot script waited on that line, above NEMESIS's own start.
+  `hmgapid` now hands a command only fds 0-2.
+
 ## 1.0.0 (2026-11-03)
 
 HMG-API replaces HMG Leafia Plus 1.x. Leafia was one NEMESIS package for wireless
