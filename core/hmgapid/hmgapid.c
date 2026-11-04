@@ -564,6 +564,10 @@ static int run_env(int fd, char *const argv[], char *const extra[], int finish)
         x_dup2(pfd[1], 1);
         x_dup2(pfd[1], 2);
         x_close(pfd[0]);
+        /* only 1 and 2 may hold the pipe: a command's background child (the boot hook's
+         * "(sleep 120; ...) &") would otherwise keep it open, and the client (the boot
+         * script) waits for EOF, so NEMESIS and the rest of the script waited too */
+        if (pfd[1] > 2) x_close(pfd[1]);
         x_execve(argv[0], argv, envp);
         x_exit(127);
     }
@@ -986,6 +990,7 @@ static int capture(char *const argv[], char *buf, ul cap)
     if (pid == 0) {
         x_dup2(pfd[1], 1);
         x_close(pfd[0]);
+        if (pfd[1] > 1) x_close(pfd[1]);
         x_execve(argv[0], argv, envp);
         x_exit(127);
     }

@@ -53,6 +53,11 @@ check "ping" "ok" "$(run root ping)"
 check "version" "hmgapid $(sed -n 's/^#define VERSION "\(.*\)"/\1/p' hmgapid.c)" "$(run root version)"
 check "sh output and exit code" "hi 3" "$(run root sh 'echo hi; exit 3' | tr '\n' ' ')$(code root sh 'exit 3')"
 check "sh stderr streamed" "err" "$(run root sh 'echo err >&2')"
+# a background job with its output elsewhere (the boot hook's "(sleep 120; ...) &") must not
+# hold the client: only fds 1 and 2 may have the pipe, and those it redirected
+t0=$(date +%s)
+run root sh '(sleep 6) </dev/null >/dev/null 2>&1 &' >/dev/null
+check "sh: a background job doesn't hold the client" "yes" "$([ $(( $(date +%s) - t0 )) -lt 4 ] && echo yes || echo no)"
 big=$(run root sh 'i=0; while [ $i -lt 20000 ]; do echo 0123456789; i=$((i+1)); done' | wc -c)
 check "220 KB of output, not cut" "220000" "$big"
 mkdir -p "$T/root/root/mods/demo" "$T/root/root/mods/other"
