@@ -16,6 +16,28 @@
   two). The uninstall now puts the install's backup back byte for byte when nothing else
   changed the file since; when something did (a NEMESIS install or update rewrites
   `install-recovery.sh`), only HMG-API's block comes out, as before.
+- **No restart at every start after a rollback that failed part-way.** At boot, an apply
+  that was cut off is rolled back and the head unit restarts once. The restart went by
+  the words "rolled back" in the log, which a rollback that then fails (no space left,
+  say) prints too while keeping its journal, so the unit would have restarted at each
+  start. It now restarts only when the rollback finished; one that didn't is tried again
+  at the next start, and `boot.log` says so.
+- **A mod's native patch recipes are read from its own folder only.** A recipe path that
+  led out of the mod's folder (`../`, an absolute path, a symlink) made that file readable
+  by every app: the owner's settings, another mod's private files. Such paths are left
+  alone now, as they already were for a mod's code JAR.
+- **hmgapid never sets up a service's folders through a symlink.** A service that doesn't
+  run as root owns its folder, and a link put where its `dalvik-cache` goes had hmgapid
+  hand it whatever the link pointed at, at the service's next start.
+- **`mkmodpkg.sh` refuses a mod folder with a signing key in it.** Everything in the
+  folder goes into the signed package, which is public: a key file (`.key`, `.p12`,
+  `.pem`, `.jks`, a PEM private key, or a copy of the author key under any name) now
+  stops the packaging, with the files named.
+- **Cars mapped from Car Reports have their make and name.** The Sportage, Telluride,
+  Niro EV, Carnival, Palisade and the Ioniq 5's `NEEV23SE` had a hook map but no line in
+  the engine's model table, so a mod whose `"system"` names a make or a name refused
+  them, and their Car Reports were titled "Car Report: null …". A car HMG-API has no name
+  for yet now goes by its model code there.
 
 ## 1.1.0-rc.1 (2026-11-13)
 

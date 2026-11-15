@@ -275,5 +275,7 @@ has "report: keeper log, ... cut to its network" "route 203.0.x.x via wlan0" "$j
 hasnt "report: keeper log, no MAC" "0c:1d:2e" "$j"
 hasnt "report: keeper log, no address made from a MAC" "4a5b" "$j"
 has "report: sysctl" "\"net.ipv4.ip_forward\": \"0\"" "$j"
+has "report: a car HMG-API has no name for goes by its model code" "# Car Report: CEEV USA" "$(cat "$D"/public/reports/*.md)"
+has "... in the issue's title too (never \"null\")" "title=Car+Report%3A+CEEV+USA" "$out"
 has "report: markdown has the network" "## Network" "$(cat "$D"/public/reports/*.md)"
 exit $fail
