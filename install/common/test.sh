@@ -107,4 +107,32 @@ fi
 echo 999999 > "$D/state/hook-check.pid"
 HC > /dev/null
 check "hook-check: a stale lock (after a restart) doesn't stop it" "1" "$(grep -c 'HMGAPI_HOOK begin' "$T/system/etc/install-recovery.sh")"
+
+# boot.sh: an apply that was cut off (or a trial) is rolled back, then one restart. A
+# recover that fails part-way keeps its journal, so restarting on it would loop.
+mkdir -p "$T/system/bin"
+cat > "$T/system/bin/hmgapid" <<EOF
+#!/bin/sh
+echo "\$*" >> "$T/hmgapid.calls"
+[ "\$1 \$2" = "engine recover" ] || exit 0
+cat "$T/recover.out"
+exit \$(cat "$T/recover.rc")
+EOF
+chmod +x "$T/system/bin/hmgapid"
+BOOT() { rm -f "$T/hmgapid.calls"; : > "$D/state/journal.json"; printf '%s\n' "$1" > "$T/recover.out"; echo "$2" > "$T/recover.rc"; env ROOT="$T" $SH "$PWD/boot.sh" > "$T/boot.out" 2>&1; wait; }
+calls() { [ ! -f "$T/hmgapid.calls" ] || tr '\n' '|' < "$T/hmgapid.calls"; }
+BOOT "rolled back /system/app/A.apk
+unfinished apply rolled back" 0
+check "boot: an unfinished apply rolled back: one restart" "engine recover|reboot|" "$(calls)"
+BOOT "trial undone" 0
+check "boot: a waiting trial undone: one restart" "engine recover|reboot|" "$(calls)"
+BOOT "nothing to recover" 0
+check "boot: nothing rolled back: no restart" "engine recover|" "$(calls)"
+BOOT "rolled back /system/app/A.apk
+engine error: java.io.IOException: No space left on device" 1
+check "boot: recover failed part-way (journal kept): no restart, or it would restart at every start" "engine recover|" "$(calls)"
+check "... and boot.log says so" "1" "$(grep -c "recover didn't finish" "$T/boot.out")"
+rm -f "$D/state/journal.json"; rm -f "$T/hmgapid.calls"
+env ROOT="$T" $SH "$PWD/boot.sh" > /dev/null 2>&1; wait
+check "boot: no journal: recover isn't run" "" "$(calls)"
 exit $fail
