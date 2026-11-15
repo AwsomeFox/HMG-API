@@ -33,6 +33,13 @@
   folder goes into the signed package, which is public: a key file (`.key`, `.p12`,
   `.pem`, `.jks`, a PEM private key, or a copy of the author key under any name) now
   stops the packaging, with the files named.
+- **The app says when over-the-air updates aren't blocked.** The block is one of HMG-API's
+  hooks, so on a car where the hooks don't run (no hook map that fits it, or the boot
+  guard turned them off) the car can still download and install its own updates, while
+  the Updates page said HMG-API blocks them. The page now says they aren't blocked there
+  and points at the car's own switch (Settings > General > Install Infotainment System
+  Updates Automatically). Nothing else changes: HMG-API doesn't touch that switch without
+  its hooks.
 - **Cars mapped from Car Reports have their make and name.** The Sportage, Telluride,
   Niro EV, Carnival, Palisade and the Ioniq 5's `NEEV23SE` had a hook map but no line in
   the engine's model table, so a mod whose `"system"` names a make or a name refused
