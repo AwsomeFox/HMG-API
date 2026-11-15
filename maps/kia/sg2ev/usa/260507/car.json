@@ -125,7 +125,9 @@
     "framework.hscan_service.battery_12v_saver": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.hscan_service.battery_12v_sensor_error": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.hscan_service.battery_12v_sensor_invalid": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
-    "framework.hscan_service.battery_12v_sensor_state": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)"
+    "framework.hscan_service.battery_12v_sensor_state": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
+    "framework.navigation_cluster.update_hu_clu_pe03": "Not yet resolved from stock files for this firmware; optional point unavailable pending mapping.",
+    "framework.navigation_cluster.update_hu_clu_pe12": "Not yet resolved from stock files for this firmware; optional point unavailable pending mapping."
   },
   "by_reference": [
     "btsettings.projection_helper",

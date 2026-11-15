@@ -17,21 +17,22 @@ Every point and map lives here, in HMG-API, including the ones only a mod in its
 uses (the wireless mod's, for one): a mod gets new points through an HMG-API release and its
 mod SDK ([mod-repos.md](mod-repos.md), section 4).
 
-351 hook points. **Cars** (`maps/`):
+353 hook points. **Cars** (`maps/`):
 
 | Car | Map | Points |
 |---|---|---|
-| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 351 |
-| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 351 |
-| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 351 of 351 |
-| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 351 of 351 |
-| Hyundai Ioniq 5 USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 351 |
-| Kia EV6 CAN 260206 | mapped from stock files | 351 of 351 |
-| Kia EV6 USA 260507 | checked on a car | 351 of 351 |
-| Kia Carnival USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 351 |
-| Kia Sportage USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
-| Kia Telluride USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
-| Kia Niro EV USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 351 |
+| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 353 |
+| Hyundai Palisade USA 260507 | mapped from stock files | 353 of 353 |
+| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 353 |
+| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 351 of 353 |
+| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 351 of 353 |
+| Hyundai Ioniq 5 USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 353 |
+| Kia EV6 CAN 260206 | mapped from stock files | 351 of 353 |
+| Kia EV6 USA 260507 | checked on a car | 351 of 353 |
+| Kia Carnival USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 353 |
+| Kia Sportage USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 353 |
+| Kia Telluride USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 353 |
+| Kia Niro EV USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 353 |
 
 In the tables, **Cars** is "all" when every car above has the point, otherwise the cars without it.
 
@@ -250,6 +251,8 @@ Android framework and the car's service interfaces (any process).
 | `framework.cluster_listener_stub.battery_info` | field | `static TRANSACTION_onHandleBatteryInfoResp`: int | onHandleBatteryInfoResp(int[8]): [1] minimum pack temperature (whole C), [5] conditioning indicator; the answer to requestBatteryInfoReq, sent to every listener | all |
 | `framework.cluster_service.add_listener` | method | `addNavigationClusterListener(framework.cluster_listener)` → void | the service keeps a list and calls every listener: the navigation's own stays registered | all |
 | `framework.cluster_service.battery_info` | method | `requestBatteryInfoReq()` → void | asks the cluster for the battery info; answered through onHandleBatteryInfoResp | all |
+| `framework.navigation_cluster.update_hu_clu_pe03` | method | `updateHuCluPE03(byte[])` → void | observe raw stock navigation PE message; payload semantics unassigned | not on Hyundai Ioniq 6 CAN 260206, Hyundai Palisade USA 260903, Hyundai Ioniq 5 CAN 260206, Hyundai Ioniq 5 USA 260507, Hyundai Ioniq 5 USA 260903, Kia EV6 CAN 260206, Kia EV6 USA 260507, Kia Carnival USA 260507, Kia Sportage USA 260507, Kia Telluride USA 260507, Kia Niro EV USA 260507 |
+| `framework.navigation_cluster.update_hu_clu_pe12` | method | `updateHuCluPE12(byte[])` → void | observe raw stock navigation PE message; payload semantics unassigned | not on Hyundai Ioniq 6 CAN 260206, Hyundai Palisade USA 260903, Hyundai Ioniq 5 CAN 260206, Hyundai Ioniq 5 USA 260507, Hyundai Ioniq 5 USA 260903, Kia EV6 CAN 260206, Kia EV6 USA 260507, Kia Carnival USA 260507, Kia Sportage USA 260507, Kia Telluride USA 260507, Kia Niro EV USA 260507 |
 
 ## btsettings
 

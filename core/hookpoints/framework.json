@@ -2250,6 +2250,32 @@
         "ret": "void"
       },
       "about": "asks the cluster for the battery info; answered through onHandleBatteryInfoResp"
+    },
+    {
+      "id": "framework.navigation_cluster.update_hu_clu_pe03",
+      "kind": "method",
+      "of": "framework.navigation_cluster",
+      "find": {
+        "name": "updateHuCluPE03",
+        "params": [
+          "byte[]"
+        ],
+        "ret": "void"
+      },
+      "about": "observe raw stock navigation PE message; payload semantics unassigned"
+    },
+    {
+      "id": "framework.navigation_cluster.update_hu_clu_pe12",
+      "kind": "method",
+      "of": "framework.navigation_cluster",
+      "find": {
+        "name": "updateHuCluPE12",
+        "params": [
+          "byte[]"
+        ],
+        "ret": "void"
+      },
+      "about": "observe raw stock navigation PE message; payload semantics unassigned"
     }
   ]
 }

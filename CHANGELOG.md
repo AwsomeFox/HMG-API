@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add the Palisade USA 260507 hook map with historical 343-point vehicle evidence
+  and ten newer points resolved off-car. Add optional PE03/PE12 stock navigation
+  observation hooks; other firmware mappings remain explicitly unresolved.
+
 - Add a Canadian Ioniq 6 (CEEV) 260206 map with 351 hook points, from a Car Report
   and matching stock Bluetooth settings files. Its projection helper is `iO`, not
   the `iP` used by the other maps. All 351 points passed verification on the car.
