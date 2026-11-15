@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **The Car Report's network keeper log is scrubbed like the rest.** Its last 40 lines
+  went into the report as they were, so an address in one (a mod's route, a phone on the
+  hotspot) could end up in a public issue. MAC addresses, IPv6 interface ids and public
+  IPv4 addresses now come out of them, as they do from the interfaces, routes and logged
+  drops.
+- **Uninstalling gives the boot scripts their stock bytes back.** HMG-API's block was
+  taken out of `install-recovery.sh` and `qb_runtime.sh` by writing every other line
+  again through the shell, which is only close to stock: a last line with no newline
+  gained one, and a shell's `echo` may expand a backslash (the EV6's `qb_runtime.sh` has
+  two). The uninstall now puts the install's backup back byte for byte when nothing else
+  changed the file since; when something did (a NEMESIS install or update rewrites
+  `install-recovery.sh`), only HMG-API's block comes out, as before.
+
 ## 1.1.0-rc.1 (2026-11-13)
 
 The release candidate: feature freeze. 1.1.0 will be this code unless a blocker turns up.

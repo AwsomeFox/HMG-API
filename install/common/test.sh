@@ -36,6 +36,40 @@ check "created when missing" "yes" "$([ -x "$T/system/etc/install-recovery.sh" ]
 L hook_remove /system/etc/install-recovery.sh
 check "created file removed again" "no" "$([ -e "$T/system/etc/install-recovery.sh" ] && echo yes || echo no)"
 
+# hook_restore (the uninstall): the install's backup byte for byte, for a stock file the
+# shell can't write back exactly (backslashes, as the EV6's qb_runtime.sh has; no newline
+# at the end), as long as nothing else changed the file since
+mkdir -p "$T/bin" "$T/bak"
+printf '#!/bin/sh\n[ -f "$1" ] || exit 1\nset -- $(md5sum "$1"); echo "$1 $2"\n' > "$T/bin/md5"; chmod +x "$T/bin/md5"   # the unit's md5
+LM() { env PATH="$T/bin:$PATH" ROOT="$T" $SH -c ". $PWD/lib.sh; $*"; }
+Q=$T/system/etc/qb_runtime.sh
+printf 'RED="\\x1b[1;31m"\necho "a\\nb\\\\c"\nnemesis watchdog' > "$Q"
+cp "$Q" "$T/bak/qb"; QS=$(md5sum < "$Q")
+L hook_add /system/etc/qb_runtime.sh end
+check "hook_restore: the block is in" "1" "$(grep -c 'HMGAPI_HOOK begin' "$Q")"
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/qb" && r=0 || r=$?
+check "hook_restore: backslashes and no last newline: the backup's bytes back" "0|$QS" "$r|$(md5sum < "$Q")"
+check "... no work files left" "qb" "$(ls "$T/bak" | tr '\n' ' ' | sed 's/ $//')"
+check "... mode kept (not executable)" "no" "$([ -x "$Q" ] && echo yes || echo no)"
+L hook_add /system/etc/qb_runtime.sh end
+echo "something else's line" >> "$Q"; QC=$(md5sum < "$Q")
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/qb" && r=0 || r=$?
+check "hook_restore: changed by something else since: left alone (hook_remove's)" "1|$QC" "$r|$(md5sum < "$Q")"
+L hook_remove /system/etc/qb_runtime.sh
+check "... hook_remove takes the block out, the other line kept" "0|1" "$(grep -c HMGAPI_HOOK "$Q" || true)|$(grep -c "something else's line" "$Q")"
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/qb" && r=0 || r=$?
+check "hook_restore: no block in the file: nothing to do" "1" "$r"
+cp "$T/bak/qb" "$Q"; L hook_add /system/etc/qb_runtime.sh end
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/none" && r=0 || r=$?
+check "hook_restore: no backup: not restored" "1" "$r"
+cp "$Q" "$T/bak/hooked"
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/hooked" && r=0 || r=$?
+check "hook_restore: a backup that has the block itself is never put back" "1" "$r"
+: > "$T/bak/absent"; : > "$T/bak/absent.absent"
+LM hook_restore /system/etc/qb_runtime.sh "$T/bak/absent" && r=0 || r=$?
+check "hook_restore: the file wasn't there at install: not restored (hook_remove deletes it)" "1" "$r"
+printf 'echo qb stock\n# NEMESIS_QB_HOOK\nnemesis watchdog\n' > "$Q"
+
 # hook-check.sh at boot: a NEMESIS install or update rewrites install-recovery.sh as a whole
 D=$T/data/hmgapi
 mkdir -p "$D"; cp lib.sh "$D/"; echo "version 1.0.0" > "$D/installed.txt"

@@ -63,6 +63,31 @@ hook_add() {
     mv "$_t" "$_f"
 }
 
+# hook_restore <file> <backup>: the backup's own bytes back, when the file is still that
+# backup plus HMG-API's block and nothing else. hook_strip writes each line again through
+# the shell, which can change bytes (a last line with no newline gets one, and a shell's
+# echo may expand a backslash), so a stripped file is only close to stock; the backup
+# taken at install is stock exactly. Both are stripped the same way and compared: equal
+# means nothing else changed the file since. 1: not so (something else rewrote it, e.g. a
+# NEMESIS install; no backup; no block), and nothing was changed: hook_remove then.
+hook_restore() {
+    _f=$ROOT$1
+    _b=$2
+    [ -f "$_f" ] && [ -s "$_b" ] && [ ! -f "$_b.absent" ] || return 1
+    grep -q "^$HOOK_BEGIN" "$_f" || return 1
+    grep -q "^$HOOK_BEGIN" "$_b" && return 1
+    hook_strip "$_f" > "$_b.now" && hook_strip "$_b" > "$_b.then" || { rm -f "$_b.now" "$_b.then"; return 1; }
+    _now=$(sum "$_b.now")
+    _then=$(sum "$_b.then")
+    rm -f "$_b.now" "$_b.then"
+    [ -n "$_now" ] && [ "$_now" = "$_then" ] || return 1
+    cp "$_b" "$_f.hmgapi-new" || return 1
+    chmod 755 "$_f.hmgapi-new"
+    [ -x "$_f" ] || chmod 644 "$_f.hmgapi-new"
+    [ "$(sum "$_f.hmgapi-new")" = "$(sum "$_b")" ] || { rm -f "$_f.hmgapi-new"; return 1; }
+    mv "$_f.hmgapi-new" "$_f"
+}
+
 # hook_remove <file>: take the block out; delete the file if HMG-API created it
 hook_remove() {
     _f=$ROOT$1
