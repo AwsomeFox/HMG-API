@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.2 (2026-11-15)
+
+The second release candidate: fixes from a review of rc.1, nothing new. It comes with the
+same mods as rc.1 (Wireless CarPlay + Android Auto 2.2.0-rc.1, ADB 1.0.1-rc.1, NEMESIS in
+the app menu 1.1.0); their finals have the same code.
 
 ### Fixes
 
@@ -52,6 +56,13 @@
   the engine's model table, so a mod whose `"system"` names a make or a name refused
   them, and their Car Reports were titled "Car Report: null …". A car HMG-API has no name
   for yet now goes by its model code there.
+
+### For mod authors
+
+- **`check-points.py` knows the first release with an SDK is 1.1.0-beta.1.** It took the
+  name this release had while it was planned (1.0.3), so a floor between the two ended
+  in a traceback; a floor that isn't a release now fails in one line. The docs say
+  "from 1.1.0" where they said "from 1.0.3".
 
 ## 1.1.0-rc.1 (2026-11-13)
 
