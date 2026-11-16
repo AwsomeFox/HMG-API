@@ -18,7 +18,9 @@ import java.util.TreeMap;
  *
  * Points described by a regex over smali ("pattern", "code") can't be matched from
  * the dex: for those it tries the names the other cars' maps give the same point,
- * and keeps one only if this car has it with the point's shape ("by reference").
+ * and keeps one only if this car has it with the point's shape ("by reference");
+ * a method is the one with the same code as theirs (map "sig", Dex.walk), whatever
+ * its name.
  * Everything else that doesn't match exactly once is missing, with why.
  *
  *   java -cp <engine classes> hmgapi.engine.MapProbe <stock tree> <catalogue dir> [<maps dir>]
@@ -274,21 +276,45 @@ public final class MapProbe {
             throw new Miss("no such constructor in " + owner, false);
         }
         if ("method".equals(kind)) {
-            List<Dex.Member> hits = new ArrayList<Dex.Member>();
-            for (Dex.Member x : c.methods) {
-                if (methodOk(x, f) && (!smali || referenced(id, "method", x.name))) hits.add(x);
+            Dex.Member h = smali ? methodByReference(c, id, f) : null;
+            if (!smali) {
+                List<Dex.Member> hits = new ArrayList<Dex.Member>();
+                for (Dex.Member x : c.methods) if (methodOk(x, f)) hits.add(x);
+                if (hits.size() != 1) throw new Miss(hits.size() + " methods match in " + owner, false);
+                h = hits.get(0);
             }
-            if (smali) byRef(id, hits.size());
-            if (hits.size() != 1) throw new Miss(hits.size() + " methods match in " + owner, false);
-            Dex.Member h = hits.get(0);
             Map<String, Object> e = new LinkedHashMap<String, Object>();
             e.put("method", h.name);
             e.put("params", new ArrayList<Object>(h.params));
             e.put("ret", h.ret);
             e.put("static", h.isStatic);
+            if (smali) e.put("sig", Dex.sigHex(h.sig));
             return e;
         }
         throw new Miss("unknown kind " + kind, false);
+    }
+
+    /**
+     * A method only a smali pattern finds: the one method of the point's shape whose code is the
+     * same as another car's for it (map "sig", tools/dexsig.py). Names move between builds (py on
+     * one is pB on another, and py there is something else), so a name is never enough.
+     */
+    Dex.Member methodByReference(Dex.Cls c, String id, Map<String, Object> f) throws Miss {
+        List<Map<String, Object>> l = references.get(id);
+        if (l == null) throw new Miss("found by a smali pattern only, and no other car's map has it", false);
+        Set<String> sigs = new java.util.HashSet<String>();
+        for (Map<String, Object> e : l) if (e.get("sig") != null) sigs.add(String.valueOf(e.get("sig")));
+        if (sigs.isEmpty()) throw new Miss("found by a smali pattern only, and no other car's map has its code signature", false);
+        List<Dex.Member> same = new ArrayList<Dex.Member>();
+        for (Dex.Member x : c.methods) if (methodOk(x, f) && sigs.contains(Dex.sigHex(x.sig))) same.add(x);
+        // several methods with the same code (getters of different fields, say) can't be told
+        // apart from the dex, by name or otherwise: missing, never a guess
+        if (same.size() == 1) {
+            byReference.add(id);
+            return same.get(0);
+        }
+        throw new Miss("found by a smali pattern only; " + same.size() + " methods in " + c.name
+            + " have the other cars' code for it" + (same.size() > 1 ? " (needs this car's map)" : ""), false);
     }
 
     void byRef(String id, int hits) throws Miss {

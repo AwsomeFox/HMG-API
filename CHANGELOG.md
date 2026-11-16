@@ -9,6 +9,18 @@
   older reports and preserves their unresolved points and absent apps.
 - The on-car mapper checks a reference class's members together, so an unrelated
   class reusing another build's name does not hide the correct projection helper.
+- **The on-car mapper takes another car's method name only for the same code.** For the
+  methods only a smali pattern finds, it used to keep another map's name if this car had a
+  method of that name and signature. On the Korean 260902 builds that picks the wrong
+  method twice: `py()Z` is the test gate elsewhere but reads `ro.product.model` there, and
+  `gl()I` is another field's getter; `verify-map` passes both. Maps now keep a code
+  signature (`"sig"`, `tools/dexsig.py`) on those 9 methods, and `engine map-car` takes the
+  one method whose code matches, whatever its name; when several share that code, the point
+  is left for the car's own map. The maps made from stock trees gain `sig`; the runtime
+  ignores it. The seven maps made on cars (Car Reports) have none yet: their smali-only
+  methods were taken by name. `tools/check-maps.py` lists them as unconfirmed until a
+  Car Report from a newer HMG-API confirms them (one per build: the Carnival, Sportage,
+  Telluride and Niro EV maps are one build).
 ### Cars
 
 - **The 2022 Ioniq 5 (`NEEV`) on US 260903 uses the 260903 map**, as the 2023-on
