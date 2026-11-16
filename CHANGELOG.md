@@ -9,6 +9,34 @@
   so it refused it (`INSTALL_FAILED_INVALID_URI`) and the head unit came back without the
   app. It now installs from the copy in `/data/hmgapi/public/`, which it can read, as the
   retry at the next restart already did.
+- **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
+  (and the mod SDK's copy) wrote only `hmgapi@>=1.0` and the refusals, so NEMESIS installed
+  a mod without the mods in its `"requires"`; HMG-API's install only noted the missing mod.
+  EGMP Android Auto EV, which requires `wireless-carplay-aa >=2.1.0`, got
+  `depends="hmgapi@>=1.0,!hmgapi.egmp-aa-ev-standalone"`. Each required mod is now
+  `hmgapi.<id>@>=<lowest version its range allows>`, a pre-release floor as its NEMESIS
+  package-version (`^2.2.0-rc.1` is `>=2.1.99.1`); an optional one (`"optional": true`)
+  stays out. NEMESIS checks only that floor; the
+  rest of a range (`^`, `~`, upper bounds) stays HMG-API's check, and the build says so.
+  The build refuses a `"requires"` entry that isn't a mod id, and a mod that requires a mod
+  whose package it refuses. Since NEMESIS won't unlist a package another one needs, the
+  NEMESIS sync and HMG-API's uninstall now unlist mod packages in rounds, so a required
+  mod's comes off after the one needing it instead of staying listed (and keeping
+  HMG-API's own package listed with it).
+- **A mod's `"conflicts"` hold for mods that only hook.** The list was checked only for
+  mods with files or settings to apply (`patches.json` and the like), so two hook-only
+  mods that said they can't run together both loaded, and `engine plan` said nothing
+  (two builds of egmp-aa-ev, with and without the Wireless mod, list each other). The mod
+  loader and the plan now load the first of the two in load order (mods they require
+  first, then by id), whichever of them lists the other; the other is shown as a
+  conflict in the HMG-API app, with which mod to turn off to use it instead. A mod turned
+  on while apps run doesn't load next to one it conflicts with that those apps loaded
+  (even one turned off since); the next restart settles it.
+- **A mod whose `"requires"` aren't met isn't loaded.** One whose required mod was off
+  or missing still loaded at start (its code ran, then it was switched off), and one
+  outside the version range it asked for ran; the HMG-API app showed it as on. It now
+  isn't loaded, and the app shows why. This also keeps such a mod from winning a
+  conflict it then can't use.
 
 ## 1.1.0-rc.2 (2026-11-15)
 
