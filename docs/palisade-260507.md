@@ -19,11 +19,20 @@ verification of the newly added entries.
 `framework.navigation_cluster.update_hu_clu_pe03` and
 `framework.navigation_cluster.update_hu_clu_pe12` expose the existing stock
 `byte[]` update methods for observation. Their payload semantics remain unassigned.
-They do not send new messages or add a CAN writer. Other firmware maps explicitly
-list these optional points as unresolved; they need stock mapping or newer reports.
+They do not send new messages or add a CAN writer. The EV6 USA 260507 and Canada
+260206 maps, and the Ioniq 5 Canada 260206 map, include these methods based on
+[VysseCodes' stock-file confirmation in the review](https://github.com/Open-HMG/HMG-API/pull/199#pullrequestreview-5914436383).
+Those stock trees are not available locally; this is maintainer evidence, not a
+new local stock-map or vehicle verification. The existing EV6 verification record
+is unchanged. Other firmware maps explicitly list these optional points as
+unresolved; they need stock mapping or newer reports.
 
-Wireless CarPlay and navigation changes belong in the separate
-[wireless repository](https://github.com/Open-HMG/hmgapi-wireless-cp-aa).
-The local port was tested on HMG-API 1.0.2. Current upstream integration is checked
-off-car only, and both contributions remain drafts pending review and the stated
-vehicle and cross-model validation.
+The observation points are read by the separate local `palisade-stock-nav-recorder`
+investigation to compare stock navigation messages with captured cluster/HUD
+behavior. Their payload semantics remain unassigned. The recorder is not part of
+this upstream PR.
+
+[Wireless CarPlay PR #34](https://github.com/Open-HMG/hmgapi-wireless-cp-aa/pull/34)
+does not depend on either observation point. The local wireless port was tested on
+HMG-API 1.0.2. Current upstream integration is checked off-car only, pending review
+and the stated vehicle and cross-model validation.

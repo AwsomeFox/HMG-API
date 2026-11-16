@@ -122,9 +122,5 @@
         "/system/app/ThemeSettings.odex"
       ]
     }
-  },
-  "missing": {
-    "framework.navigation_cluster.update_hu_clu_pe03": "Not yet resolved from stock files for this firmware; optional point unavailable pending mapping.",
-    "framework.navigation_cluster.update_hu_clu_pe12": "Not yet resolved from stock files for this firmware; optional point unavailable pending mapping."
   }
 }
