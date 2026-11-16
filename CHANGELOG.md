@@ -4,6 +4,20 @@
 
 ### Fixes
 
+- **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
+  (and the mod SDK's copy) wrote only `hmgapi@>=1.0` and the refusals, so NEMESIS installed
+  a mod without the mods in its `"requires"`; HMG-API's install only noted the missing mod.
+  EGMP Android Auto EV, which requires `wireless-carplay-aa >=2.1.0`, got
+  `depends="hmgapi@>=1.0,!hmgapi.egmp-aa-ev-standalone"`. Each required mod is now
+  `hmgapi.<id>@>=<lowest version its range allows>`, a pre-release floor as its NEMESIS
+  package-version (`^2.2.0-rc.1` is `>=2.1.99.1`); an optional one (`"optional": true`)
+  stays out. NEMESIS checks only that floor; the
+  rest of a range (`^`, `~`, upper bounds) stays HMG-API's check, and the build says so.
+  The build refuses a `"requires"` entry that isn't a mod id, and a mod that requires a mod
+  whose package it refuses. Since NEMESIS won't unlist a package another one needs, the
+  NEMESIS sync and HMG-API's uninstall now unlist mod packages in rounds, so a required
+  mod's comes off after the one needing it instead of staying listed (and keeping
+  HMG-API's own package listed with it).
 - **A mod's `"conflicts"` hold for mods that only hook.** The list was checked only for
   mods with files or settings to apply (`patches.json` and the like), so two hook-only
   mods that said they can't run together both loaded, and `engine plan` said nothing
