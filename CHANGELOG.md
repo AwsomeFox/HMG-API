@@ -2,9 +2,13 @@
 
 ## 1.1.0-rc.2 (2026-11-15)
 
-The second release candidate: fixes from a review of rc.1, nothing new. It comes with the
-same mods as rc.1 (Wireless CarPlay + Android Auto 2.2.0-rc.1, ADB 1.0.1-rc.1, NEMESIS in
-the app menu 1.1.0); their finals have the same code.
+The second release candidate: fixes from a review of rc.1, nothing new in HMG-API itself.
+
+- **Wireless CarPlay + Android Auto 2.2.0-rc.3** comes with it: wireless CarPlay no longer
+  drops after about a minute on some phones, because the phone's Bluetooth link stays up
+  during the session (wireless #5, #2), and the US Ioniq 5 (2023 on) on 260903 is in its
+  car list. It needs HMG-API 1.1.0. ADB 1.0.1-rc.1 and NEMESIS
+  in the app menu 1.1.0 are as in rc.1.
 
 ### Fixes
 
