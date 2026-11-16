@@ -1,11 +1,19 @@
 {
   "make": "kia",
   "model": "nq5",
-  "name": "Sportage",
+  "name": "Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024",
   "region": "usa",
   "firmware": "260507",
   "products": [
-    "NQ5.USA."
+    "BDPE.USA.",
+    "KA4.USA.",
+    "NQ5.USA.",
+    "NQ5HEV.USA.",
+    "NQ5PHEV.USA.",
+    "SG2HEV.USA.",
+    "SG2PHEV.USA.",
+    "SK3PE.USA.",
+    "SP2PE.USA."
   ],
   "status": "probed",
   "verified": null,

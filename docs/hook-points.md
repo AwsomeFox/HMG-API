@@ -38,7 +38,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-21, Telluride 2020-21 CAN 260206 | mapped from stock files | 351 of 351 |
 | Kia K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave, K7, Morning, Ray KOR 260902 | mapped from stock files | 351 of 351 |
 | Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 351 of 351 |
-| Kia Sportage USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
+| Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Kia Telluride USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped on cars by HMG-API's own mapper | 347 of 351 |
 | Kia Niro EV USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 351 |
