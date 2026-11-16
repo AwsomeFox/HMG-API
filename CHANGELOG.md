@@ -40,6 +40,17 @@
   Telluride and Niro EV maps are one build).
 ### Cars
 
+- **The older Hyundai and Kia builds in Canada (260206), from stock files** (351 of 351
+  hook points each, status mapped: waiting for a check on a car):
+  - `hyundai/hmc/can/260206`: Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N
+    and the 2020-22 Palisade, with their hybrids and EVs (25 products);
+  - `kia/kmc/can/260206`: K5, Sorento, Stinger, Soul, the 2021 Seltos, the 2020-21 Niro
+    and Telluride (23 products).
+  Every `onebin` folder in these builds is a product: no Canadian package of another build
+  has one there. The Kia build's names differ from its US build in the same two fields as
+  the Canadian Ioniq 5's (`homesetting.edit_list.items`, `dipo.iap2_client.manager`), and
+  the Hyundai build's projection helper is the EV6's `iP`, not its US build's `iO`. Neither
+  build has the Wi-Fi hotspot feature file.
 - **The 2022 Ioniq 5 (`NEEV`) on US 260903 uses the 260903 map**, as the 2023-on
   (`NEEV23`) does. Its 18 mapped files are the same bytes, and its owner's check found all
   351 hook points (#192; also #72, #186). Before, it had no map there: hooks were off
