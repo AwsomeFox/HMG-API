@@ -79,15 +79,17 @@ off-car with the real engine.
   `<3`) is plain `hmgapi.<id>`. NEMESIS then won't install the mod until those are
   installed and new enough (exit 22), and won't uninstall them while it's there (exit 4).
   NEMESIS checks only the floor. The rest of a range (`^`, `~`, an exact version, `>`
-  taken as `>=`, an upper bound) stays HMG-API's check: the engine notes it at install,
-  and an apply changes nothing until the range holds. The build prints a note when it
-  leaves part of a range out. An upper bound in NEMESIS would also block every update of
+  taken as `>=`, an upper bound) stays HMG-API's check, as for a mod installed from the
+  HMG-API app. The build prints a note when it leaves part of a range out. An upper bound in NEMESIS would also block every update of
   the required mod's package past it (exit 21). The build refuses an entry that isn't a
   mod id, a mod that requires itself, a range with no package-version
   (`tools/nemesis-version.py`'s forms), a mod that requires a mod and refuses its
-  package, and a `depends` over NEMESIS's 511 characters. HMG-API's NEMESIS sync lists
-  mods installed from the HMG-API app as `hmgapi.<id>` too, so a required mod counts
-  however it was installed.
+  package, and a `depends` over NEMESIS's 511 characters. HMG-API's NEMESIS sync
+  (NEMESIS 1.16 or newer) lists mods installed from the HMG-API app as `hmgapi.<id>` too,
+  so a required mod counts however it was installed. Unlisting goes round until nothing
+  more comes off (the sync, and HMG-API's uninstall before `hmgapi` itself), since NEMESIS
+  won't unlist a package another one needs; a required mod removed in the HMG-API app
+  stays listed in NEMESIS, and the sync says why, until the mod needing it is removed.
 - `preinstall`: refuses before NEMESIS copies anything if HMG-API isn't installed
   (`/system/bin/hmgapid` and `/data/hmgapi/uninstall.sh`).
 - `postinstall`: `hmgapid engine install mod/package.zip` (plus `--any-car` with

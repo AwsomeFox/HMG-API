@@ -110,9 +110,9 @@ def requires(pkg, mod):
         except ValueError as x:
             sys.exit('mod.json "requires": "%s %s": %s' % (rid, (rng or "").strip(), x))
         # NEMESIS's depends only checks a floor here ("id@>=x"): what else the range says
-        # (^, ~, an exact version, an upper bound) stays HMG-API's own check (an apply stops
-        # until it holds). An upper bound in NEMESIS would also refuse every update of the
-        # required mod's package past it (exit 21).
+        # (^, ~, an exact version, an upper bound) stays HMG-API's own check, as for a mod
+        # installed from the app. An upper bound in NEMESIS would also refuse every update of
+        # the required mod's package past it (exit 21).
         if not whole:
             print("note: %s requires %s %s; its NEMESIS package checks only %s, HMG-API checks the rest"
                   % (pkg, rid, rng.strip(), "hmgapi.%s@>=%s" % (rid, pv) if pv else "that hmgapi.%s is installed" % rid),
