@@ -20,7 +20,9 @@ printf '#!/bin/sh\nexit 0\n' > $T/bin/chown
 # Android's tools, for the app's install and open.sh: what they're asked goes to calls.log
 printf '#!/bin/sh\necho "${FAKE_BOOT:-0}"\n' > $T/bin/getprop
 printf '#!/bin/sh\necho "setprop $*" >> "%s/calls.log"\n' "$T" > $T/bin/setprop
-printf '#!/bin/sh\necho "pm $*" >> "%s/calls.log"\ncase "$1" in path) [ -n "$FAKE_HAVE_APP" ] && echo package:/data/app/hmgapi.app-1.apk ;; install) echo "${FAKE_PM:-Success}" ;; esac\nexit 0\n' "$T" > $T/bin/pm
+# pm reads the apk through a helper that isn't root: a file others can't read is
+# INSTALL_FAILED_INVALID_URI, as on the car (#187)
+printf '#!/bin/sh\necho "pm $*" >> "%s/calls.log"\ncase "$1" in path) [ -n "$FAKE_HAVE_APP" ] && echo package:/data/app/hmgapi.app-1.apk ;; install) case "$(ls -l "$3" | cut -c8)" in r) echo "${FAKE_PM:-Success}" ;; *) echo "Failure [INSTALL_FAILED_INVALID_URI]" ;; esac ;; esac\nexit 0\n' "$T" > $T/bin/pm
 printf '#!/bin/sh\necho "am $*" >> "%s/calls.log"\n' "$T" > $T/bin/am
 chmod +x $T/bin/*
 calls() { cat $T/calls.log 2>/dev/null || true; : > $T/calls.log; }
@@ -125,11 +127,17 @@ has "app install failed: said, with the ways to fix it" "the HMG-API app didn't 
 check "... kept waiting, so the next restart tries again" yes "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes)"
 c=$(calls)
 has "... pm ran with sys.boot_completed 0" "setprop sys.boot_completed 0
-pm install -r $P/HmgApi.apk
+pm install -r $R/data/hmgapi/public/HmgApi.apk
 setprop sys.boot_completed 1" "$c"
 has "... a toast on the screen" "Restart the head unit to try again, or use Launch in NEMESIS Manager" "$c"
 export FAKE_BOOT=1 HMGAPI_TEST_ANDROID=1; run $P/install.sh $P; unset FAKE_BOOT HMGAPI_TEST_ANDROID
 has "app install works: said" "installed the HMG-API app" "$out"
+check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes || echo no)"
+# the USB installer stages the payload with umask 077: pm still gets a copy it can read (#187)
+chmod 600 $P/HmgApi.apk
+export FAKE_BOOT=1 HMGAPI_TEST_ANDROID=1; run $P/install.sh $P; unset FAKE_BOOT HMGAPI_TEST_ANDROID
+chmod 644 $P/HmgApi.apk
+has "app staged root-only (USB): installed all the same" "installed the HMG-API app" "$out"
 check "... nothing left waiting" no "$([ -f $R/data/hmgapi/public/HmgApi.apk ] && echo yes || echo no)"
 
 # open.sh: open the app, installing it first if it's missing

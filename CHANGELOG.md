@@ -4,6 +4,11 @@
 
 ### Fixes
 
+- **The USB install puts the HMG-API app in right away** (#187). With Android up, the
+  package manager couldn't read the app where the USB installer had copied it (root only),
+  so it refused it (`INSTALL_FAILED_INVALID_URI`) and the head unit came back without the
+  app. It now installs from the copy in `/data/hmgapi/public/`, which it can read, as the
+  retry at the next restart already did.
 - **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
   (and the mod SDK's copy) wrote only `hmgapi@>=1.0` and the refusals, so NEMESIS installed
   a mod without the mods in its `"requires"`; HMG-API's install only noted the missing mod.
