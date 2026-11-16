@@ -20,6 +20,8 @@ the parts that change the car's own apps stay off, and the app says which.
 | Hyundai Ioniq 6 | Canada | 260206 | ✅ checked on a car (351 of 351 hook points), from a Car Report and stock Bluetooth settings files |
 | Hyundai Elantra (and Hybrid), Sonata (and Hybrid), Santa Fe (and Hybrid, Plug-in Hybrid), Kona, Kona Electric, Ioniq (Electric, Hybrid, Plug-in Hybrid), Venue, Veloster N, Palisade 2020-22 | USA | 260507 | 351 of 351 hook points found in stock files; waiting for a check on a car |
 | Kia K5, Sorento (and Hybrid, Plug-in Hybrid), Stinger, Soul, Seltos 2021, Niro 2020-22 (EV, Hybrid, Plug-in Hybrid), Cadenza, Telluride 2020-21 | USA | 260507 | 351 of 351 hook points found in stock files; waiting for a check on a car |
+| Hyundai Elantra (and Hybrid), Sonata (and Hybrid), Santa Fe (and Hybrid, Plug-in Hybrid), Kona, Kona Electric, Ioniq (Electric, Hybrid, Plug-in Hybrid), Venue, Veloster N, Palisade 2020-22 | Canada | 260206 | 351 of 351 hook points found in stock files; waiting for a check on a car |
+| Kia K5, Sorento (and Hybrid, Plug-in Hybrid), Stinger, Soul (and EV), Seltos 2021, Niro 2020-21 (EV, Hybrid, Plug-in Hybrid), Telluride 2020-21 | Canada | 260206 | 351 of 351 hook points found in stock files; waiting for a check on a car |
 | Kia K5 (and Hybrid), Sorento, Stinger, Seltos, Soul, Niro, Mohave The Master, K7, Morning, Ray | Korea | 260902 | 351 of 351 hook points found in stock files (the K5 Hybrid's files from a Car Report are the same); waiting for a check on a car |
 | Hyundai Ioniq 5 | Korea | 260902 | 351 of 351 hook points found in stock files; waiting for a check on a car |
 
