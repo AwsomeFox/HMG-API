@@ -74,6 +74,14 @@ o=$(sh $S/mkmodpkg.sh hello $T/author.key 2>&1) || echo "$o"
 check "... building it itself (no HMGAPI_MOD_BUILD) gives the same files" "$(pkg $T/prebuilt.zip)" "$(pkg $M/out/packages/hello-1.0.0.zip)"
 (cd $REPO && tools/mkmodpkg.sh mods/examples/hello $T/author.key > /dev/null)
 check "... and the same files as HMG-API's tools/mkmodpkg.sh" "$(pkg $REPO/out/packages/hello-1.0.0.zip)" "$(pkg $M/out/packages/hello-1.0.0.zip)"
+# a signing key left in the mod's folder never goes into the (public) package
+cp -r hello leaky; cp $T/author.key leaky/notes.txt; mkdir leaky/app2; echo x > leaky/app2/release.p12
+before=$(md5sum < $M/out/packages/hello-1.0.0.zip)
+o=$(HMGAPI_MOD_BUILD=$T/b/hello sh $S/mkmodpkg.sh leaky $T/author.key 2>&1) && r=0 || r=$?
+check "mkmodpkg.sh: a mod folder with keys in it isn't packaged" 1 $r
+check "... it names the author key's copy (whatever its name) and the keystore" "  app2/release.p12|  notes.txt|" "$(echo "$o" | grep '^  ' | tr '\n' '|')"
+check "... and no package was written" "$before" "$(md5sum < $M/out/packages/hello-1.0.0.zip)"
+rm -rf leaky
 cp $M/out/packages/hello-1.0.0.zip $REPO/out/packages/hello-1.0.0.zip   # one package for both NEMESIS builds below
 o=$(sh $S/mknemesismod.sh out/packages/hello-1.0.0.zip 2>&1) || echo "$o"
 check "mknemesismod.sh: ./out/dist" yes "$([ -f $M/out/dist/hello-1.0.0-nemesis-package.zip ] && [ -f $M/out/dist/hello-1.0.0-nemesis.zip ] && echo yes)"
@@ -115,6 +123,19 @@ printf '{"id": "conf", "version": "1.0.0", "nemesis_conflicts": ["hmgapi"]}\n' >
 set +e; o=$(cd $T/c && sh $S/mknemesismod.sh out/packages/conf-1.0.0.zip 2>&1); r=$?; set -e
 check "... refusing hmgapi itself: refused" 1 "$([ $r -ne 0 ] && echo 1)"
 has "... says why" "both needs and refuses hmgapi" "$o"
+# "requires": hmgapi.<id>@>=<the range's lowest version>, as this repo's tools/mknemesismod.sh does
+printf '{"id": "conf", "version": "1.0.0", "requires": ["base ^2.2.0-rc.1", "lib"]}\n' > $T/c/conf/mod.json
+(cd $T/c && sh $S/mkmodpkg.sh conf $T/author.key > /dev/null && sh $S/mknemesismod.sh out/packages/conf-1.0.0.zip > /dev/null 2>&1)
+check "requires go in depends as hmgapi.<id>@>=<lowest>" "depends=hmgapi@>=1.0,hmgapi.base@>=2.1.99.1,hmgapi.lib" \
+    "$(unzip -p $T/c/out/dist/conf-1.0.0-nemesis-package.zip NEMESIS.data | grep '^depends=' | tr -d '"')"
+(cd $REPO && tools/mknemesismod.sh $T/c/out/packages/conf-1.0.0.zip $T/c/core > /dev/null 2>&1)
+check "... the same NEMESIS.data as HMG-API's tools" "$(unzip -p $T/c/core/conf-1.0.0-nemesis-package.zip NEMESIS.data | md5sum)" \
+    "$(unzip -p $T/c/out/dist/conf-1.0.0-nemesis-package.zip NEMESIS.data | md5sum)"
+printf '{"id": "conf", "version": "1.0.0", "requires": ["Bad id"]}\n' > $T/c/conf/mod.json
+(cd $T/c && sh $S/mkmodpkg.sh conf $T/author.key > /dev/null)
+set +e; o=$(cd $T/c && sh $S/mknemesismod.sh out/packages/conf-1.0.0.zip 2>&1); r=$?; set -e
+check "... a bad id in requires: refused" 1 "$([ $r -ne 0 ] && echo 1)"
+has "... says why" "isn't a mod id" "$o"
 
 # ---- check-scripts.sh and check-points.py
 o=$(sh $S/check-scripts.sh hello side-panel 2>&1) && r=0 || r=$?

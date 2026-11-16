@@ -59,7 +59,7 @@ import java.util.TreeMap;
  * names the lpatch binary.
  */
 public final class Engine {
-    public static final String HMGAPI_VERSION = "1.1.0-beta.1";
+    public static final String HMGAPI_VERSION = "1.1.0-rc.2";
     /**
      * The release a pre-release leads to (1.1.0 for 1.1.0-rc.1): what a mod's "hmgapi"
      * range of final versions is checked against (Version.meetsHmgapi). Updates compare
@@ -71,20 +71,7 @@ public final class Engine {
     final String lpatch = env("HMGAPI_LPATCH", "/system/bin/lpatch");
     /** How the enabled mods' hooks fit together (the same rules the zygote's loader uses). */
     HookPlan hookPlan() {
-        Map<String, Map<String, Object>> enabled = new LinkedHashMap<String, Map<String, Object>>();
-        File[] ds = new File(data, "mods").listFiles();
-        if (ds != null) {
-            java.util.Arrays.sort(ds);
-            for (File d : ds) {
-                File mj = new File(d, "mod.json");
-                if (!d.isDirectory() || new File(d, ".disabled").exists() || !mj.isFile()) continue;
-                try {
-                    enabled.put(d.getName(), Json.object(read(mj)));
-                } catch (Exception ignored) {
-                    // reported by the mod loader
-                }
-            }
-        }
+        Map<String, Map<String, Object>> enabled = HookPlan.enabled(new File(data, "mods"));   // as the mod loader reads them
         CarMap map = CarMap.load(root, facts, hmgapi);
         if (host && "1".equals(env("HMGAPI_TEST_ANY_CAR", ""))) return HookPlan.of(enabled, null);   // desktop tests: no map
         if (!map.runnable) return HookPlan.of(enabled, java.util.Collections.<String>emptySet(), offMissing(map));
@@ -2182,9 +2169,27 @@ public final class Engine {
         }
     }
 
+    /**
+     * Removes a file or a folder with all that's in it. A symlink is removed as the link it
+     * is, never followed: a link to a folder in a mod's folder (to a USB stick, to another
+     * place under /data) would otherwise have everything it points at deleted with the mod.
+     */
     static void rm(File f) {
-        File[] fs = f.listFiles();
-        if (fs != null) for (File c : fs) rm(c);
+        if (!link(f)) {
+            File[] fs = f.listFiles();
+            if (fs != null) for (File c : fs) rm(c);
+        }
         f.delete();
+    }
+
+    /** is this name a symlink (its folder's real path plus its name isn't its own real path)? */
+    static boolean link(File f) {
+        try {
+            File abs = f.getAbsoluteFile(), parent = abs.getParentFile();
+            File here = parent == null ? abs : new File(parent.getCanonicalFile(), abs.getName());
+            return !here.equals(here.getCanonicalFile());
+        } catch (java.io.IOException e) {
+            return true;   // can't tell: don't go in
+        }
     }
 }
