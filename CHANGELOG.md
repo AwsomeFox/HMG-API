@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Add a Canadian Ioniq 6 (CEEV) 260206 map with 351 hook points, from a Car Report
+  and matching stock Bluetooth settings files. Its projection helper is `iO`, not
+  the `iP` used by the other maps. All 351 points passed verification on the car.
+- Recognize CEEV as Hyundai Ioniq 6. Report import accepts an explicit make/name for
+  older reports and preserves their unresolved points and absent apps.
+- The on-car mapper checks a reference class's members together, so an unrelated
+  class reusing another build's name does not hide the correct projection helper.
+
 ## 1.1.0-rc.2 (2026-11-15)
 
 The second release candidate: fixes from a review of rc.1, nothing new in HMG-API itself.
