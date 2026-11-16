@@ -1,0 +1,5 @@
+{
+  "settings.split_screen": {
+    "class": "com.android.settings.util.SplitScreenUtils"
+  }
+}

@@ -48,6 +48,18 @@
   Telluride and Niro EV maps are one build).
 ### Cars
 
+- **Six more maps from Car Reports** (status probed: hooks run after `verify-map` passes on
+  the car, or with "Try unchecked maps"):
+  - `hyundai/ceev/usa/260903`: the Ioniq 6 on 260903, in the USA **and** Canada. The US
+    (#208) and Canadian (#234) reports have the same files and points (347);
+  - `kia/ev6/kor/260902` (#9, 319 points) and `kia/bdpe/kor/260902`, the K3 (#17, 323);
+  - `genesis/ikfl/can/260903`: the Canadian G70 (#231, 278 points: three apps weren't in
+    the report);
+  - `hyundai/ceev/sgp/260907`: the Ioniq 6 in Singapore (#228, 306 points);
+  - `hyundai/su2ifl/ind/260430`: the Creta in India (#191, 339 points).
+  On the EV6 and K3 Korea and Singapore maps the panel's test switch is left out: there the
+  borrowed `split_item.type` didn't fit either, as on the Korean builds read from stock
+  files, where the borrowed `py` is another method. `SystemCheck` knows `SU2IFL` (Creta).
 - **The newer Kia build in the US covers more cars.** The Sportage map
   (`kia/nq5/usa/260507`) now also lists the Sportage Hybrid and Plug-in Hybrid, Forte,
   2022 Carnival, Niro Hybrid and Plug-in Hybrid, Soul and 2024 Seltos: the US packages

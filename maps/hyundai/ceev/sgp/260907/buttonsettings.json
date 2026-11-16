@@ -1,0 +1,20 @@
+{
+  "buttonsettings.head_screen": {
+    "class": "com.android.buttonsettings.CustomButtonSetting"
+  },
+  "buttonsettings.head_screen.init_list": {
+    "method": "initList",
+    "params": [],
+    "ret": "void",
+    "static": false
+  },
+  "buttonsettings.wheel_screen": {
+    "class": "com.android.buttonsettings.CustomButtonSettingSWRC"
+  },
+  "buttonsettings.wheel_screen.init_list": {
+    "method": "initList",
+    "params": [],
+    "ret": "void",
+    "static": false
+  }
+}
