@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **A unit maps the points HMG-API's map lacks only because the map is older than them.**
+  This happens after each HMG-API install or update (a boot step), or from Settings ("Map the
+  points HMG-API's map lacks"). Only points found by name are mapped, in apps whose stock
+  files are the ones the map was made from. Each is checked in the car's own apps before
+  it's kept. They're kept in `/data/hmgapi/state/local-map.json`, which an update doesn't
+  replace, and go in the Car Report for a maintainer to make official. Readings and mods'
+  observe hooks use them. HMG-API's own hooks, calls, constructors and mods' change or
+  replace hooks need the point in HMG-API's map, or "Try unchecked maps". An app whose
+  stock files change, or a broken file, leaves HMG-API's map as it is. The owner can turn
+  them off in Settings ("Use points mapped on this car"). Every point missing from a map
+  today is a by-name one, so units can fill each of them.
+- **"Map this car from its files" survives updates, and works on a car whose map doesn't
+  fit.** `map-car --write` keeps the car's own map in `state/local-map.json`. It used to
+  write into `maps/`, which every HMG-API update replaces. It's now also used when HMG-API's
+  map for the car doesn't fit its framework (`mismatch`): before, `--write` refused there.
+  With HMG-API's map fitting, `--write` now says to use `--local`; before, it overwrote a
+  shipped `probed` map in place.
 - Add a Canadian Ioniq 6 (CEEV) 260206 map with 351 hook points, from a Car Report
   and matching stock Bluetooth settings files. Its projection helper is `iO`, not
   the `iP` used by the other maps. All 351 points passed verification on the car.
