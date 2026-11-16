@@ -26,6 +26,14 @@
   older reports and preserves their unresolved points and absent apps.
 - The on-car mapper checks a reference class's members together, so an unrelated
   class reusing another build's name does not hide the correct projection helper.
+- **The on-car mapper finds every hook point on a car with no map.** The 3 methods it left
+  for a Car Report share their code with others (25 identical flag getters for the panel's
+  test switch), so the code signature alone couldn't pick one. A catalogue `"site"` now
+  says how the smali pattern calls each, in terms the dex still shows after odex
+  quickening: the calling class and the instructions after an `invoke-static`, the method
+  called next, or that the call is virtual (`core/hookpoints/README.md`). On every stock
+  tree `engine map-car` now matches `map-car.py` on all 351 points, Korea included (the
+  test switch is `pB` there, not the US `py`).
 - **The on-car mapper takes another car's method name only for the same code.** For the
   methods only a smali pattern finds, it used to keep another map's name if this car had a
   method of that name and signature. On the Korean 260902 builds that picks the wrong
