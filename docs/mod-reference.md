@@ -39,6 +39,7 @@ setting). It never edits your code.
 | firewall rules, routes, network settings | `"network"` (see Network): HMG-API keeps them in place, the stock firewall can't take them away |
 | your app closed while driving | `"not_while_driving": ["<your app's package>"]`: the car's own driving restriction and popup |
 | feature flags, the Wi-Fi client, codecs, keyboard lists | see Files and settings that several mods share |
+| another mod, or never to run next to one | `"requires"`, `"conflicts"` (see Other mods) |
 
 Scripts run in the head unit's own shell: **mksh with Android 4.4's toolbox**. There's
 no `sed`, `tr`, `awk`, `head`, `tail`, `wc`, `cut`, `sort`, `find`, `xargs`, `expr`,
@@ -75,7 +76,32 @@ knows your app by its uid and your service by its session, and only answers for
 your own mod. Your settings page comes from `settings.json`; the owner changes it in
 the HMG-API app, and hooks see new values at once.
 
-## Vehicle readings
+## Other mods
+
+```json
+"requires": ["hello-api ^1.0", {"id": "wireless-carplay-aa", "version": ">=2.2"}],
+"conflicts": ["egmp-aa-ev-standalone"]
+```
+
+Each entry is `"<id>"`, `"<id> <range>"` or `{"id": …, "version": <range>}`; ranges as for
+`"hmgapi"` (`>=2.0`, `^1.2`, `~1.2.3`, `>=2.1 <3`, nothing for any version).
+
+- **`requires`**: your mod loads after those mods, may use their API
+  (`ModContext.use`, their `"api"` packages), and is off while one of them isn't
+  installed and turned on, isn't in your range, or isn't loaded itself. The HMG-API app
+  shows it in red with the reason; `engine plan` says `hooks <id> won't load: requires …`.
+- **`conflicts`**: your mod and that one never run together. Of two mods that can't
+  run together (either one lists the other, with the other's version in its range), the
+  first in load order loads: mods they require come first, then by id. Which of the two
+  lists the other doesn't matter, so two builds of one mod that list each other always
+  settle the same way. The other is shown in yellow ("Conflict"), with which mod to turn
+  off to use it instead. A mod turned on while apps run (`"live"`) doesn't load next to one
+  it conflicts with that's already running; the next restart settles it by the order.
+- These hold for every mod, with or without `patches.json`. A mod HMG-API's engine
+  applies (`patches.json`, `feature_flags`, `probe`, `wifi`) that is missing a
+  requirement or conflicts with another such mod also stops the apply until it's settled.
+  A mod's apps and services (`"apps"`, `"services"`) stop while a mod it requires is off,
+  but don't follow `conflicts` yet.
 
 | Name | Unit | From the car's |
 |---|---|---|
