@@ -48,6 +48,7 @@ final class Report {
             unit.put(k, e.facts.get(k));
         }
         unit.put("wifi_chip", e.facts.features().contains("hmgapi.wifi"));
+        unit.put("wifi", e.facts.wifi());   // seen, stock hotspot, unpowered (the hotspot feature off) or none
         unit.put("features", new ArrayList<Object>(e.facts.features()));
         r.put("unit", unit);
 
@@ -58,6 +59,8 @@ final class Report {
         mj.put("folder", map.folder);
         mj.put("hooks_on", map.runnable);
         mj.put("missing", notNoFiles(map.missing));
+        mj.put("mapped_here", new ArrayList<Object>(map.local));   // state/local-map.json: for a maintainer to make official
+        if (map.localWhy != null) mj.put("mapped_here_off", map.localWhy);
         r.put("map", mj);
 
         // this car mapped from its own files: names for a new map, or what changed on a known car
@@ -113,7 +116,7 @@ final class Report {
                     m.put("id", raw.get("id"));
                     m.put("version", raw.get("version"));
                     m.put("on", !new File(d, ".disabled").exists());
-                    String sys = raw.containsKey("system") ? SystemCheck.check(raw.get("system"), e.facts) : null;
+                    String sys = raw.containsKey("system") ? SystemCheck.check(raw.get("system"), e.facts, SystemCheck.asksHotspot(raw)) : null;
                     m.put("supports_this_car", sys == null);
                     if (sys != null) m.put("why_not", sys);
                     if (plan.refused.containsKey(d.getName())) m.put("hooks_not_loaded", plan.refused.get(d.getName()));
@@ -161,7 +164,7 @@ final class Report {
             }
         }
         e.out.add("report: " + name);
-        e.out.add("car: " + unit.get("name") + " " + unit.get("product"));
+        e.out.add("car: " + carName(unit) + " " + unit.get("product"));
         e.out.add(map.describe());
         e.out.add("map-car: " + pj.get("found") + " hook point(s) found, " + ((Map<?, ?>) pj.get("not_found") == null ? 0
                 : ((Map<?, ?>) pj.get("not_found")).size()) + " not found");
@@ -221,6 +224,12 @@ final class Report {
     };
 
     /** A log line with anything that could identify the car or a person taken out. */
+    /** what to call the car: its name, or its model code when HMG-API has no name for it yet (never "null") */
+    static String carName(Map<String, Object> unit) {
+        Object n = unit.get("name") != null ? unit.get("name") : unit.get("model");
+        return n == null ? "unknown model" : String.valueOf(n);
+    }
+
     static String scrub(String s) {
         for (Pattern p : SECRETS) s = p.matcher(s).replaceAll("[removed]");
         return s;
@@ -231,7 +240,7 @@ final class Report {
         Map<String, Object> unit = (Map<String, Object>) r.get("unit"), map = (Map<String, Object>) r.get("map"),
                 pj = (Map<String, Object>) r.get("map_car");
         StringBuilder s = new StringBuilder();
-        s.append("# Car Report: ").append(unit.get("name")).append(' ').append(unit.get("region")).append(' ').append(unit.get("firmware")).append("\n\n");
+        s.append("# Car Report: ").append(carName(unit)).append(' ').append(unit.get("region")).append(' ').append(unit.get("firmware")).append("\n\n");
         s.append("- File: `").append(name).append(".json` (attach it to the issue)\n");
         s.append("- HMG-API ").append(r.get("hmgapi")).append(", product `").append(unit.get("product")).append("`, platform ")
                 .append(unit.get("platform")).append(", Android ").append(unit.get("android")).append(", Wi-Fi chip: ")
@@ -278,7 +287,7 @@ final class Report {
         Map<String, Object> unit = (Map<String, Object>) r.get("unit"), map = (Map<String, Object>) r.get("map"),
                 pj = (Map<String, Object>) r.get("map_car");
         Map<String, Object> nf = (Map<String, Object>) pj.get("not_found");
-        String title = "Car Report: " + unit.get("name") + " " + unit.get("region") + " " + unit.get("firmware");
+        String title = "Car Report: " + carName(unit) + " " + unit.get("region") + " " + unit.get("firmware");
         String body = "Product: " + unit.get("product") + "\nHMG-API: " + r.get("hmgapi") + "\nMap: " + map.get("status")
                 + (Boolean.TRUE.equals(map.get("hooks_on")) ? " (hooks on)" : " (hooks off)")
                 + "\nFound on this car: " + pj.get("found") + " points, " + (nf == null ? 0 : nf.size()) + " not found"

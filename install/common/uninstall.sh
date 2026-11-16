@@ -122,8 +122,13 @@ else
     log "app_process: stock again ($ORIG)"
 fi
 rm -f "$KEEP"
-hook_remove /system/etc/install-recovery.sh || fail "boot hook in install-recovery.sh"
-hook_remove /system/etc/qb_runtime.sh || fail "boot hook in qb_runtime.sh"
+# the boot scripts: the install's backup byte for byte when nothing else changed the file
+# since (lib.sh, hook_restore); otherwise only HMG-API's block comes out. Never the backup
+# after a firmware update: it's the old firmware's.
+for f in /system/etc/install-recovery.sh /system/etc/qb_runtime.sh; do
+    if [ -z "$RESET" ] && hook_restore "$f" "$D/stock$f"; then log "$f: stock bytes back ($(sum "$ROOT$f"))"
+    else hook_remove "$f" || fail "boot hook in $f"; fi
+done
 for f in /system/lib/libhmgapi_hook.so /system/framework/hmgapi-hook.jar /system/bin/lpatch /system/bin/hmgapid; do
     rm -f "$ROOT$f"
 done
@@ -153,15 +158,24 @@ rm -f "$D/installed.txt" "$D/hook/enable" "$D/public/HmgApi.apk" "$D/HmgApi.apk"
 # HMG-API's package). HMGAPI_NEMESIS_SYNC=1: their scripts only unlist (refreshed first: an
 # older package's copies would uninstall again). Not when NEMESIS runs this: it's unlisting it already.
 N=$ROOT/system/xbin/nemesis
+unlist() {   # unlist <package dir> [quiet]: 0 if NEMESIS unlisted it
+    [ -f "$1/NEMESIS.data" ] || return 1
+    id=${1##*/}
+    t=$D/nemesis/scripts; [ "$id" = hmgapi ] || t=$D/nemesis/mod/scripts
+    [ -d "$t" ] && [ -d "$1/scripts" ] && cp "$t"/*.sh "$1/scripts/" 2>/dev/null
+    if r=$(HMGAPI_NEMESIS_SYNC=1 "$N" uninstall "$id" 2>&1); then log "NEMESIS: $id unlisted"; return 0; fi
+    [ -n "$2" ] || log "NEMESIS: couldn't unlist $id ($r): uninstall it in NEMESIS Manager"
+    return 1
+}
 if [ "$HMGAPI_FROM_NEMESIS" != 1 ] && [ -x "$N" ] && [ -d "$ROOT/data/nemesis/apps" ]; then
-    for a in "$ROOT"/data/nemesis/apps/hmgapi.* "$ROOT/data/nemesis/apps/hmgapi"; do
-        [ -f "$a/NEMESIS.data" ] || continue
-        id=${a##*/}
-        t=$D/nemesis/scripts; [ "$id" = hmgapi ] || t=$D/nemesis/mod/scripts
-        [ -d "$t" ] && [ -d "$a/scripts" ] && cp "$t"/*.sh "$a/scripts/" 2>/dev/null
-        if r=$(HMGAPI_NEMESIS_SYNC=1 "$N" uninstall "$id" 2>&1); then log "NEMESIS: $id unlisted"
-        else log "NEMESIS: couldn't unlist $id ($r): uninstall it in NEMESIS Manager"; fi
+    # a mod's package can depend on another's (its "requires"), and NEMESIS won't unlist that
+    # one while it's listed (exit 4): go round until a round unlists nothing (at most 20)
+    n=0 more=1
+    while [ -n "$more" ] && [ $n -lt 20 ]; do
+        n=$((n + 1)) more=
+        for a in "$ROOT"/data/nemesis/apps/hmgapi.*; do unlist "$a" quiet && more=1; done
     done
+    for a in "$ROOT"/data/nemesis/apps/hmgapi.* "$ROOT/data/nemesis/apps/hmgapi"; do unlist "$a"; done
 fi
 if [ "$1" = --purge ]; then
     rm -r "$D"

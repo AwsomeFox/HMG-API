@@ -44,7 +44,7 @@ typedef unsigned int u32;
 typedef unsigned char u8;
 typedef long sl;
 
-#define VERSION "1.1.0-beta.1"
+#define VERSION "1.1.0-rc.3"
 
 #ifndef ROOTDIR
 #define ROOTDIR "/data/hmgapi"
@@ -161,6 +161,8 @@ static long clock_sec(int clk)
 #define x_setresuid(a, b, c) S3(208, a, b, c)
 #define x_setresgid(a, b, c) S3(210, a, b, c)
 #define x_chown(p, u, g) S3(212, p, u, g)
+#define x_fchmod(fd, m) S2(94, fd, m)
+#define x_fchown(fd, u, g) S3(207, fd, u, g)   /* fchown32 */
 #define MS_BIND 4096
 #define MNT_DETACH 2
 
@@ -172,6 +174,7 @@ static long clock_sec(int clk)
 #define O_TRUNC 01000
 #define O_APPEND 02000
 #define O_DIRECTORY 040000
+#define O_NOFOLLOW 0100000   /* ARM's value */
 #define O_CLOEXEC 02000000
 #define EINTR 4
 #define EADDRINUSE 98
@@ -634,7 +637,7 @@ static int op_engine(int fd, int argc, char **argv)
           || seq(sub, "usb-scan") || seq(sub, "update-hmgapi") || seq(sub, "apps") || seq(sub, "probe")
           || seq(sub, "map-car") || seq(sub, "report") || seq(sub, "nemesis-sync"))) {
         say(fd, "usage: engine plan | apply [--trial] [--force] | keep | restore | status | recover | install <zip> | remove <id>"
-                " | nemesis-sync | map | map-car [--write] | verify-map | report [--usb]\n");
+                " | nemesis-sync | map | map-car [--local | --write | --forget] | verify-map | report [--usb]\n");
         return 2;
     }
     a[n++] = APP_PROCESS;
@@ -1046,11 +1049,24 @@ static void write_status(void)
     status_dirty = 0;
 }
 
+/* A folder with this mode and owner. Never through a symlink: a service's own folder
+   belongs to its user, who could put a link where its dalvik-cache goes, and chmod/chown
+   by path would then hand that user whatever the link points at. Anything there that
+   isn't a folder is taken away and the folder made. */
 static void mkdir_owned(const char *p, int mode, int uid, int gid)
 {
+    sl fd;
     x_mkdir(p, mode);
-    x_chmod(p, mode);
-    if (uid >= 0) x_chown(p, uid, gid);
+    fd = x_open(p, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC, 0);
+    if (fd < 0) {
+        x_unlink(p);
+        if (x_mkdir(p, mode) < 0) return;
+        fd = x_open(p, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC, 0);
+        if (fd < 0) return;
+    }
+    x_fchmod(fd, mode);
+    if (uid >= 0) x_fchown(fd, uid, gid);
+    x_close(fd);
 }
 
 /* the user a service runs as: uid, gid, groups; -1 when its app isn't installed */
@@ -1626,8 +1642,8 @@ static int op_allow(int fd, int argc, char **argv)
     unsigned long long st[16];
     if (seq(argv[1], "commands_reset") && argc == 3 && seq(argv[2], "on")) return forget_answers(fd);
     if (!seq(argv[1], "startup_notice") && !seq(argv[1], "block_ambient_light") && !seq(argv[1], "trust_commands")
-        && !seq(argv[1], "ota_updates") && !seq(argv[1], "testing_maps") && !answer_name(argv[1])) {
-        say(fd, "unknown switch (startup_notice, block_ambient_light, trust_commands, ota_updates, testing_maps, cmd.<mod>.<command>, "
+        && !seq(argv[1], "ota_updates") && !seq(argv[1], "testing_maps") && !seq(argv[1], "no_local_points") && !answer_name(argv[1])) {
+        say(fd, "unknown switch (startup_notice, block_ambient_light, trust_commands, ota_updates, testing_maps, no_local_points, cmd.<mod>.<command>, "
                 "nocmd.<mod>.<command>, commands_reset)\n");
         return 2;
     }

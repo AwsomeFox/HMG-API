@@ -15,7 +15,7 @@ off or removed. In the repository:
   own (the stock gradient, day and night, and the greyed-out look) from any shape.
 - `docs/api-plan.md`: what each community project uses and what's planned.
 - In your own repository: the mod SDK (`hmgapi-mod-sdk-<version>.zip`, on each HMG-API
-  release from 1.0.3) and HMG-API's reusable mod workflow as its CI ("Building a mod
+  release from 1.1.0) and HMG-API's reusable mod workflow as its CI ("Building a mod
   outside this repo" in `docs/mod-reference.md`). The mods HMG-API ships are built
   that way, each in its own repo in the [Open-HMG](https://github.com/Open-HMG) org.
 
@@ -36,7 +36,11 @@ It makes `out/dist/my-mod-1.0.0-nemesis.zip` (unzipped onto a stick, NEMESIS
 installs it) and `my-mod-1.0.0-nemesis-package.zip` (the package itself, for the
 Package Store or `nemesis install`). The package's id is `hmgapi.<your mod id>`, it
 needs HMG-API 1.0 or newer (`depends="hmgapi@>=1.0"`), and its `os` comes from your
-`mod.json` `"system"`. If your mod changes files another NEMESIS package changes too,
+`mod.json` `"system"`. Each mod in your `"requires"` goes in `depends` too, from the
+lowest version its range allows (`"wireless-carplay-aa >=2.1.0"` becomes
+`hmgapi.wireless-carplay-aa@>=2.1.0`), so NEMESIS won't install yours without it.
+NEMESIS checks only that lowest version: the rest of a range (`^`, `~`, an upper bound)
+is HMG-API's own check, and the build prints a note saying so. If your mod changes files another NEMESIS package changes too,
 list that package against `hmgapi.<your mod id>` in a file like
 `install/nemesis/conflicts.txt` and point `HMGAPI_NEMESIS_CONFLICTS` at it: they go in
 `depends` as `!<id>`, and NEMESIS won't install the two together. It carries your zip unchanged; its scripts (the template in

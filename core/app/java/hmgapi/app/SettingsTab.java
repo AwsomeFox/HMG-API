@@ -106,7 +106,22 @@ final class SettingsTab {
                 "Block mod light control", "block_ambient_light", false, null);
     }
 
+    /** Are HMG-API's hooks running on this car? The update block is one of them. */
+    static boolean hooksOn() {
+        try {
+            JSONObject map = new JSONObject(HmgApiStatus.json).optJSONObject("map");
+            return map != null && map.optBoolean("on");
+        } catch (Exception e) {   // no status at all: the hooks didn't load
+            return false;
+        }
+    }
+
     void updates() {
+        if (!hooksOn()) {
+            Ui.text(page, "HMG-API's hooks aren't running on this car (see Hook map), so it isn't blocking over-the-air updates: "
+                    + "the car can download and install them. The car's own switch is what counts until the hooks run: Settings > "
+                    + "General > Install Infotainment System Updates Automatically.", 16, true, Ui.TEXT);
+        }
         owner("Over-the-air updates", "Off (the default): HMG-API blocks the car's own update downloads, so an update can't "
                 + "replace what HMG-API and your mods depend on. USB and dealer updates still work. Takes effect at the next restart.",
                 "Allow over-the-air updates", "ota_updates", false, new Runnable() {
@@ -197,9 +212,9 @@ final class SettingsTab {
             @Override
             public void onClick(View v) {
                 new AlertDialog.Builder(a).setTitle("Map this car from its own files?")
-                        .setMessage("HMG-API finds its hook points in this car's apps. If HMG-API has no map for this car, it "
-                                + "saves this one (\"probed\"); its hooks run after the map check passes and a restart. "
-                                + "A Car Report sends it to HMG-API's maintainers.")
+                        .setMessage("HMG-API finds its hook points in this car's apps. If HMG-API has no map for this car, or "
+                                + "its map doesn't fit this car's software, it keeps this one (\"probed\"); its hooks run after "
+                                + "the map check passes and a restart. A Car Report sends it to HMG-API's maintainers.")
                         .setNegativeButton("Cancel", null)
                         .setPositiveButton("Map it", new DialogInterface.OnClickListener() {
                             @Override
@@ -210,7 +225,22 @@ final class SettingsTab {
             }
         });
         page.addView(buttons);
+        Ui.button(page, "Map the points HMG-API's map lacks", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                run("Mapping this car's missing points (about a minute)…", "map-car", "--local");
+            }
+        });
         Ui.line(page);
+        owner("Points mapped on this car", "Points newer than HMG-API's map for this car: HMG-API finds them in this car's own apps by "
+                + "name, checks each one here, and uses them for readings and mods that only watch. It does this after each "
+                + "HMG-API install or update. The Car Report sends them to HMG-API's maintainers. Takes effect at the next restart.",
+                "Use points mapped on this car", "no_local_points", true, new Runnable() {
+                    @Override
+                    public void run() {
+                        a.needRestart();
+                    }
+                });
         owner("Maps not checked on a car yet", "For a car HMG-API is new on: hooks run with a map nobody has checked on this car. "
                 + "If the head unit fails to start three times in a row, HMG-API's boot guard turns its hooks off. Takes effect at the next restart.",
                 "Try unchecked maps", "testing_maps", false, new Runnable() {
