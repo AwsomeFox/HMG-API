@@ -1,0 +1,53 @@
+{
+  "iap2.service": {
+    "class": "com.tcc.iap2server.Iap2Service"
+  },
+  "iap2.service.is_connected": {
+    "method": "isConnected",
+    "params": [],
+    "ret": "boolean",
+    "static": true
+  },
+  "iap2.service.native_lock": {
+    "field": "mLock",
+    "type": "java.lang.Object",
+    "static": true
+  },
+  "iap2.service.on_bind": {
+    "method": "onBind",
+    "params": [
+      "android.content.Intent"
+    ],
+    "ret": "android.os.IBinder",
+    "static": false
+  },
+  "iap2.service.on_create": {
+    "method": "onCreate",
+    "params": [],
+    "ret": "void",
+    "static": false
+  },
+  "iap2.service.on_destroy": {
+    "method": "onDestroy",
+    "params": [],
+    "ret": "void",
+    "static": false
+  },
+  "iap2.service_receiver": {
+    "class": "com.tcc.iap2server.f"
+  },
+  "iap2.service_receiver.on_receive": {
+    "method": "onReceive",
+    "params": [
+      "android.content.Context",
+      "android.content.Intent"
+    ],
+    "ret": "void",
+    "static": false
+  },
+  "iap2.service_receiver.service": {
+    "field": "bX",
+    "type": "com.tcc.iap2server.Iap2Service",
+    "static": false
+  }
+}

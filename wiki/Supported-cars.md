@@ -28,6 +28,12 @@ the parts that change the car's own apps stay off, and the app says which.
 | Kia Niro (EV, Hybrid, Plug-in Hybrid), Sportage (and Hybrid, Plug-in Hybrid), Carnival, Telluride, Forte, Soul (and EV), Seltos 2024 | Canada | 260206 | made on an owner's Niro EV by HMG-API's own mapper (347 of 351 hook points); the others run the same software; waiting for a check on a car |
 | Genesis G70 | USA | 260507 | made on an owner's car by HMG-API's own mapper (325 of 351 hook points: the 26 newest need a Car Report from 1.1.0 or newer); waiting for a check on a car |
 | Genesis G70 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (341 of 351 hook points: the 9 newest, and the panel's test switch, need a Car Report from a newer HMG-API); waiting for a check on a car |
+| Hyundai Ioniq 6 | USA and Canada | 260903 | made on owners' cars by HMG-API's own mapper (347 of 351 hook points; the US and Canadian reports agree on every file and point); waiting for a check on a car |
+| Kia EV6 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (319 of 351 hook points: the newer ones need a Car Report from a newer HMG-API); waiting for a check on a car |
+| Kia K3 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (323 of 351 hook points: the newer ones need a Car Report from a newer HMG-API); waiting for a check on a car |
+| Genesis G70 | Canada | 260903 | made on an owner's car by HMG-API's own mapper (278 of 351 hook points: 3 apps weren't in the report); waiting for a check on a car |
+| Hyundai Ioniq 6 | Singapore | 260907 | made on an owner's car by HMG-API's own mapper (306 of 351 hook points); waiting for a check on a car |
+| Hyundai Creta | India | 260430 | made on an owner's car by HMG-API's own mapper (339 of 351 hook points); waiting for a check on a car |
 
 **Your car isn't listed, or says "waiting"?** Install HMG-API and make a
 [Car Report](Car-Report): HMG-API maps your car from its own software on the spot,

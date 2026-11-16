@@ -65,7 +65,7 @@ public final class SystemCheck {
         {"SG2EV", "kia", "Niro EV"},
         {"KA423", "kia", "Carnival"},
         {"KA4", "kia", "Carnival"},
-        {"BDPE", "kia", "Forte"},
+        {"BDPE", "kia", "Forte (K3)"},
         {"NQ5HEV", "kia", "Sportage Hybrid"},
         {"NQ5PHEV", "kia", "Sportage Plug-in Hybrid"},
         {"SG2HEV", "kia", "Niro Hybrid"},
@@ -74,6 +74,7 @@ public final class SystemCheck {
         {"SK3EPE", "kia", "Soul EV"},
         {"SP2PE", "kia", "Seltos"},
         {"IKFL", "genesis", "G70"},
+        {"SU2IFL", "hyundai", "Creta"},
         {"DL3", "kia", "K5"},
         {"DL3HEV", "kia", "K5 Hybrid"},
         // the older Hyundai and Kia builds (US 260507, Korea 260902): one map per build, many models
