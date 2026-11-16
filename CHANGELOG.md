@@ -11,7 +11,8 @@
   loader and the plan now load the first of the two in load order (mods they require
   first, then by id), whichever of them lists the other; the other is shown as a
   conflict in the HMG-API app, with which mod to turn off to use it instead. A mod turned
-  on while apps run doesn't load next to one it conflicts with that's already running.
+  on while apps run doesn't load next to one it conflicts with that those apps loaded
+  (even one turned off since); the next restart settles it.
 - **A mod whose `"requires"` aren't met isn't loaded.** One whose required mod was off
   or missing still loaded at start (its code ran, then it was switched off), and one
   outside the version range it asked for ran; the HMG-API app showed it as on. It now

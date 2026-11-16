@@ -96,7 +96,8 @@ Each entry is `"<id>"`, `"<id> <range>"` or `{"id": …, "version": <range>}`; r
   lists the other doesn't matter, so two builds of one mod that list each other always
   settle the same way. The other is shown in yellow ("Conflict"), with which mod to turn
   off to use it instead. A mod turned on while apps run (`"live"`) doesn't load next to one
-  it conflicts with that's already running; the next restart settles it by the order.
+  it conflicts with that those apps loaded, even one turned off since; the next restart
+  settles it by the order.
 - These hold for every mod, with or without `patches.json`. A mod HMG-API's engine
   applies (`patches.json`, `feature_flags`, `probe`, `wifi`) that is missing a
   requirement or conflicts with another such mod also stops the apply until it's settled.

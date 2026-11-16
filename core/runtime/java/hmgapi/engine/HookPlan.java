@@ -88,8 +88,9 @@ public final class HookPlan {
      * turned on now (id -> version, from the public state), for "requires": a mod
      * that's on but not loaded in this app counts as there. The new mod isn't loaded
      * if the plan refuses it, or refuses a mod already loaded here that it loads
-     * without the new one: the one already running stays until the next restart,
-     * where the usual order decides.
+     * without the new one. A loaded mod counts even if it was turned off since (its
+     * hooks pass through, but turned on again it runs without another check), so the
+     * one loaded first stays until the next restart, where the usual order decides.
      */
     public static HookPlan late(Map<String, Map<String, Object>> loaded, String id, Map<String, Object> mod,
             Map<String, String> on, Set<String> known, Map<String, String> missing) {
@@ -102,7 +103,7 @@ public final class HookPlan {
         if (p.refused.containsKey(id)) return p;
         for (String other : loaded.keySet()) {
             if (p.refused.containsKey(other) && !before.refused.containsKey(other)) {
-                p.refused.put(id, p.refused.get(other) + " (" + other + " was running already)");
+                p.refused.put(id, p.refused.get(other) + " (" + other + " is loaded in this app already: the next restart settles it)");
                 for (Map<String, String> on2 : p.points.values()) on2.remove(id);
                 break;
             }

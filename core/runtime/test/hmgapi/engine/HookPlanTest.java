@@ -133,7 +133,7 @@ public final class HookPlanTest {
         loaded.remove("full");
         loaded.put("lite", json("lite"));
         p = HookPlan.late(loaded, "full", json("full"), on, KNOWN, null);
-        check("live: the first in load order turned on while the other runs: not loaded either", has(why(p, "full"), "full loads, turn it off to use lite instead (lite was running already)"), why(p, "full"));
+        check("live: the first in load order turned on while the other is loaded: not loaded either", has(why(p, "full"), "full loads, turn it off to use lite instead (lite is loaded in this app already: the next restart settles it)"), why(p, "full"));
         check("... nothing of it planned", !p.points.get("launcher.menu_list.load").containsKey("full"), p.points);
         loaded.remove("lite");
         p = HookPlan.late(loaded, "full", json("full"), on, KNOWN, null);

@@ -133,7 +133,7 @@ final class Mods {
             Map<String, String> on = new java.util.HashMap<String, String>();   // turned on now, for "requires"
             for (Map.Entry<String, Object> m : mods.entrySet()) {
                 Map<String, Object> ms = (Map<String, Object>) m.getValue();
-                if (Boolean.TRUE.equals(ms.get("enabled"))) on.put(m.getKey(), String.valueOf(ms.get("version")));
+                if (Boolean.TRUE.equals(ms.get("enabled"))) on.put(m.getKey(), ms.get("version") == null ? "0" : String.valueOf(ms.get("version")));
             }
             hmgapi.engine.HookPlan p = hmgapi.engine.HookPlan.late(rawOf, id, raw, on,
                     Points.map == null ? null : Points.map.points.keySet(), Points.map == null ? null : Points.map.missing);
