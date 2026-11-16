@@ -159,5 +159,17 @@
     "panel.home.test_page",
     "panel.test_gate",
     "panel.test_page"
+  ],
+  "names": {
+    "homesetting.edit_list.items": {
+      "field": "cu",
+      "type": "java.util.List",
+      "static": true
+    }
+  },
+  "unconfirmed": [
+    "dipo.iap2.bt_address",
+    "dipo.iap2.set_notify_on",
+    "panel.home.build_views"
   ]
 }

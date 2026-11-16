@@ -134,5 +134,24 @@
     "panel.test_gate.on",
     "panel.test_page",
     "themesettings.split_item.type"
+  ],
+  "names": {
+    "dipo.iap2_client.manager": {
+      "field": "L",
+      "type": "com.daudio.app.dipo.e.b",
+      "static": false
+    },
+    "homesetting.edit_list.items": {
+      "field": "cu",
+      "type": "java.util.List",
+      "static": true
+    }
+  },
+  "unconfirmed": [
+    "dipo.iap2.bt_address",
+    "dipo.iap2.set_notify_on",
+    "panel.home.build_views",
+    "panel.test_gate.on",
+    "themesettings.split_item.type"
   ]
 }

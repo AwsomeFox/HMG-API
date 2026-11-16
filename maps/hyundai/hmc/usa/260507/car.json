@@ -140,5 +140,10 @@
         "/system/app/ThemeSettings.odex"
       ]
     }
+  },
+  "names": {
+    "btsettings.projection_helper": {
+      "class": "com.android.settings2.bluetooth.iO"
+    }
   }
 }
