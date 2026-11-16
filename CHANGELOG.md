@@ -44,6 +44,22 @@
   (`NEEV23`) does. Its 18 mapped files are the same bytes, and its owner's check found all
   351 hook points (#192; also #72, #186). Before, it had no map there: hooks were off
   unless the owner made one on the car.
+- **Four maps from stock files, for the older Hyundai and Kia builds and Korea** (351 of
+  351 hook points each, status mapped: waiting for a check on a car). One map per build,
+  so each covers every model on it:
+  - `hyundai/hmc/usa/260507`: Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N
+    and the 2020-22 Palisade, with their hybrids and EVs (25 products);
+  - `kia/kmc/usa/260507`: K5, Sorento, Stinger, Soul, the 2021 Seltos, the 2020-22 Niro,
+    Cadenza and the 2020-21 Telluride (24 products);
+  - `kia/kmc/kor/260902`: the Korean K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave,
+    K7, Morning and Ray (33 products). The K5 Hybrid owner's files from a Car Report are
+    the same bytes;
+  - `hyundai/neev/kor/260902`: the Korean Ioniq 5.
+  A map lists the cars whose `onebin` folder is in that build, less those known to
+  install another build (the Korean 2021 Mohave and the Carnival). For a car on another
+  build, the stock-file md5s give `mismatch`, never another build's names.
+  `SystemCheck` knows the new model codes. None of the four builds has the Wi-Fi hotspot
+  feature file, so the wireless mods can't use the hotspot there yet.
 ### Fixes
 
 - **The USB install puts the HMG-API app in right away** (#187). With Android up, the
