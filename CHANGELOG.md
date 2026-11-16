@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add a Canadian Ioniq 6 (CEEV) 260206 map with 351 hook points, from a Car Report
+  and matching stock Bluetooth settings files. Its projection helper is `iO`, not
+  the `iP` used by the other maps. All 351 points passed verification on the car.
+- Recognize CEEV as Hyundai Ioniq 6. Report import accepts an explicit make/name for
+  older reports and preserves their unresolved points and absent apps.
+- The on-car mapper checks a reference class's members together, so an unrelated
+  class reusing another build's name does not hide the correct projection helper.
 ### Cars
 
 - **The 2022 Ioniq 5 (`NEEV`) on US 260903 uses the 260903 map**, as the 2023-on
