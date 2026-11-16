@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **The repo keeps one base map and each build's differences** (#236). The names a hook point
+  resolves to hardly change between builds, so `maps/base/<app>.json` holds each point's
+  entry on most builds, and a build's `car.json` lists only what's its own: `"names"` (0 to
+  3 per build today), `"unconfirmed"` (methods mapped before code signatures) and
+  `"missing"`. 326 map files become 40. `build.sh` expands them into the same per-app files
+  as before (byte for byte), so the unit, the mod SDK and local maps read what they read;
+  `map-car.py`, `report-map.py`, `check-maps.py`, `mkhookdoc.py` and `probe-test.py` read
+  and write through `tools/maplib.py`.
 - **A unit maps the points HMG-API's map lacks only because the map is older than them.**
   This happens after each HMG-API install or update (a boot step), or from Settings ("Map the
   points HMG-API's map lacks"). Only points found by name are mapped, in apps whose stock

@@ -171,5 +171,38 @@
     "panel.home.build_views",
     "panel.test_gate",
     "panel.test_page"
+  ],
+  "names": {
+    "dipo.iap2_client.manager": {
+      "field": "N",
+      "type": "com.daudio.app.dipo.e.b",
+      "static": false
+    },
+    "dipo.iap2_listener.owner": {
+      "field": "mO",
+      "type": "com.daudio.app.dipo.e.a",
+      "static": false
+    },
+    "dipo.session_listener": {
+      "class": "com.daudio.app.dipo.service.r"
+    },
+    "homesetting.edit_list.items": {
+      "field": "ct",
+      "type": "java.util.List",
+      "static": true
+    },
+    "iap2.service_receiver": {
+      "class": "com.tcc.iap2server.f"
+    },
+    "iap2.service_receiver.service": {
+      "field": "bX",
+      "type": "com.tcc.iap2server.Iap2Service",
+      "static": false
+    }
+  },
+  "unconfirmed": [
+    "dipo.iap2.bt_address",
+    "dipo.iap2.set_notify_on",
+    "panel.home.build_views"
   ]
 }

@@ -2,8 +2,17 @@
 
 Every app class, method or field that HMG-API or a mod hooks has a **stable name**
 here (`launcher.menu_list.load`). Mods and HMG-API call it through `hmgapi.hook.Points`,
-never by the app's own (obfuscated, per-build) name. Each car's map
-(`maps/<make>/<model>/<region>/<firmware>/`) says what every name is on that car.
+never by the app's own (obfuscated, per-build) name. Each build's map
+(`maps/<make>/<model>/<region>/<firmware>/`) says what every name is on the cars that
+run that build.
+
+The repo keeps the maps compact (`tools/maplib.py`): `maps/base/<app>.json` holds the
+entry each point has on most builds, and a build's `car.json` lists only its
+differences: `"names"` (entries that differ from base), `"unconfirmed"` (smali-only
+methods this build has no code signature for) and `"missing"`. `build.sh` expands
+every build into the full per-app files the unit reads (`maplib.py expand`); the tools
+read and write the compact form through `maplib`. After adding or remapping points,
+`tools/maplib.py compact` re-chooses base so the per-build lists stay short.
 
 One file per app: `<app>.json`:
 
