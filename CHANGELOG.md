@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **The USB install puts the HMG-API app in right away** (#187). With Android up, the
+  package manager couldn't read the app where the USB installer had copied it (root only),
+  so it refused it (`INSTALL_FAILED_INVALID_URI`) and the head unit came back without the
+  app. It now installs from the copy in `/data/hmgapi/public/`, which it can read, as the
+  retry at the next restart already did.
+
 ## 1.1.0-rc.2 (2026-11-15)
 
 The second release candidate: fixes from a review of rc.1, nothing new in HMG-API itself.
