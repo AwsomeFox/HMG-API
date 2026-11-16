@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
+  (and the mod SDK's copy) wrote only `hmgapi@>=1.0` and the refusals, so NEMESIS installed
+  a mod without the mods in its `"requires"`, and HMG-API then wouldn't apply it.
+  EGMP Android Auto EV, which requires `wireless-carplay-aa >=2.1.0`, got
+  `depends="hmgapi@>=1.0,!hmgapi.egmp-aa-ev-standalone"`. Each required mod is now
+  `hmgapi.<id>@>=<lowest version its range allows>`, a pre-release floor as its NEMESIS
+  package-version (`^2.2.0-rc.1` is `>=2.1.99.1`). NEMESIS checks only that floor; the
+  rest of a range (`^`, `~`, upper bounds) stays HMG-API's check, and the build says so.
+  The build refuses a `"requires"` entry that isn't a mod id, and a mod that requires a mod
+  whose package it refuses.
+
 ## 1.1.0-rc.2 (2026-11-15)
 
 The second release candidate: fixes from a review of rc.1, nothing new in HMG-API itself.
