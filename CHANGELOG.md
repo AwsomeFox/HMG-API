@@ -10,6 +10,11 @@
   unless the owner made one on the car.
 ### Fixes
 
+- **The USB install puts the HMG-API app in right away** (#187). With Android up, the
+  package manager couldn't read the app where the USB installer had copied it (root only),
+  so it refused it (`INSTALL_FAILED_INVALID_URI`) and the head unit came back without the
+  app. It now installs from the copy in `/data/hmgapi/public/`, which it can read, as the
+  retry at the next restart already did.
 - **A mod's NEMESIS package depends on the mods it requires.** `tools/mknemesismod.sh`
   (and the mod SDK's copy) wrote only `hmgapi@>=1.0` and the refusals, so NEMESIS installed
   a mod without the mods in its `"requires"`; HMG-API's install only noted the missing mod.
@@ -130,6 +135,11 @@ The release candidate: feature freeze. 1.1.0 will be this code unless a blocker 
 
 ### Fixes
 
+- **The right split-screen panel keeps the Mobis font with hooks on** (#174). HMG-API
+  made its panel page's views as soon as the panel app started, even with no mod page;
+  that loaded the process's fonts before the Mobis font's fallback was in place, so
+  Korean text in the whole panel showed in NanumGothic (seen on an Avante CN7 KOR
+  260902). The views are now made only when the panel first shows HMG-API's page.
 - **Vehicle readings answer at once, with code 0** (#145). Every `hmgapid vehicle` read
   took 3 s and came back with code 1, the values right: on these units an accepted
   `LocalSocket`'s `close()` doesn't close its fd, so the vehicle service never ended its
