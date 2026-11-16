@@ -24,6 +24,10 @@ the parts that change the car's own apps stay off, and the app says which.
 | Kia K5, Sorento (and Hybrid, Plug-in Hybrid), Stinger, Soul (and EV), Seltos 2021, Niro 2020-21 (EV, Hybrid, Plug-in Hybrid), Telluride 2020-21 | Canada | 260206 | 351 of 351 hook points found in stock files; waiting for a check on a car |
 | Kia K5 (and Hybrid), Sorento, Stinger, Seltos, Soul, Niro, Mohave The Master, K7, Morning, Ray | Korea | 260902 | 351 of 351 hook points found in stock files (the K5 Hybrid's files from a Car Report are the same); waiting for a check on a car |
 | Hyundai Ioniq 5 | Korea | 260902 | 351 of 351 hook points found in stock files; waiting for a check on a car |
+| Hyundai Sonata (and Hybrid), Santa Fe, Palisade | Korea | 260902 | made on owners' cars by HMG-API's own mapper (341 of 351 hook points: the 9 newest, and the panel's test switch, need a Car Report from a newer HMG-API; 5 reports from 3 models agree); waiting for a check on a car |
+| Kia Niro (EV, Hybrid, Plug-in Hybrid), Sportage (and Hybrid, Plug-in Hybrid), Carnival, Telluride, Forte, Soul (and EV), Seltos 2024 | Canada | 260206 | made on an owner's Niro EV by HMG-API's own mapper (347 of 351 hook points); the others run the same software; waiting for a check on a car |
+| Genesis G70 | USA | 260507 | made on an owner's car by HMG-API's own mapper (325 of 351 hook points: the 26 newest need a Car Report from 1.1.0 or newer); waiting for a check on a car |
+| Genesis G70 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (341 of 351 hook points: the 9 newest, and the panel's test switch, need a Car Report from a newer HMG-API); waiting for a check on a car |
 
 **Your car isn't listed, or says "waiting"?** Install HMG-API and make a
 [Car Report](Car-Report): HMG-API maps your car from its own software on the spot,

@@ -21,8 +21,11 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 
 | Car | Map | Points |
 |---|---|---|
+| Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 351 |
+| Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 351 |
 | Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 351 |
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 351 of 351 |
+| Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 351 |
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 351 of 351 |
 | Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 351 |
 | Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 351 of 351 |
@@ -37,6 +40,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 351 of 351 |
 | Kia Sportage USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Kia Telluride USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
+| Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped on cars by HMG-API's own mapper | 347 of 351 |
 | Kia Niro EV USA 260507 | mapped on cars by HMG-API's own mapper | 343 of 351 |
 
 In the tables, **Cars** is "all" when every car above has the point, otherwise the cars without it.
@@ -147,10 +151,10 @@ Android framework and the car's service interfaces (any process).
 | `framework.hscan_service.battery_12v_soc` | method | `getBatSoc()` → int | 12V battery state of charge, % | all |
 | `framework.hscan_service.hv_health` | method | `getXEV_Bms_GDS_SOH()` → int |  | all |
 | `framework.hscan_service.charging_status` | method | `getChargingStatus()` → int |  | all |
-| `framework.hscan_service.battery_12v_sensor_state` | method | `getBATSNSRState()` → byte | 12V battery sensor's state (raw) | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `framework.hscan_service.battery_12v_sensor_invalid` | method | `getBATSNSRInvalid()` → byte | 12V battery sensor's invalid flag (raw) | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `framework.hscan_service.battery_12v_sensor_error` | method | `getBATSNSRError()` → byte | 12V battery sensor's error flag (raw) | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `framework.hscan_service.battery_12v_saver` | method | `get_BAT_AuxBattOpt()` → byte | the Auxiliary Battery Saver option (raw) | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `framework.hscan_service.battery_12v_sensor_state` | method | `getBATSNSRState()` → byte | 12V battery sensor's state (raw) | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `framework.hscan_service.battery_12v_sensor_invalid` | method | `getBATSNSRInvalid()` → byte | 12V battery sensor's invalid flag (raw) | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `framework.hscan_service.battery_12v_sensor_error` | method | `getBATSNSRError()` → byte | 12V battery sensor's error flag (raw) | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `framework.hscan_service.battery_12v_saver` | method | `get_BAT_AuxBattOpt()` → byte | the Auxiliary Battery Saver option (raw) | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
 | `framework.car_services` | class | `com.hkmc.Service` | the car services' registered names | all |
 | `framework.car_services.system` | field | `static SYSTEM_SERVICE`: String |  | all |
 | `framework.car_services.hev` | field | `static HEV_SERVICE`: String |  | all |
@@ -244,18 +248,18 @@ Android framework and the car's service interfaces (any process).
 | `framework.bcm_service.ast_seat_heat_option` | method | `getAstSeatHeatOption()` → int |  | all |
 | `framework.bcm_service.rl_seat_heat_option` | method | `getRLSeatHeatOption()` → int | 1 on the EV6: 2 levels, no ventilation | all |
 | `framework.bcm_service.rr_seat_heat_option` | method | `getRRSeatHeatOption()` → int |  | all |
-| `framework.bcm_service.batt_cond_indicator` | method | `getBattCondIndSta()` → int | battery conditioning indicator: 1 conditioning, 0 not (as Launchpad reads it) | all |
-| `framework.hev_flag.batt_cond_failure` | field | `static BMS_BATTCONDFAILPOPUP`: int | battery conditioning failure popup (raw; -1 seen when nothing's wrong) | all |
-| `framework.car_services.cluster` | field | `static CLUSTER_SERVICE`: String |  | all |
-| `framework.cluster_service` | class | `com.hkmc.cluster.IClusterService` |  | all |
-| `framework.cluster_service_stub` | class | `com.hkmc.cluster.IClusterService$Stub` |  | all |
-| `framework.cluster_service_stub.as_interface` | method | `static asInterface(android.os.IBinder)` → framework.cluster_service |  | all |
-| `framework.cluster_listener` | class | `com.hkmc.cluster.INavigationClusterListener` |  | all |
-| `framework.cluster_listener_stub` | class | `com.hkmc.cluster.INavigationClusterListener$Stub` | HMG-API answers its callbacks with a plain binder (only the ones it reads) | all |
-| `framework.cluster_listener_stub.as_interface` | method | `static asInterface(android.os.IBinder)` → framework.cluster_listener |  | all |
-| `framework.cluster_listener_stub.battery_info` | field | `static TRANSACTION_onHandleBatteryInfoResp`: int | onHandleBatteryInfoResp(int[8]): [1] minimum pack temperature (whole C), [5] conditioning indicator; the answer to requestBatteryInfoReq, sent to every listener | all |
-| `framework.cluster_service.add_listener` | method | `addNavigationClusterListener(framework.cluster_listener)` → void | the service keeps a list and calls every listener: the navigation's own stays registered | all |
-| `framework.cluster_service.battery_info` | method | `requestBatteryInfoReq()` → void | asks the cluster for the battery info; answered through onHandleBatteryInfoResp | all |
+| `framework.bcm_service.batt_cond_indicator` | method | `getBattCondIndSta()` → int | battery conditioning indicator: 1 conditioning, 0 not (as Launchpad reads it) | not on Genesis G70 USA 260507 |
+| `framework.hev_flag.batt_cond_failure` | field | `static BMS_BATTCONDFAILPOPUP`: int | battery conditioning failure popup (raw; -1 seen when nothing's wrong) | not on Genesis G70 USA 260507 |
+| `framework.car_services.cluster` | field | `static CLUSTER_SERVICE`: String |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_service` | class | `com.hkmc.cluster.IClusterService` |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_service_stub` | class | `com.hkmc.cluster.IClusterService$Stub` |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_service_stub.as_interface` | method | `static asInterface(android.os.IBinder)` → framework.cluster_service |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_listener` | class | `com.hkmc.cluster.INavigationClusterListener` |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_listener_stub` | class | `com.hkmc.cluster.INavigationClusterListener$Stub` | HMG-API answers its callbacks with a plain binder (only the ones it reads) | not on Genesis G70 USA 260507 |
+| `framework.cluster_listener_stub.as_interface` | method | `static asInterface(android.os.IBinder)` → framework.cluster_listener |  | not on Genesis G70 USA 260507 |
+| `framework.cluster_listener_stub.battery_info` | field | `static TRANSACTION_onHandleBatteryInfoResp`: int | onHandleBatteryInfoResp(int[8]): [1] minimum pack temperature (whole C), [5] conditioning indicator; the answer to requestBatteryInfoReq, sent to every listener | not on Genesis G70 USA 260507 |
+| `framework.cluster_service.add_listener` | method | `addNavigationClusterListener(framework.cluster_listener)` → void | the service keeps a list and calls every listener: the navigation's own stays registered | not on Genesis G70 USA 260507 |
+| `framework.cluster_service.battery_info` | method | `requestBatteryInfoReq()` → void | asks the cluster for the battery info; answered through onHandleBatteryInfoResp | not on Genesis G70 USA 260507 |
 
 ## btsettings
 
@@ -264,10 +268,10 @@ App `com.android.btsettings`.
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
 | `btsettings.projection_helper` | class | a class in `com.android.settings2.bluetooth` (no fixed name) | BtSettings' static helper that opens the Phone Projection pages | all |
-| `btsettings.projection_helper.open_wireless_page` | method | `static ?(android.content.Context)` → void | opens the wireless projection page (its only caller is the Phone Projection menu) | all |
-| `btsettings.projection_helper.device_connections_available` | method | `static ?()` → boolean |  | all |
-| `btsettings.projection_helper.open_device_connections` | method | `static ?(android.content.Context, int)` → void |  | all |
-| `btsettings.projection_helper.open_other_page` | method | `static ?(android.content.Context)` → void |  | all |
+| `btsettings.projection_helper.open_wireless_page` | method | `static ?(android.content.Context)` → void | opens the wireless projection page (its only caller is the Phone Projection menu) | not on Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 |
+| `btsettings.projection_helper.device_connections_available` | method | `static ?()` → boolean |  | not on Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 |
+| `btsettings.projection_helper.open_device_connections` | method | `static ?(android.content.Context, int)` → void |  | not on Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 |
+| `btsettings.projection_helper.open_other_page` | method | `static ?(android.content.Context)` → void |  | not on Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 |
 
 ## buttonsettings
 
@@ -319,10 +323,10 @@ App `com.daudio.app.dipo`.
 | `dipo.carplay.session_finalized` | method | `onSessionFinalized(int)` → void | a CarPlay session ended | all |
 | `dipo.carplay.iap_message` | method | `oniAPSendMessage(byte[], int)` → void | iAP2 bytes the phone sent over the CarPlay session's own channel | all |
 | `dipo.carplay.native_iap_send` | method | `TccCarPlayNativeMethod_iAPSendMessage(byte[], int)` → int | sends iAP2 bytes to the phone over the CarPlay session's channel (0: sent) | all |
-| `dipo.carplay.disable_bluetooth` | method | `onDisableBluetooth(String)` → void | the CarPlay library's disableBluetooth, about 80 ms into a session: DiPO then disconnects the phone's Bluetooth (wired CarPlay's way) | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `dipo.carplay.decode_failure` | method | `onNotifyDecodeFailure(int)` → void | the CarPlay video decoder reported a failure (1 no output frame, 2 sequence header failed, 3 black screen; 0 resets the black-screen count). Stock DiPO only logs it | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `dipo.carplay.screen_timeout` | method | `onScreenTimeout()` → void | the CarPlay screen stream got no data for the library's timeout (10 s on these units). Stock DiPO only sets a flag | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
-| `dipo.carplay.force_key_frame` | method | `forceKeyFrame()` → com.daudio.app.dipo.telechips.CarPlayReturn | asks the phone for a new key frame (IDR) on the CarPlay screen stream. Stock DiPO never calls it | not on Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `dipo.carplay.disable_bluetooth` | method | `onDisableBluetooth(String)` → void | the CarPlay library's disableBluetooth, about 80 ms into a session: DiPO then disconnects the phone's Bluetooth (wired CarPlay's way) | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `dipo.carplay.decode_failure` | method | `onNotifyDecodeFailure(int)` → void | the CarPlay video decoder reported a failure (1 no output frame, 2 sequence header failed, 3 black screen; 0 resets the black-screen count). Stock DiPO only logs it | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `dipo.carplay.screen_timeout` | method | `onScreenTimeout()` → void | the CarPlay screen stream got no data for the library's timeout (10 s on these units). Stock DiPO only sets a flag | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
+| `dipo.carplay.force_key_frame` | method | `forceKeyFrame()` → com.daudio.app.dipo.telechips.CarPlayReturn | asks the phone for a new key frame (IDR) on the CarPlay screen stream. Stock DiPO never calls it | not on Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Kia Carnival USA 260507, Kia Niro EV USA 260507 |
 | `dipo.iap2_listener` | class | a class in `com.daudio.app.dipo` (no fixed name) | DiPO's own iAP2 listener (connected, disconnected, notify from the iAP2 server) | all |
 | `dipo.iap2_listener.connected` | method | `connected(int, String)` → void | an iAP2 session is up (component: 1 USB, 4 Bluetooth CarPlay, 5 the CarPlay session's channel) | all |
 | `dipo.iap2_listener.disconnected` | method | `disconnected(int)` → void | an iAP2 session ended (component) | all |
@@ -404,12 +408,12 @@ App `com.tcc.iap2server`.
 | `iap2.service_receiver` | class | a class in `com.tcc.iap2server` (no fixed name) | the iAP2 service's own broadcast receiver (USB CarPlay attach and more); an inner class, so its number can differ | all |
 | `iap2.service_receiver.on_receive` | method | `onReceive(android.content.Context, android.content.Intent)` → void |  | all |
 | `iap2.service_receiver.service` | field | `?`: iap2.service |  | all |
-| `iap2.service.on_destroy` | method | `onDestroy()` → void |  | all |
-| `iap2.service.on_bind` | method | `onBind(android.content.Intent)` → android.os.IBinder |  | all |
-| `iap2.service.native_handle` | field | `static mHandleIap2`: long |  | all |
-| `iap2.service.native_lock` | field | `static mLock`: Object |  | all |
-| `iap2.init_info.use_vehicle_information` | field | `static iAP2UsedVehicelInformation`: int |  | all |
-| `iap2.init_info.use_vehicle_status` | field | `static iAP2UsedVehicleStatus`: int |  | all |
+| `iap2.service.on_destroy` | method | `onDestroy()` → void |  | not on Genesis G70 USA 260507 |
+| `iap2.service.on_bind` | method | `onBind(android.content.Intent)` → android.os.IBinder |  | not on Genesis G70 USA 260507 |
+| `iap2.service.native_handle` | field | `static mHandleIap2`: long |  | not on Genesis G70 USA 260507 |
+| `iap2.service.native_lock` | field | `static mLock`: Object |  | not on Genesis G70 USA 260507 |
+| `iap2.init_info.use_vehicle_information` | field | `static iAP2UsedVehicelInformation`: int |  | not on Genesis G70 USA 260507 |
+| `iap2.init_info.use_vehicle_status` | field | `static iAP2UsedVehicleStatus`: int |  | not on Genesis G70 USA 260507 |
 
 ## launcher
 
@@ -443,7 +447,7 @@ App `com.mobis.splitscreen.right`.
 | `panel.test_page.get_view` | method | `getView()` → android.view.View |  | all |
 | `panel.home.test_page` | field | `?`: panel.test_page | never set by stock code | all |
 | `panel.test_gate` | class | a class in `com.mobis.splitscreen.right` (no fixed name) |  | all |
-| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | all |
+| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | not on Genesis G70 KOR 260902, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 |
 
 ## settings
 
@@ -462,7 +466,7 @@ App `com.android.themesettings`.
 |---|---|---|---|---|
 | `themesettings.split_item` | class | `com.android.themesettings.splitscreensettings.SplitScreenItem` | one page in the split-screen page editor | all |
 | `themesettings.split_item.new` | ctor | `new (int, String, boolean)` | (view id, title, on) | all |
-| `themesettings.split_item.type` | method | `?()` → int |  | all |
+| `themesettings.split_item.type` | method | `?()` → int |  | not on Genesis G70 KOR 260902, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 |
 | `themesettings.split_items` | class | a class in `com.android.themesettings.splitscreensettings` (no fixed name) | the editor's page list helpers | all |
 | `themesettings.split_items.make` | method | `static ?(android.content.Context, java.util.LinkedHashMap)` → java.util.ArrayList | the editor's items from {view id: on/off}; unknown ids are skipped | all |
 | `themesettings.split_items.view_name` | method | `static ?(android.content.Context, int)` → String |  | all |
