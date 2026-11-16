@@ -11,6 +11,12 @@
         "https://github.com/Open-HMG/hmgapi-adbd",
         "https://github.com/Open-HMG/hmgapi-nemesis-shortcut"
       ]
+    },
+    "f1154a64-b4d2-81b9-b45c-e791b3200a46": {
+      "name": "DeFlight, LLC",
+      "repos": [
+        "https://github.com/DeFlight/hmgapi-carplay-keys"
+      ]
     }
   }
 }
