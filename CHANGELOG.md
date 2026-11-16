@@ -40,6 +40,11 @@
   Telluride and Niro EV maps are one build).
 ### Cars
 
+- **The newer Kia build in the US covers more cars.** The Sportage map
+  (`kia/nq5/usa/260507`) now also lists the Sportage Hybrid and Plug-in Hybrid, Forte,
+  2022 Carnival, Niro Hybrid and Plug-in Hybrid, Soul and 2024 Seltos: the US packages
+  that install the same build as the Sportage, Telluride, Carnival and Niro EV maps (their
+  Car Reports have the same files). Before, those cars had no map.
 - **The older Hyundai and Kia builds in Canada (260206), from stock files** (351 of 351
   hook points each, status mapped: waiting for a check on a car):
   - `hyundai/hmc/can/260206`: Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N
