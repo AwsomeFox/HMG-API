@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Cars
+
+- **The 2022 Ioniq 5 (`NEEV`) on US 260903 uses the 260903 map**, as the 2023-on
+  (`NEEV23`) does. Its 18 mapped files are the same bytes, and its owner's check found all
+  351 hook points (#192; also #72, #186). Before, it had no map there: hooks were off
+  unless the owner made one on the car.
+
 ## 1.1.0-rc.2 (2026-11-15)
 
 The second release candidate: fixes from a review of rc.1, nothing new in HMG-API itself.
