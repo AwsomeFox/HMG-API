@@ -118,6 +118,9 @@ has "... both of them" "requires lib >=1.2 <2; its NEMESIS package checks only h
 check "... and nothing for a plain >=" "" "$(mk 1.0.0 on $T/author.key "$EV6" '"requires": ["base >=2.0"], ' 2>&1)"
 mk 1.0.0 on $T/author.key "$EV6" '"requires": ["base >=2.0"], "nemesis_conflicts": ["mine.pkg"], '
 check "... before the refusals" "hmgapi@>=1.0,hmgapi.base@>=2.0.0,!mine.pkg" "$(val depends)"
+mk 1.0.0 on $T/author.key "$EV6" '"requires": [{"id": "extra", "version": "^3.0", "optional": true, "adds": "more"}, {"id": "base", "version": ">=2.0", "optional": false}], "nemesis_conflicts": ["hmgapi.extra"], ' 2> $T/err || true
+check "an optional requires (\"optional\": true, the mod runs without it): left out, so not refused either" "hmgapi@>=1.0,hmgapi.base@>=2.0.0,!hmgapi.extra" "$(val depends)"
+check "... and no note about its range" "" "$(cat $T/err)"
 for bad in '"Not-An-Id >=1.0"' '"hmgapi >=1.0"' '"demo"' '"base >=2.0-foo"' '"base >=x"'; do
     mk 1.0.0 on $T/author.key "$EV6" "\"requires\": [$bad], " 2>/dev/null || true
     set +e; o=$(tools/mknemesismod.sh $T/demo.zip $T/dist 2>&1); r=$?; set -e

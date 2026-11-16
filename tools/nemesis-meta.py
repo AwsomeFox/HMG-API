@@ -86,7 +86,8 @@ def vkey(pv):   # native/meta.c ver_cmp: dotted numbers, missing parts 0
 
 
 def requires(pkg, mod):
-    """hmgapi.<id>@>=<floor> for each mod in the mod's "requires" (each id once, the highest floor)"""
+    """hmgapi.<id>@>=<floor> for each mod in the mod's "requires" (each id once, the highest floor),
+    but for an optional one ({"id": ..., "optional": true}): the mod runs without it"""
     m = json.load(open(mod))
     reqs = m.get("requires", [])
     if not isinstance(reqs, list):
@@ -104,6 +105,8 @@ def requires(pkg, mod):
             sys.exit('mod.json "requires": %r isn\'t a mod id (a-z, 0-9 and -, at most 57 characters)' % rid)
         if "hmgapi." + rid == pkg:
             sys.exit('mod.json "requires": %s can\'t require itself' % rid)
+        if isinstance(d, dict) and d.get("optional") is True:   # as Version.deps: true only
+            continue
         try:
             low, whole = floor(rng)
             pv = nemesis_version(low) if low else None

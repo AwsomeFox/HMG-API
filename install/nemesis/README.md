@@ -76,7 +76,8 @@ off-car with the real engine.
   the floor being the lowest version its range lets in, as a package-version:
   `"wireless-carplay-aa >=2.1.0"` is `hmgapi.wireless-carplay-aa@>=2.1.0`, `"base
   ^2.2.0-rc.1"` is `hmgapi.base@>=2.1.99.1`, and a range with no lower bound (none, `*`,
-  `<3`) is plain `hmgapi.<id>`. NEMESIS then won't install the mod until those are
+  `<3`) is plain `hmgapi.<id>`. An optional entry (`{"id": ..., "optional": true}`: the mod
+  runs without it) is left out. NEMESIS then won't install the mod until those are
   installed and new enough (exit 22), and won't uninstall them while it's there (exit 4).
   NEMESIS checks only the floor. The rest of a range (`^`, `~`, an exact version, `>`
   taken as `>=`, an upper bound) stays HMG-API's check, as for a mod installed from the

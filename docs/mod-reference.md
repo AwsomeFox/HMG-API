@@ -333,7 +333,8 @@ A mod that needs another lists it in `"requires"` (`"wireless-carplay-aa >=2.1.0
 `{"id": "wireless-carplay-aa", "version": ">=2.1.0"}`). Its NEMESIS package then depends on
 that mod's package, from the lowest version the range lets in
 (`hmgapi.wireless-carplay-aa@>=2.1.0`; a pre-release floor like `^2.2.0-rc.1` as its
-package-version, `2.1.99.1`), so NEMESIS won't install it without that mod.
+package-version, `2.1.99.1`), so NEMESIS won't install it without that mod. An optional
+entry (`"optional": true`, a mod yours runs without) stays out of it.
 NEMESIS checks only that floor: the rest of a range (`^`, `~`, an exact version, an upper
 bound) is HMG-API's own check, and `mknemesismod.sh` prints a note when it leaves part of
 a range out. A `"requires"` entry that isn't a mod id, or a mod both required and
