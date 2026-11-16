@@ -43,11 +43,22 @@ class ReportMapTest(unittest.TestCase):
         self.assertNotIn('Traceback', result.stderr)
         self.assertFalse((self.root / 'maps').exists())
 
+    NEWER = 'not in the Car Report: newer than the HMG-API that made it'
+
+    def assert_missing(self, missing, expected):
+        """the report's own missing points, with their reasons; every other catalogue
+        point the report lacks is listed as newer than the HMG-API that made it"""
+        for pid, reason in expected.items():
+            self.assertEqual(missing.get(pid), reason, pid)
+        for pid, reason in missing.items():
+            if pid not in expected:
+                self.assertTrue(reason.startswith(self.NEWER), pid)
+
     def test_current_report_keeps_missing_points_and_hashes(self):
         result = self.run_import()
         self.assertEqual(result.returncode, 0, result.stderr)
         car = self.car()
-        self.assertEqual(car['missing'], self.report['map_car']['not_found'])
+        self.assert_missing(car['missing'], self.report['map_car']['not_found'])
         self.assertEqual(car['files'], self.report['map_car']['files'])
         self.assertEqual(car['by_reference'], self.report['map_car']['by_reference'])
         self.assertEqual(car['status'], 'probed')
@@ -65,7 +76,7 @@ class ReportMapTest(unittest.TestCase):
         mc['missing'] = mc.pop('not_found')
         result = self.run_import()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.car()['missing'], mc['missing'])
+        self.assert_missing(self.car()['missing'], mc['missing'])
 
     def test_absent_app_accounts_for_all_its_catalogue_points(self):
         cat = json.loads((REPO / 'core/hookpoints/iap2.json').read_text())
@@ -76,8 +87,17 @@ class ReportMapTest(unittest.TestCase):
         result = self.run_import()
         self.assertEqual(result.returncode, 0, result.stderr)
         expected = dict(mc['not_found'], **{p['id']: reason for p in cat['points']})
-        self.assertEqual(self.car()['missing'], expected)
+        self.assert_missing(self.car()['missing'], expected)
         self.assertEqual(json.loads((self.root / 'maps/hyundai/ceev/can/260206/iap2.json').read_text()), {})
+
+    def test_catalogue_points_newer_than_the_report_are_listed(self):
+        result = self.run_import()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        missing = self.car()['missing']
+        cat = json.loads((REPO / 'core/hookpoints/framework.json').read_text())
+        for p in cat['points']:
+            self.assertTrue(missing[p['id']].startswith(self.NEWER), p['id'])
+        self.assertNotIn('btsettings.projection_helper', missing)
 
     def test_conflicting_found_and_missing_is_rejected(self):
         self.report['map_car']['not_found']['btsettings.projection_helper'] = 'not found'
