@@ -11,7 +11,7 @@ Only names, signatures and model-level checksums are included here.
 
 The current map has 353 points. Eight newer upstream points and the two optional
 PE observation points were resolved off-car against the available stock reference.
-All 285 overlapping entries resolved by the current mapper match the supplied
+The previous off-car mapper run matched all 285 overlapping entries in the supplied
 map. The reference lacks six unrelated app files, so this is a partial stock check.
 The map is marked `mapped`: the historical 343-point report is not a vehicle
 verification of the newly added entries.
@@ -32,7 +32,14 @@ investigation to compare stock navigation messages with captured cluster/HUD
 behavior. Their payload semantics remain unassigned. The recorder is not part of
 this upstream PR.
 
-[Wireless CarPlay PR #34](https://github.com/Open-HMG/hmgapi-wireless-cp-aa/pull/34)
+[Wireless baseline PR #49](https://github.com/Open-HMG/hmgapi-wireless-cp-aa/pull/49)
 does not depend on either observation point. The local wireless port was tested on
 HMG-API 1.0.2. Current upstream integration is checked off-car only, pending review
 and the stated vehicle and cross-model validation.
+
+The map is stored in the current base-plus-differences format. Its expanded
+353 entries are unchanged by that conversion. Confirmed PE03/PE12 entries for
+the EV6 and Canadian Ioniq 5 are in `car.json` under `names`; no per-app files
+are added to those compact maps. Other cars retain their upstream map entries,
+file hashes and verification metadata, with only the unresolved optional points
+added. The map rebuilds proposed in #266 remain a pending integration step.

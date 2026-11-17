@@ -136,7 +136,8 @@ final class Mods {
                 if (Boolean.TRUE.equals(ms.get("enabled"))) on.put(m.getKey(), ms.get("version") == null ? "0" : String.valueOf(ms.get("version")));
             }
             hmgapi.engine.HookPlan p = hmgapi.engine.HookPlan.late(rawOf, id, raw, on,
-                    Points.map == null ? null : Points.map.points.keySet(), Points.map == null ? null : Points.map.missing);
+                    Points.map == null ? null : Points.map.points.keySet(), Points.map == null ? null : Points.map.missing,
+                    Points.map == null ? null : Points.map.localOnly());
             if (p.refused.containsKey(id)) {
                 HmgApi.i("mods: " + id + " not loaded live: " + p.refused.get(id));
                 return;
@@ -248,7 +249,8 @@ final class Mods {
         }
         DexCacheCleanup.reconcile(DEX_CACHE, installedIds);
         Map<String, Map<String, Object>> enabled = hmgapi.engine.HookPlan.enabled(MODS);   // an unreadable mod.json: reported when it's loaded
-        plan = hmgapi.engine.HookPlan.of(enabled, Points.map == null ? null : Points.map.points.keySet(), Points.map == null ? null : Points.map.missing);
+        plan = hmgapi.engine.HookPlan.of(enabled, Points.map == null ? null : Points.map.points.keySet(), Points.map == null ? null : Points.map.missing,
+                Points.map == null ? null : Points.map.localOnly());
         List<String> order = new ArrayList<String>(plan.order);
         for (String id : dirOf.keySet()) if (!order.contains(id)) order.add(id);   // disabled ones, for the list
         for (String id : order) {
@@ -294,7 +296,8 @@ final class Mods {
         info.description = mod.optString("description", "");
         if (mod.has("system")) {
             Map<String, Object> hmgapi = hmgapiRaw();
-            String why = SystemCheck.check(Json.object(read(new File(dir, "mod.json"))).get("system"), facts(hmgapi));
+            Map<String, Object> mj = Json.object(read(new File(dir, "mod.json")));
+            String why = SystemCheck.check(mj.get("system"), facts(hmgapi), SystemCheck.asksHotspot(mj));
             if (why != null && !SystemCheck.ignored(hmgapi, id)) {
                 info.state = "unsupported";
                 info.error = why;

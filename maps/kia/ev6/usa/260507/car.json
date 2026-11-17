@@ -122,5 +122,23 @@
         "/system/app/ThemeSettings.odex"
       ]
     }
+  },
+  "names": {
+    "framework.navigation_cluster.update_hu_clu_pe03": {
+      "method": "updateHuCluPE03",
+      "params": [
+        "byte[]"
+      ],
+      "ret": "void",
+      "static": false
+    },
+    "framework.navigation_cluster.update_hu_clu_pe12": {
+      "method": "updateHuCluPE12",
+      "params": [
+        "byte[]"
+      ],
+      "ret": "void",
+      "static": false
+    }
   }
 }

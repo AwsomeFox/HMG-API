@@ -57,6 +57,28 @@ A service's environment: `HMGAPI_MOD`, `HMGAPI_MOD_DIR` (the mod's folder),
 service-start|stop|restart <name>` and read their output with `hmgapid service-log
 <name>`.
 
+### Points mapped on the car itself
+
+A point newer than HMG-API's map for a car is listed as missing there until a maintainer
+adds it. Until then the unit maps it itself, after each HMG-API install or update, or
+from Settings ("Map the points HMG-API's map lacks"). The engine command is `hmgapid
+engine map-car --local`. It does this only for:
+- points found **by name** (not by shape or smali pattern);
+- apps whose stock files are the ones HMG-API's map was made from;
+- each point resolving in the car's own apps (the `verify-map` check) before it's kept.
+
+They're in `/data/hmgapi/state/local-map.json` and go in the Car Report (`mapped_here`).
+
+For a mod:
+- `Points.has()` and `Points.complete()` count these points.
+- Field reads and **observe** hooks use them.
+- A **change** or **replace** hook on one, and any call or constructor through it, needs the
+  point in HMG-API's map, or the owner's "Try unchecked maps". Until then the plan says
+  why and the mod's hooks don't load.
+
+The owner can turn local points off ("Use points mapped on this car"), and
+`map-car --forget` deletes them.
+
 ## Talking to HMG-API from your app or service
 
 Compile against `hmgapi-client.jar` (`./build.sh client`) and bundle it:
@@ -318,6 +340,17 @@ sysctl comes back).
   its `featurexml.cfg` line; it stays while any mod wants it.
 - **Wi-Fi client:** `"wifi": {"client": true}` (the `android.hardware.wifi` feature
   and `persist.wifi.state=3`, as Tilepad's toggle does); any number of mods can ask.
+- **Wi-Fi hotspot:** `"wifi": {"hotspot": true}`: the stock hotspot feature
+  (`com.hkmc.software.wifihotspot`), without which the unit never powers its Wi-Fi chip.
+  Korean units and some US trims ship without it, or delete it at boot from
+  `featurexml.cfg`. Where the stock file is there, HMG-API only comments out its
+  `featurexml.cfg` line; where it isn't, HMG-API's own file goes in. Shared by every mod
+  that asks, and back to stock when none does. Both asks can go together.
+  A mod that asks for the hotspot and lists `"features": ["hmgapi.wifi"]` in `"system"`
+  also runs on a unit where the chip hasn't been seen yet but its driver, firmware and
+  `com.hkmc.software.wifi.module` feature are there (`hmgapi.wifi.unpowered`): the mod
+  turns it on. Once the chip has shown on SDIO, it's `hmgapi.wifi` for every mod. The
+  Car Report's `unit.wifi` says which: `seen`, `stock hotspot`, `unpowered` or `none`.
 - **`media_codecs.xml` by codec name** (patches.json):
   `{"type": "codecs", "path": "/system/etc/media_codecs.xml", "stock": "any",
   "remove": ["OMX.google.h264.decoder"], "add": [{"name": "OMX.google.vp9.decoder",
