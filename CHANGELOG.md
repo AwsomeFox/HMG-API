@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Hyundai Ioniq 6 (`CEEV`), USA 260507: a hook map** (`maps/hyundai/ceev/usa/260507`),
+  made with `tools/map-car.py` from the car's stock files (Car Reports #206, #253). 347 of
+  351 points: its apps are the same files as the Canadian 260206 build's, so their names
+  are the same; the framework differs, and the 4 newest 12 V battery points
+  (`framework.hscan_service.battery_12v_*`) aren't mapped yet. `verify-map` passed 343 of
+  343 on the car with HMG-API 1.0.2; it waits for a check on a car with this release.
+
 ## 1.1.0-rc.3 (2026-11-16)
 
 The third release candidate: hook maps for many more cars (one map per system build), the
