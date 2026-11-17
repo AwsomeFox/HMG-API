@@ -8,7 +8,7 @@
     "CEEV.CAN.",
     "CEEV.USA."
   ],
-  "status": "probed",
+  "status": "mapped",
   "verified": null,
   "files": {
     "/system/app/ButtonSettings.odex": "f0867c1b46d33fdc6849d7128e9661c3",
@@ -118,17 +118,6 @@
       ]
     }
   },
-  "by_reference": [
-    "btsettings.projection_helper",
-    "dipo.iap2.bt_address",
-    "dipo.iap2.set_notify_on",
-    "panel.home.build_views",
-    "panel.home.test_page",
-    "panel.test_gate",
-    "panel.test_gate.on",
-    "panel.test_page",
-    "themesettings.split_item.type"
-  ],
   "names": {
     "btsettings.projection_helper": {
       "class": "com.android.settings2.bluetooth.iO"
