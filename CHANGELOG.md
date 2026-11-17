@@ -9,6 +9,16 @@
   the Canadian 260206 build's. `verify-map` passed on the car (343 of 343 with 1.0.2, and
   351 of 351 against the car's own map with rc.3); it waits for a check on a car with this
   map.
+- **A file a mod added, deleted by something else, no longer blocks uninstall and apply
+  (#226).** The file wasn't there before HMG-API added it, so gone is its stock state:
+  restore and uninstall go through, and apply puts it back. Seen with the wireless mod's
+  `libleafiaaac.so` after an old package's uninstall deleted it.
+- **`engine apply --force` writes back owned files that were deleted or changed outside
+  HMG-API (#103),** as its hint says. Before, a file whose rebuilt bytes matched HMG-API's
+  record was "same" and never written, so `--force` ended with "nothing to do".
+- The Ioniq 6 on 260903 (USA and Canada) is checked on a car. `hmgapid engine verify-map`
+  passed all 351 points on a US car (`CEEV.USA.0000.V016.010.260903`), so the map runs
+  without "Try unchecked maps".
 - **The Ioniq 6 on 260903 has all 351 hook points, in Canada as well as the USA.** The
   shared `hyundai/ceev/usa/260903` map (products `CEEV.CAN.` and `CEEV.USA.`) listed the 4
   `btsettings.projection_helper` points missing: they were looked for in class `iP`, which
@@ -314,6 +324,12 @@ The release candidate: feature freeze. 1.1.0 will be this code unless a blocker 
 
 ### Fixes
 
+- **`outside_temp` no longer reads -40 before climate control has a value.** Right
+  after the car wakes, climate control can report -40 (the raw zero of its signal, the
+  same in °F and °C), and `outside_temp`/`outside_temp_f` passed it on as a reading (seen
+  on an Ioniq 5 through Battery Watchdog). Such a -40 is held back: the last real value
+  stays, or the reading stays `-`. It counts if it holds for 10 minutes, or at once when
+  the last reading was already -31 °F or colder, so a real -40 still shows.
 - **The right split-screen panel keeps the Mobis font with hooks on** (#174). HMG-API
   made its panel page's views as soon as the panel app started, even with no mod page;
   that loaded the process's fonts before the Mobis font's fallback was in place, so
