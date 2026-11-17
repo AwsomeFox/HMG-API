@@ -77,11 +77,13 @@ public final class Hub {
         LocalServerSocket server = new LocalServerSocket(SOCKET);
         System.out.println("vehicle: listening on @" + SOCKET);
         while (true) {
-            LocalSocket s = server.accept();
+            LocalSocket s = null;
             try {
+                s = server.accept();
                 serve(s);
             } catch (Throwable t) {
                 System.out.println("vehicle: " + t);
+                if (s == null) try { Thread.sleep(100); } catch (InterruptedException ignored) {}
             } finally {
                 close(s);
             }
@@ -95,7 +97,11 @@ public final class Hub {
      * and each connection leaked an fd.
      */
     static void close(LocalSocket s) {
-        java.io.FileDescriptor fd = s.getFileDescriptor();
+        if (s == null) return;
+        java.io.FileDescriptor fd = null;
+        try { fd = s.getFileDescriptor(); } catch (Throwable ignored) {}
+        try { s.shutdownOutput(); } catch (Throwable ignored) {}
+        try { s.shutdownInput(); } catch (Throwable ignored) {}
         try {
             if (fd != null && fd.valid()) libcore.io.Libcore.os.close(fd);
         } catch (Throwable t) {
@@ -423,7 +429,28 @@ public final class Hub {
 
         public void setGuideLines(int state) { run(get("pgs"), "framework.pgs_service.request_guide_lines", state); }
 
-        public void hideStartupNotice() { run(get("factory"), "framework.factory_service.hide_consent_screen"); }
+        private final java.util.concurrent.atomic.AtomicInteger noticeGen = new java.util.concurrent.atomic.AtomicInteger();
+
+        public void hideStartupNotice() {
+            final int gen = noticeGen.incrementAndGet();
+            run(get("factory"), "framework.factory_service.hide_consent_screen");
+            Thread t = new Thread("startup-notice-confirm") {
+                @Override
+                public void run() {
+                    long[] gaps = { 150, 250, 400, 700, 1100 };
+                    for (long g : gaps) {
+                        pause(g);
+                        if (noticeGen.get() != gen) return;
+                        try {
+                            if (!park()) return;
+                            CarServices.run(get("factory"), "framework.factory_service.hide_consent_screen");
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            };
+            t.setDaemon(true);
+            t.start();
+        }
 
         public boolean noticeAllowed() { return new java.io.File("/data/hmgapi/settings/allow/startup_notice").isFile(); }   // hmgapid allow
 
