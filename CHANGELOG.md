@@ -8,6 +8,10 @@
   form: each differs from the base map in 1 to 4 points. Their builds' stock files
   match no other map's. `SystemCheck` knows the three new model codes (`CN7PE`,
   `CN7NPE`, `SG225EV`).
+- **Ioniq 6 Singapore 260907: 312 points, up from 305**, from two rc.3 Car Reports
+  (#265): the Phone Projection helper, the panel's test switch and the split-screen
+  item type, every smali-only point with its code signature. The 39 still missing are
+  in this build's button settings and iAP2 server, whose code differs.
 - **The Canadian Ioniq 5 on 260903 uses the US Ioniq 5 2023 map.** Its 18 stock files
   are the same as that map's (Car Report #274), so `NEEV.CAN.` joins its products.
 - **Hyundai Ioniq 6 (`CEEV`), USA 260507: a hook map** (`maps/hyundai/ceev/usa/260507`),

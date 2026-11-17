@@ -33,7 +33,7 @@ the parts that change the car's own apps stay off, and the app says which.
 | Kia EV6 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (319 of 351 hook points: the newer ones need a Car Report from a newer HMG-API); waiting for a check on a car |
 | Kia K3 | Korea | 260902 | made on an owner's car by HMG-API's own mapper (323 of 351 hook points: the newer ones need a Car Report from a newer HMG-API); waiting for a check on a car |
 | Genesis G70 | Canada | 260903 | made on an owner's car by HMG-API's own mapper (278 of 351 hook points: 3 apps weren't in the report); waiting for a check on a car |
-| Hyundai Ioniq 6 | Singapore | 260907 | made on an owner's car by HMG-API's own mapper (306 of 351 hook points); waiting for a check on a car |
+| Hyundai Ioniq 6 | Singapore | 260907 | made on an owner's car by HMG-API's own mapper (312 of 351 hook points: this build's button settings and iAP2 server differ, #265); waiting for a check on a car |
 | Hyundai Creta | India | 260430 | made on an owner's car by HMG-API's own mapper (339 of 351 hook points); waiting for a check on a car |
 | Hyundai Elantra (`CN7PE`) | USA | 260507 | made on an owner's car by HMG-API's own mapper (351 of 351 hook points, #252); waiting for a check on a car |
 | Hyundai Elantra N 2024 (`CN7NPE`) | USA | 260903 | made on an owner's car by HMG-API's own mapper (351 of 351 hook points, #254); waiting for a check on a car |

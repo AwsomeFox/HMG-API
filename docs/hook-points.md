@@ -25,7 +25,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 351 |
 | Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 351 |
 | Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 351 |
-| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 305 of 351 |
+| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 312 of 351 |
 | Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 351 |
 | Hyundai Ioniq 6 USA 260903 | checked on a car | 351 of 351 |
 | Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 351 |
@@ -278,11 +278,11 @@ App `com.android.btsettings`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `btsettings.projection_helper` | class | a class in `com.android.settings2.bluetooth` (no fixed name) | BtSettings' static helper that opens the Phone Projection pages | not on Genesis G70 CAN 260903, Hyundai Ioniq 6 SGP 260907, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
-| `btsettings.projection_helper.open_wireless_page` | method | `static ?(android.content.Context)` → void | opens the wireless projection page (its only caller is the Phone Projection menu) | not on Genesis G70 CAN 260903, Hyundai Ioniq 6 SGP 260907, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
-| `btsettings.projection_helper.device_connections_available` | method | `static ?()` → boolean |  | not on Genesis G70 CAN 260903, Hyundai Ioniq 6 SGP 260907, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
-| `btsettings.projection_helper.open_device_connections` | method | `static ?(android.content.Context, int)` → void |  | not on Genesis G70 CAN 260903, Hyundai Ioniq 6 SGP 260907, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
-| `btsettings.projection_helper.open_other_page` | method | `static ?(android.content.Context)` → void |  | not on Genesis G70 CAN 260903, Hyundai Ioniq 6 SGP 260907, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
+| `btsettings.projection_helper` | class | a class in `com.android.settings2.bluetooth` (no fixed name) | BtSettings' static helper that opens the Phone Projection pages | not on Genesis G70 CAN 260903, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
+| `btsettings.projection_helper.open_wireless_page` | method | `static ?(android.content.Context)` → void | opens the wireless projection page (its only caller is the Phone Projection menu) | not on Genesis G70 CAN 260903, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
+| `btsettings.projection_helper.device_connections_available` | method | `static ?()` → boolean |  | not on Genesis G70 CAN 260903, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
+| `btsettings.projection_helper.open_device_connections` | method | `static ?(android.content.Context, int)` → void |  | not on Genesis G70 CAN 260903, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
+| `btsettings.projection_helper.open_other_page` | method | `static ?(android.content.Context)` → void |  | not on Genesis G70 CAN 260903, Hyundai Creta IND 260430, Kia EV6 KOR 260902 |
 
 ## buttonsettings
 
@@ -458,7 +458,7 @@ App `com.mobis.splitscreen.right`.
 | `panel.test_page.get_view` | method | `getView()` → android.view.View |  | all |
 | `panel.home.test_page` | field | `?`: panel.test_page | never set by stock code | not on Hyundai Ioniq 6 SGP 260907 |
 | `panel.test_gate` | class | a class in `com.mobis.splitscreen.right` (no fixed name) |  | all |
-| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | not on Genesis G70 KOR 260902, Hyundai Ioniq 6 SGP 260907, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
+| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | not on Genesis G70 KOR 260902, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
 
 ## settings
 
@@ -477,7 +477,7 @@ App `com.android.themesettings`.
 |---|---|---|---|---|
 | `themesettings.split_item` | class | `com.android.themesettings.splitscreensettings.SplitScreenItem` | one page in the split-screen page editor | all |
 | `themesettings.split_item.new` | ctor | `new (int, String, boolean)` | (view id, title, on) | all |
-| `themesettings.split_item.type` | method | `?()` → int |  | not on Genesis G70 KOR 260902, Hyundai Ioniq 6 SGP 260907, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
+| `themesettings.split_item.type` | method | `?()` → int |  | not on Genesis G70 KOR 260902, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
 | `themesettings.split_items` | class | a class in `com.android.themesettings.splitscreensettings` (no fixed name) | the editor's page list helpers | all |
 | `themesettings.split_items.make` | method | `static ?(android.content.Context, java.util.LinkedHashMap)` → java.util.ArrayList | the editor's items from {view id: on/off}; unknown ids are skipped | all |
 | `themesettings.split_items.view_name` | method | `static ?(android.content.Context, int)` → String |  | all |
