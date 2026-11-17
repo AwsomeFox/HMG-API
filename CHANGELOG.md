@@ -12,6 +12,11 @@
   (#265): the Phone Projection helper, the panel's test switch and the split-screen
   item type, every smali-only point with its code signature. The 39 still missing are
   in this build's button settings and iAP2 server, whose code differs.
+- **Genesis G70 Canada 260903 and the Korean Hyundai build (Sonata, Santa Fe,
+  Palisade, 260902): all 351 points**, from rc.3 Car Reports (#231, #276) with the
+  same stock files as their maps: the G70 up from 277 (3 apps weren't in the first
+  report), the Korean build up from 341 with its 7 unconfirmed points confirmed by code
+  signature. Both maps keep their folder and products.
 - **The Canadian Ioniq 5 on 260903 uses the US Ioniq 5 2023 map.** Its 18 stock files
   are the same as that map's (Car Report #274), so `NEEV.CAN.` joins its products.
 - **Hyundai Ioniq 6 (`CEEV`), USA 260507: a hook map** (`maps/hyundai/ceev/usa/260507`),
