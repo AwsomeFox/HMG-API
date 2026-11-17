@@ -42,6 +42,31 @@ public final class Hub {
     static final Map<String, Object> services = new HashMap<String, Object>();
     static final Map<String, String> values = new HashMap<String, String>();
     static final Map<String, Long> readAt = new HashMap<String, Long>();
+    static long lastSleepGap = Long.MIN_VALUE;
+    static int lastReady = -1;
+
+    /**
+     * Detects QuickBoot STR resume (elapsedRealtime advances while uptimeMillis freezes)
+     * so per-start command guards and cached readings never carry stale state across drives.
+     */
+    static synchronized boolean checkSession() {
+        long sleepGap = android.os.SystemClock.elapsedRealtime() - android.os.SystemClock.uptimeMillis();
+        if (lastSleepGap == Long.MIN_VALUE) {
+            lastSleepGap = sleepGap;
+            return false;
+        }
+        boolean woke = sleepGap - lastSleepGap >= 3000;
+        lastSleepGap = sleepGap;
+        if (woke) {
+            System.out.println("vehicle: system resumed from suspend; refreshing session state");
+            values.clear();
+            readAt.clear();
+            callbacks.onWake();
+            if (commands != null) commands.onNewSession();
+            lastReady = -1;
+        }
+        return woke;
+    }
 
     public static void main(String[] args) throws Exception {
         facts = new SystemCheck.Facts("", null);
@@ -56,6 +81,7 @@ public final class Hub {
         }
         commands = new Commands(new CarServices());
         final MicomWatch watch = new MicomWatch();
+        checkSession();
         callbacks.ensure();
         Thread tick = new Thread("vehicle-tick") {
             @Override
@@ -63,6 +89,16 @@ public final class Hub {
                 while (true) {
                     try {
                         Thread.sleep(2000);
+                        checkSession();
+                        int rdy = -1;
+                        try { if (Points.ready()) rdy = hev("framework.hev_flag.ev_ready"); } catch (Throwable ignored) {}
+                        synchronized (Hub.class) {
+                            if (lastReady == 1 && rdy == 0 && commands != null) {
+                                System.out.println("vehicle: EV_RDY off; resetting per-drive command guards");
+                                commands.onNewSession();
+                            }
+                            if (rdy == 0 || rdy == 1) lastReady = rdy;
+                        }
                         commands.tick(declared());
                         watch.sync();
                         callbacks.ensure();
@@ -111,6 +147,7 @@ public final class Hub {
     static void serve(LocalSocket s) throws Exception {
         int uid = s.getPeerCredentials().getUid();
         if (uid != 0 && uid != 1000) return;   // hmgapid (it checks what each mod declared); system_server only passes the light status
+        if (checkSession()) callbacks.ensure();
         s.setSoTimeout(2000);
         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream(), "UTF-8"), 1024);
         String line = in.readLine();
