@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **A file a mod added, deleted by something else, no longer blocks uninstall and apply
+  (#226).** The file wasn't there before HMG-API added it, so gone is its stock state:
+  restore and uninstall go through, and apply puts it back. Seen with the wireless mod's
+  `libleafiaaac.so` after an old package's uninstall deleted it.
+- **`engine apply --force` writes back owned files that were deleted or changed outside
+  HMG-API (#103),** as its hint says. Before, a file whose rebuilt bytes matched HMG-API's
+  record was "same" and never written, so `--force` ended with "nothing to do".
 - **The Ioniq 6 on 260903 has all 351 hook points, in Canada as well as the USA.** The
   shared `hyundai/ceev/usa/260903` map (products `CEEV.CAN.` and `CEEV.USA.`) listed the 4
   `btsettings.projection_helper` points missing: they were looked for in class `iP`, which
