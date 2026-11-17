@@ -9,7 +9,7 @@
   "uuid": "f1154a64-b4d2-81b9-b45c-e791b3200a46",
   "version": "1.5.0",
   "repo": "https://github.com/DeFlight/hmgapi-carplay-keys",
-  "download": "https://github.com/DeFlight/hmgapi-carplay-keys/releases/download/v1.5.0/carplay-keys-v1.5.0.zip",
+  "download": "https://github.com/DeFlight/hmgapi-carplay-keys/releases/download/V1.5.0/carplay-keys-v1.5.0.zip",
   "sha256": "6bc2bd37118eefd9e37f1bd20035097eb5ff39665703c98d4e220fdc8dfd6446",
   "hmgapi": ">=1.0.0"
 }
