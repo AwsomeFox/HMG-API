@@ -6,7 +6,8 @@
   "firmware": "260903",
   "products": [
     "NEEV.USA.",
-    "NEEV23.USA."
+    "NEEV23.USA.",
+    "NEEV23SE.USA."
   ],
   "status": "probed",
   "verified": null,
