@@ -1,7 +1,25 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.4 (2026-11-17)
 
+- **The vehicle service's per-drive guards reset on a new drive (#269, lemoyneiv).** With
+  QuickBoot the service lives across drives, so a dismissed startup notice, a manual stop
+  or a conditioning timeout from one drive blocked the next. A resume from suspend
+  (`elapsedRealtime` moving while `uptimeMillis` doesn't) or EV ready going off now
+  resets them, stops conditioning still running, and clears cached readings.
+- **Routed battery conditioning waits for the car to be 18 minutes out (#270,
+  lemoyneiv).** For a fast charger farther away, the battery accepts the route and waits;
+  the activation timeout now starts only within 18 minutes, instead of timing out while
+  the battery is still waiting.
+- **The vehicle service's socket and readings (#271, lemoyneiv):** a failed `accept()`
+  no longer spins, a connection is shut down both ways before its fd is closed, `speed`
+  and `moving` are at most 100 ms old (was 250 ms), and the startup notice's dismissal
+  is sent again a few times while parked, as the car can put it back.
+- **`outside_temp` ignores -40 (#180, zpoon):** climate control's raw zero right after
+  the car wakes, the same in °F and °C, was passed on as a reading.
+- **The Ioniq 5 `NEEV23SE` on US 260903 uses the Ioniq 5 2023 map (#268, lemoyneiv).**
+- **Catalogue:** CarPlay Keys 1.4.0 (DeFlight, LLC; #249) and Comfort & Startup 1.1.1
+  (lemoyneiv; #272), with their author keys.
 - **Maps from Car Reports: Elantra `CN7PE` (USA 260507), Elantra N 2024 `CN7NPE` and
   Kona `OSPE` (USA 260903), Niro EV `SG225EV` (Canada 260206).** All 351 points each,
   from rc.3 reports with code signatures (#252, #254, #257, #261), in the base map's
