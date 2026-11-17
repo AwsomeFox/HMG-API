@@ -28,6 +28,8 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 305 of 351 |
 | Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 351 |
 | Hyundai Ioniq 6 USA 260903 | checked on a car | 351 of 351 |
+| Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 351 |
+| Hyundai Elantra USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 351 of 351 |
 | Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 351 |
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 351 of 351 |
@@ -36,6 +38,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 351 of 351 |
 | Hyundai Ioniq 5 USA 260507 | mapped from stock files | 351 of 351 |
 | Hyundai Ioniq 5 USA 260903 | mapped from stock files | 351 of 351 |
+| Hyundai Kona USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 351 |
 | Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 351 |
 | Kia EV6 CAN 260206 | mapped from stock files | 351 of 351 |
@@ -47,6 +50,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 351 of 351 |
 | Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped from stock files | 351 of 351 |
 | Kia Telluride USA 260507 | mapped from stock files | 351 of 351 |
+| Kia Niro EV CAN 260206 | mapped on cars by HMG-API's own mapper | 351 of 351 |
 | Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped from stock files | 351 of 351 |
 | Kia Niro EV USA 260507 | mapped from stock files | 351 of 351 |
 

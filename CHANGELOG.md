@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Maps from Car Reports: Elantra `CN7PE` (USA 260507), Elantra N 2024 `CN7NPE` and
+  Kona `OSPE` (USA 260903), Niro EV `SG225EV` (Canada 260206).** All 351 points each,
+  from rc.3 reports with code signatures (#252, #254, #257, #261), in the base map's
+  form: each differs from the base map in 1 to 4 points. Their builds' stock files
+  match no other map's. `SystemCheck` knows the three new model codes (`CN7PE`,
+  `CN7NPE`, `SG225EV`).
+- **The Canadian Ioniq 5 on 260903 uses the US Ioniq 5 2023 map.** Its 18 stock files
+  are the same as that map's (Car Report #274), so `NEEV.CAN.` joins its products.
 - **Hyundai Ioniq 6 (`CEEV`), USA 260507: a hook map** (`maps/hyundai/ceev/usa/260507`),
   made with `tools/map-car.py` from the car's stock files, with the 4 newest 12 V battery
   points (`framework.hscan_service.battery_12v_*`) and the smali-only points' code
