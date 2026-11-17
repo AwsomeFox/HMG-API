@@ -310,6 +310,12 @@ The release candidate: feature freeze. 1.1.0 will be this code unless a blocker 
 
 ### Fixes
 
+- **`outside_temp` no longer reads -40 before climate control has a value.** Right
+  after the car wakes, climate control can report -40 (the raw zero of its signal, the
+  same in °F and °C), and `outside_temp`/`outside_temp_f` passed it on as a reading (seen
+  on an Ioniq 5 through Battery Watchdog). Such a -40 is held back: the last real value
+  stays, or the reading stays `-`. It counts if it holds for 10 minutes, or at once when
+  the last reading was already -31 °F or colder, so a real -40 still shows.
 - **The right split-screen panel keeps the Mobis font with hooks on** (#174). HMG-API
   made its panel page's views as soon as the panel app started, even with no mod page;
   that loaded the process's fonts before the Mobis font's fallback was in place, so
