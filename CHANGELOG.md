@@ -3,11 +3,48 @@
 ## Unreleased
 
 - **Hyundai Ioniq 6 (`CEEV`), USA 260507: a hook map** (`maps/hyundai/ceev/usa/260507`),
-  made with `tools/map-car.py` from the car's stock files (Car Reports #206, #253). 347 of
-  351 points: its apps are the same files as the Canadian 260206 build's, so their names
-  are the same; the framework differs, and the 4 newest 12 V battery points
-  (`framework.hscan_service.battery_12v_*`) aren't mapped yet. `verify-map` passed 343 of
-  343 on the car with HMG-API 1.0.2; it waits for a check on a car with this release.
+  made with `tools/map-car.py` from the car's stock files, with the 4 newest 12 V battery
+  points (`framework.hscan_service.battery_12v_*`) and the smali-only points' code
+  signatures from an rc.3 Car Report (#253): all 351 points. Its apps are the same files as
+  the Canadian 260206 build's. `verify-map` passed on the car (343 of 343 with 1.0.2, and
+  351 of 351 against the car's own map with rc.3); it waits for a check on a car with this
+  map.
+- **The Ioniq 6 on 260903 has all 351 hook points, in Canada as well as the USA.** The
+  shared `hyundai/ceev/usa/260903` map (products `CEEV.CAN.` and `CEEV.USA.`) listed the 4
+  `btsettings.projection_helper` points missing: they were looked for in class `iP`, which
+  has none of them. The cars' own mapper found them in `iO` (Canadian Car Reports, same 18
+  stock file md5s as the map's), so the map now names `iO` and the four methods are the
+  base map's. A Canadian car needs no map of its own and no mapping to the USA: its product
+  `CEEV.CAN.0000.V016.010.260903` already picks this build's map.
+  The panel's test switch (`panel.test_gate.on`) is `pB`, as the three newest Canadian
+  reports find it by code signature; the map had the older report's `py`, matched by name
+  only. With that, none of this build's points are unconfirmed.
+- **Kia Canada 260206 (Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024):
+  the Phone Projection hook points.** The map, from an rc.1 Car Report, had borrowed the
+  helper class name `iP`, a different class on this build (it's `iO`), so all four
+  points were missing and Wireless CarPlay + Android Auto's hooks stayed off
+  (hmgapi-wireless-cp-aa#47). The map is now made from the build's stock files.
+- **Maps that look wrong fail the map check.** A class mapped while every one of its
+  members is missing is almost always a borrowed name that a different class has on
+  that build; `check-maps.py` fails on it.
+- **Maps from Car Reports don't keep doubtful by-reference classes.** `report-map.py`
+  lists a by-reference class and its members as missing ("not kept from the Car Report")
+  when the report's mapper is older than 1.1.0-rc.3 (it didn't check a reference class's
+  members), or when none of the class's members were found: stock files or a newer Car
+  Report map them.
+- **The Car Report says when the unit's mapper and HMG-API's map disagree:** points the
+  map lists as missing that the unit finds, and points found under other names ("Check
+  the map", with each point).
+- **Six more maps from their builds' stock files:** the Ioniq 5 2023 (USA 260903), the
+  Ioniq 6 260903 (USA and Canada; the same points as above, now confirmed from stock) and
+  the newer Kia build in the USA (260507: Sportage, Telluride, Carnival, Niro). All 351
+  points each, every smali-only point with its code signature. On the Ioniq 5 2023 the
+  panel's test switch is `pB`, not the borrowed `py`; the Kia maps gain the 8 points
+  their Car Reports predated.
+- **Four maps list the Phone Projection helper as missing** instead of the borrowed `iP`,
+  which has none of its members there: the Ioniq 6 Singapore 260907, the G70 Canada
+  260903, the Creta India 260430 and the Korean EV6 260902. Stock files or a Car Report
+  from 1.1.0-rc.3 on will map them.
 
 ## 1.1.0-rc.3 (2026-11-16)
 
