@@ -351,7 +351,7 @@ public final class CommandsTest {
         // QuickBoot STR resume / EV_RDY off resets per-drive guards without requiring process restart
         FakeCar sc = new FakeCar();
         sc.model = "NEEV";
-        sc.noticeAllowed = true;
+        sc.allowed = true;
         Commands sess = new Commands(sc);
         check("startup notice dismissed on drive 1", "ok startup notice dismissed", sess.handle("comfort", "startup_notice", new String[] { "dismiss" }));
         check("startup notice refused again on drive 1", true, sess.handle("comfort", "startup_notice", new String[] { "dismiss" }).startsWith("refused:"));
