@@ -8,7 +8,7 @@ the parts that change the car's own apps stay off, and the app says which.
 | Car | Region | Head unit software | Hook map |
 |---|---|---|---|
 | Kia EV6 | USA | 260507 | ✅ checked on a car (325 of 325 hook points) |
-| Kia EV6 | India | 260430 | 283 of 351 hook points found in the available stock files; 68 recorded as missing; waiting for a check on a car |
+| Kia EV6 | India | 260430 | 351 of 351 points mapped from stock files and two reports from one car; original 283 checked on-car; expanded map check pending |
 | Kia EV6 | Canada | 260206 | 325 of 325 hook points found in stock files; waiting for a check on a car |
 | Hyundai Ioniq 5 | Canada | 260206 | 325 of 325 hook points found in stock files; waiting for a check on a car |
 | Hyundai Ioniq 5 (all trims, incl. SE) | USA | 260507 | 325 of 325 hook points found in stock files, same files as 3 Car Reports; waiting for a check on a car |

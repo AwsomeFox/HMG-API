@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add a stock-derived Kia EV6 India 260430 map with 283 hook points and 68 explicitly missing points. HMG-API vehicle validation remains pending.
+- Add the exact Kia EV6 India 260430 map: 283 stock-derived points plus 68 from two agreeing on-car reports. The original 283 pass the on-car check; the expanded 351-point map awaits that check.
 
 ## 1.1.0-rc.4 (2026-11-17)
 
