@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
+  projection AP gets the name and key the phone is given.** On the US 260507, Canada
+  260206 and Korea 260902 `hmc`/`kmc` builds (Sonata, Santa Fe, Elantra, K5, Sorento, Niro...),
+  `NetworkManagementService.startAccessPoint` has no branch for the connectivity AP
+  (apMode 2), so it came up with the hotspot's own name and key, and the phone, told
+  `ConnectivitySSID`/`ConnectivityPSK`, never joined (#159; a Korean Palisade too).
+  HMG-API now hands it a copy of the config with those in it, and on the config's own
+  channel even when the hotspot is set to 2.4 GHz, as the newer builds do; the saved
+  hotspot settings aren't touched, and builds that have the branch see no change. New
+  hook points `framework.network_management_service.start_access_point` and
+  `framework.wifi_configuration.ap_mode`, `.connectivity_ssid`, `.connectivity_psk`,
+  `.is_24ghz_band`:
+  mapped on the 17 builds with stock files, missing on the Car Report maps until a
+  newer report maps them.
+
 ## 1.1.0-rc.4 (2026-11-17)
 
 - **Catalogue updates merge themselves.** A pull request that only moves an existing
