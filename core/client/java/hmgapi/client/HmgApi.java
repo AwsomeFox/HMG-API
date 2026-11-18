@@ -172,6 +172,39 @@ public final class HmgApi {
     }
 
     /** the car's own on-screen notice (shown over any app, CarPlay and Android Auto too) */
+    /**
+     * Home Wi-Fi as this mod sees it (mod.json "wifi": {"home": true}): {"state": "up", "rssi": -61,
+     * "freq": 2437}. state: up, searching, nolease, nonetworks, stock (the car's Wi-Fi settings page has
+     * the radio), clash, nochip, error or off. Mods never use the car's mobile data, so with home Wi-Fi
+     * not up a mod has no internet; check this before a download. No network name: that's the owner's.
+     */
+    public static JSONObject homeWifi() {
+        try {
+            java.io.FileInputStream in = new java.io.FileInputStream("/data/hmgapi/public/wifi.json");
+            try {
+                ByteArrayOutputStream b = new ByteArrayOutputStream();
+                byte[] buf = new byte[512];
+                for (int n; (n = in.read(buf)) > 0; ) b.write(buf, 0, n);
+                return new JSONObject(b.toString("UTF-8"));
+            } finally {
+                in.close();
+            }
+        } catch (Exception e) {
+            JSONObject off = new JSONObject();
+            try {
+                off.put("state", "off");
+            } catch (JSONException x) {
+                // can't happen
+            }
+            return off;
+        }
+    }
+
+    /** true when home Wi-Fi is up: this mod's traffic (if it asked for it) has somewhere to go */
+    public static boolean homeWifiUp() {
+        return "up".equals(homeWifi().optString("state"));
+    }
+
     public static void toast(Context ctx, String text) {
         ctx.sendBroadcast(new Intent("com.hkmc.intent.action.TOAST")
                 .putExtra("com.hkmc.intent.extra.TOAST_MESSAGE", text)

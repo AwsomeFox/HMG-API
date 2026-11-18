@@ -333,13 +333,49 @@ sysctl comes back).
   `.../net.sh down` takes everything out. The keeper's log:
   `/data/hmgapi/logs/hmgapi/net.log`.
 
+## Internet: home Wi-Fi, never the car's mobile data
+
+A mod never uses the car's cellular link (`rmnet`), DNS lookups included. Its apps (by
+uid) and its services (hmgapid runs them with HMG-API's group 2950 or 2951 as their
+effective group) are refused there by the network keeper, and their lookups can't reach
+the car's DNS servers: an app's go through `wlan1` in netd, a service's run in its own
+process (`ANDROID_DNS_MODE=local`). The owner can let one mod use mobile data anyway, at
+their own risk: `"overrides": {"allow_cellular": ["<mod>"]}` in `hmgapi.json` (the plan
+warns).
+
+For internet, a mod asks for **home Wi-Fi**:
+
+```json
+"wifi": {"home": true}
+```
+
+With the owner's switch on (HMG-API app, Settings > Home Wi-Fi), the head unit joins the
+networks saved in the car's own Wi-Fi settings on a second interface (`wlan1`) next to
+the hotspot wireless CarPlay and Android Auto use (`wlan0`): both run at once, the radio
+time-sharing two channels. The traffic of the mods that ask (their apps, and their
+services) goes through it; the car's own stays on mobile data. A mod that asks while the
+switch is off has no internet (the plan says so). IPv4 only for now.
+
+- Check before a download: `HmgApi.homeWifiUp()`, or `HmgApi.homeWifi()`
+  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, searching, nolease,
+  nonetworks, stock, clash, nochip, error or off). It never gives the network's name.
+- Adding networks: the car's Wi-Fi settings page, in P (HMG-API turns the hotspot off
+  while it's open and back on when it's left or the car leaves P; wireless CarPlay and
+  Android Auto pause meanwhile). A network handing out `192.168.0.x` clashes with the
+  hotspot and isn't used.
+- The keeper: `hmgapi wifi` (`/data/hmgapi/state/wifi.sh`), its log
+  `/data/hmgapi/logs/hmgapi/wifi.log`; routing table 95, rule priority 900, mark 0x2951.
+
 ## Files and settings that several mods share
 
 - **Feature flags:** `"feature_flags": ["com.hkmc.software.connectivity.carplay_wireless"]`.
   HMG-API writes the same permissions file for every mod that asks and comments out
   its `featurexml.cfg` line; it stays while any mod wants it.
 - **Wi-Fi client:** `"wifi": {"client": true}` (the `android.hardware.wifi` feature
-  and `persist.wifi.state=3`, as Tilepad's toggle does); any number of mods can ask.
+  and `persist.wifi.state=3`, as Tilepad's toggle does); any number of mods can ask. The
+  stock client and the hotspot don't run together (the stock Wi-Fi stack ignores the
+  client switch while the hotspot is up); for internet next to wireless projection, ask
+  for home Wi-Fi instead (above).
 - **Wi-Fi hotspot:** `"wifi": {"hotspot": true}`: the stock hotspot feature
   (`com.hkmc.software.wifihotspot`), without which the unit never powers its Wi-Fi chip.
   Korean units and some US trims ship without it, or delete it at boot from

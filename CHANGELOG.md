@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- **Home Wi-Fi next to wireless CarPlay and Android Auto.** A new owner switch (HMG-API
+  app, Settings > Home Wi-Fi, off by default): the head unit joins the networks saved in
+  the car's own Wi-Fi settings on a second interface (`wlan1`) while the projection
+  hotspot keeps `wlan0`; the BCM4359 runs both, time-sharing two channels (tried on a US
+  EV6 by hand: a wireless projection session kept working while it was on home Wi-Fi). HMG-API's keeper
+  (`hmgapi wifi`) runs its client, DHCP, its own routing table and DNS, pins a mesh's
+  strongest access point, and never takes `wlan1` down mid-session. The car's Wi-Fi
+  settings page now works in P: HMG-API turns the hotspot off while it's open and back on
+  when it's left or the car leaves P. Mods use it with `"wifi": {"home": true}`; the
+  client library has `homeWifi()` / `homeWifiUp()`. New hook points: `framework.wifi_service`
+  and seven of its members.
+- **Mods never use the car's mobile data**, DNS included: every enabled mod's apps (by
+  uid) and services (now run with HMG-API's group 2950/2951) are refused on `rmnet`, and
+  their lookups can't reach the car's DNS servers. Internet for mods is home Wi-Fi only;
+  `overrides.allow_cellular` lets the owner allow one mod, with a warning in the plan.
+  This changes mods that used mobile data until now.
+- `hmgapid wifi-if add|del` and `hmgapid wpa` (the keeper's helpers: an nl80211 station
+  interface, a `wpa_supplicant` control command).
+
 - **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
   projection AP gets the name and key the phone is given.** On the US 260507, Canada
   260206 and Korea 260902 `hmc`/`kmc` builds (Sonata, Santa Fe, Elantra, K5, Sorento, Niro...),

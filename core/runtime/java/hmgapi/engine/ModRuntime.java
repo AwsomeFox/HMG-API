@@ -362,6 +362,8 @@ final class ModRuntime {
         e.stateDir.mkdirs();
         String net = Network.publish(e, json, on);   // the network keeper, while a mod has network asks (or some are still in)
         if (net != null) svcs.append(net).append('\n');
+        String wifi = HomeWifi.service(e);   // home Wi-Fi's keeper, while the owner has it on
+        if (wifi != null) svcs.append(wifi).append('\n');
         writeIfChanged(new File(e.stateDir, "apps.txt"), apps.toString());
         writeIfChanged(new File(e.stateDir, "services.txt"), svcs.toString());
         writeIfChanged(new File(e.stateDir, "usb.txt"), usb.toString());

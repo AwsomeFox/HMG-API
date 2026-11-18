@@ -83,6 +83,11 @@ final class HmgApi {
         } catch (Throwable t) {
             e("projection AP", t);
         }
+        try {
+            WifiSwitch.zygote();   // home Wi-Fi: the stock Wi-Fi settings page in P, in system_server
+        } catch (Throwable t) {
+            e("home Wi-Fi", t);
+        }
         Points.hook(null, "framework.activity_thread.handle_bind_application",
                 new MethodHook() {
                     @Override

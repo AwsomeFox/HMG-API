@@ -17,42 +17,42 @@ Every point and map lives here, in HMG-API, including the ones only a mod in its
 uses (the wireless mod's, for one): a mod gets new points through an HMG-API release and its
 mod SDK ([mod-repos.md](mod-repos.md), section 4).
 
-358 hook points. **Cars** (`maps/`):
+366 hook points. **Cars** (`maps/`):
 
 | Car | Map | Points |
 |---|---|---|
-| Genesis G70 CAN 260903 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 358 |
-| Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 358 |
-| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 358 |
-| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 312 of 358 |
-| Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 358 |
-| Hyundai Ioniq 6 USA 260903 | checked on a car | 358 of 358 |
-| Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Hyundai Elantra USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 358 of 358 |
-| Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 358 of 358 |
-| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 358 |
-| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 358 of 358 |
-| Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 358 of 358 |
-| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 358 of 358 |
-| Hyundai Ioniq 5 USA 260903 | mapped from stock files | 358 of 358 |
-| Hyundai Kona USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 358 |
-| Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 358 |
-| Kia EV6 CAN 260206 | mapped from stock files | 358 of 358 |
-| Kia EV6 KOR 260902 | mapped on cars by HMG-API's own mapper | 318 of 358 |
-| Kia EV6 USA 260507 | checked on a car | 358 of 358 |
-| Kia Carnival USA 260507 | mapped from stock files | 358 of 358 |
-| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-21, Telluride 2020-21 CAN 260206 | mapped from stock files | 358 of 358 |
-| Kia K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave, K7, Morning, Ray KOR 260902 | mapped from stock files | 358 of 358 |
-| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 358 of 358 |
-| Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped from stock files | 358 of 358 |
-| Kia Telluride USA 260507 | mapped from stock files | 358 of 358 |
-| Kia Niro EV CAN 260206 | mapped on cars by HMG-API's own mapper | 351 of 358 |
-| Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped from stock files | 358 of 358 |
-| Kia Niro EV USA 260507 | mapped from stock files | 358 of 358 |
+| Genesis G70 CAN 260903 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 366 |
+| Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 366 |
+| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 366 |
+| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 312 of 366 |
+| Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 366 |
+| Hyundai Ioniq 6 USA 260903 | checked on a car | 366 of 366 |
+| Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Hyundai Elantra USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 366 of 366 |
+| Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 366 of 366 |
+| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 366 |
+| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 366 of 366 |
+| Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 366 of 366 |
+| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 366 of 366 |
+| Hyundai Ioniq 5 USA 260903 | mapped from stock files | 366 of 366 |
+| Hyundai Kona USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 366 |
+| Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 366 |
+| Kia EV6 CAN 260206 | mapped from stock files | 366 of 366 |
+| Kia EV6 KOR 260902 | mapped on cars by HMG-API's own mapper | 318 of 366 |
+| Kia EV6 USA 260507 | checked on a car | 366 of 366 |
+| Kia Carnival USA 260507 | mapped from stock files | 366 of 366 |
+| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-21, Telluride 2020-21 CAN 260206 | mapped from stock files | 366 of 366 |
+| Kia K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave, K7, Morning, Ray KOR 260902 | mapped from stock files | 366 of 366 |
+| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 366 of 366 |
+| Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped from stock files | 366 of 366 |
+| Kia Telluride USA 260507 | mapped from stock files | 366 of 366 |
+| Kia Niro EV CAN 260206 | mapped on cars by HMG-API's own mapper | 351 of 366 |
+| Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped from stock files | 366 of 366 |
+| Kia Niro EV USA 260507 | mapped from stock files | 366 of 366 |
 
 In the tables, **Cars** is "all" when every car above has the point, otherwise the cars without it.
 
@@ -83,6 +83,14 @@ Android framework and the car's service interfaces (any process).
 | `framework.wifi_configuration.connectivity_ssid` | field | `ConnectivitySSID`: String | the projection AP's network name, the one the phone is given | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 | `framework.wifi_configuration.connectivity_psk` | field | `ConnectivityPSK`: String | the projection AP's key, the one the phone is given | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 | `framework.wifi_configuration.is_24ghz_band` | field | `is24GHzBand`: boolean | the hotspot runs on 2.4 GHz (channel24GHzBand) instead of channel; newer builds ignore it for the projection AP | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service` | class | `com.android.server.wifi.WifiService` | Android's Wi-Fi service (services.jar, in system_server) | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.set_wifi_enabled` | method | `setWifiEnabled(boolean)` → boolean | the Wi-Fi client on or off (the stock Wi-Fi settings page's switch); home Wi-Fi turns the hotspot off first, in P | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.set_wifi_ap_enabled` | method | `setWifiApEnabled(android.net.wifi.WifiConfiguration, boolean)` → void |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.set_wifi_ap_enabled_for_connectivity` | method | `setWifiApEnabledForConnectivity(android.net.wifi.WifiConfiguration, boolean)` → void | HKMC's projection AP (apMode 2) on or off | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.get_wifi_ap_enabled_state` | method | `getWifiApEnabledState()` → int |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.get_wifi_ap_mode` | method | `getWifiApMode()` → int | 2 while the projection AP runs | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.check_and_start_wifi` | method | `checkAndStartWifi()` → void | Wi-Fi starts at boot | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.wifi_service.context` | field | `mContext`: android.content.Context |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 | `framework.navigation_cluster` | class | `com.hkmc.cluster.NavigationCluster` | Hyundai/Kia's API to the instrument cluster and HUD (navigation data) | all |
 | `framework.gpm_manager` | class | `com.hkmc.gpm.GpmManager` | the Android Auto (GPM) service's API | all |
 | `framework.gpm_manager.new` | ctor | `new (android.content.Context)` |  | all |

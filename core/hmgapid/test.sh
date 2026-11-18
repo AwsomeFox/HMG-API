@@ -138,6 +138,7 @@ mkdir -p "$S/mods/svc/bin"
 printf 'echo "started $HMGAPI_MOD/$HMGAPI_SERVICE data=$HMGAPI_DATA android_data=$ANDROID_DATA args=$*"\necho run >> "$HMGAPI_DATA/runs"\nexec '"$SLEEP"' 60\n' > "$S/mods/svc/bin/loop.sh"
 printf 'echo crash >> "$HMGAPI_DATA/runs"\nexit 3\n' > "$S/mods/svc/bin/crash.sh"
 printf 'echo once\n' > "$S/mods/svc/bin/once.sh"
+printf 'echo "dns=$ANDROID_DNS_MODE"\n' > "$S/mods/svc/bin/dns.sh"
 printf '"$1" whoami > "$HMGAPI_DATA/who"; '"$SH"' -c "\\"$1\\" whoami > \\"$HMGAPI_DATA/who2\\""\n' > "$S/mods/svc/bin/ask.sh"
 cat > "$S/state/services.txt" <<EOS
 svc loop root boot yes script bin/loop.sh - a b
@@ -151,10 +152,14 @@ hmgapi vehicle root boot no jar /system/framework/hmgapi-hook.jar hmgapi.vehicle
 svc steal root boot no jar /system/framework/hmgapi-hook.jar hmgapi.vehicle.Hub
 hmgapi other root boot no jar /system/framework/other.jar x.Main
 hmgapi net root boot no script $S/state/net.sh - 1a2b
+hmgapi wifi root boot no script $S/state/wifi.sh - 3c4d
+hmgapi wifinet root boot no script $S/state/net.sh -
 hmgapi netx root boot no script $S/state/other.sh -
 svc netsteal root boot no script $S/state/net.sh -
+svc dnsmode root boot no script bin/dns.sh -
 EOS
 printf 'echo "keeper $*"\n' > "$S/state/net.sh"
+printf 'echo "wifi keeper dns=$ANDROID_DNS_MODE."\n' > "$S/state/wifi.sh"
 waitfor() { i=0; while [ $i -lt 40 ]; do if eval "$1"; then return 0; fi; sleep 0.25; i=$((i+1)); done; return 1; }
 waitfor '[ -f "$S/run/svc/loop/runs" ]' || true
 sleep 2
@@ -168,6 +173,13 @@ check "bad path refused" "" "$(st bad)"
 has "HMG-API's own service runs from its jar" "app_process /system/bin --nice-name=hmgapi.vehicle hmgapi.vehicle.Hub CLASSPATH=/system/framework/hmgapi-hook.jar" "$(run root service-log hmgapi vehicle)"
 check "a mod can't run HMG-API's jar" "" "$(st steal)"
 check "HMG-API's services: only its jar" "" "$(run root services hmgapi | awk '$2 == "other"')"
+has "the home Wi-Fi keeper runs" "wifi keeper" "$(run root service-log hmgapi wifi)"
+check "a keeper script only under its own name" "" "$(run root services hmgapi | awk '$2 == "wifinet"')"
+has "a mod's service: its lookups in its own process (never netd's cellular DNS)" "dns=local" "$(run root service-log svc dnsmode)"
+has "HMG-API's own keepers: the system's DNS" "wifi keeper dns=." "$(run root service-log hmgapi wifi)"
+check "wifi-if: a wlanN name only" 2 "$(code root wifi-if add eth0)"
+check "wifi-if: usage" 2 "$(code root wifi-if up wlan1)"
+has "wpa: nobody listening" "wpa_supplicant isn't answering" "$(run root wpa "$T/no-such-socket" STATUS)"
 has "HMG-API's network keeper runs from state/net.sh" "keeper 1a2b" "$(run root service-log hmgapi net)"
 check "... no other HMG-API script" "" "$(run root services hmgapi | awk '$2 == "netx"')"
 check "... and a mod can't run it" "" "$(st netsteal)"
