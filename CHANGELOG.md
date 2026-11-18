@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **A swapped voice button no longer leaves the car's voice assistant to start by
+  itself.** A binding's `send` injected the key with scan code 0. For a sent hold of
+  the voice button, the car makes the long press itself
+  (`ModeKeyDispatcher.generateLongKeyEventForPtt`: device 5, the real button's scan
+  code), and Android pairs a key's up with its down by device, source, key code and
+  scan code, so HMG-API's up never ended that down: the button stayed down in the
+  window on screen (Android Auto). The next key the car or HMG-API consumed, or the
+  reversing camera taking the screen, made Android cancel it there, and GPM took the
+  cancelled up for a release and started the car's own assistant, minutes later and
+  with no press. A sent key now carries the press's scan code when it is the same
+  button; for another button, a car repeat with a different scan code is logged, and
+  the input log line says the scan code sent (#301).
 - **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
   projection AP gets the name and key the phone is given.** On the US 260507, Canada
   260206 and Korea 260902 `hmc`/`kmc` builds (Sonata, Santa Fe, Elantra, K5, Sorento, Niro...),
