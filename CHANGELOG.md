@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a stock-derived Kia EV6 India 260430 map with 283 hook points and 68 explicitly missing points. HMG-API vehicle validation remains pending.
+
 ## 1.1.0-rc.4 (2026-11-17)
 
 - **Catalogue updates merge themselves.** A pull request that only moves an existing

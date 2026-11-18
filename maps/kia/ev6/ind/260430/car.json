@@ -1,0 +1,189 @@
+{
+  "make": "kia",
+  "model": "ev6",
+  "name": "Kia EV6",
+  "region": "ind",
+  "firmware": "260430",
+  "products": [
+    "CVEV.IND.0000.V010.001.260430"
+  ],
+  "status": "mapped",
+  "verified": null,
+  "files": {
+    "/system/app/HKMC_BtSettings.odex": "4b256a3c20069bd0065ac9f9abe5d9fa",
+    "/system/app/HKMC_DiPO.odex": "db631630a38863c5122a9e42b764e3de",
+    "/system/framework/com.tcc.iap2.odex": "56b564bafbe63dd2b0f167d8c4a90445",
+    "/system/framework/com.broadcom.bt.jar": "dbf374aa8bde80fad95746a67719ce51",
+    "/system/framework/framework.odex": "dc4161439633e75f4a2cb7fb4c4b8a00",
+    "/system/framework/core.odex": "b9ec1752025f13752a05018421906876",
+    "/system/framework/framework2.odex": "2093468f2ea2246abcf03eb9e067fd84",
+    "/system/framework/automotive.odex": "1484773a12e799c72818c7c1308828be",
+    "/system/framework/com.hkmc.ext.hcan.odex": "1a902a5c2cd6fe69d014a8ce6662eb30",
+    "/system/framework/automotive-service.odex": "421ecd126226071fe4fe48f571182991",
+    "/system/app/HKMC_GPM.odex": "7ba2e78699337ca85b9c5098c01bc13b",
+    "/system/app/Iap2ServerApp.odex": "fc67d5b54a1e18290e57eb31493249db"
+  },
+  "apps": [
+    "btsettings",
+    "buttonsettings",
+    "dipo",
+    "framework",
+    "gpm",
+    "homesetting",
+    "iap2",
+    "launcher",
+    "panel",
+    "settings",
+    "themesettings"
+  ],
+  "app_files": {
+    "btsettings": {
+      "package": "com.android.btsettings",
+      "files": [
+        "/system/app/HKMC_BtSettings.odex"
+      ]
+    },
+    "buttonsettings": {
+      "package": "com.android.buttonsettings",
+      "files": [
+        "/system/app/ButtonSettings.odex"
+      ]
+    },
+    "dipo": {
+      "package": "com.daudio.app.dipo",
+      "files": [
+        "/system/app/HKMC_DiPO.odex",
+        "/system/framework/com.tcc.iap2.odex",
+        "/system/framework/com.broadcom.bt.jar"
+      ]
+    },
+    "framework": {
+      "package": null,
+      "files": [
+        "/system/framework/framework.odex",
+        "/system/framework/core.odex",
+        "/system/framework/framework2.odex",
+        "/system/framework/automotive.odex",
+        "/system/framework/com.hkmc.ext.hcan.odex",
+        "/system/framework/automotive-service.odex"
+      ]
+    },
+    "gpm": {
+      "package": "com.google.android.projection.sink",
+      "files": [
+        "/system/app/HKMC_GPM.odex"
+      ]
+    },
+    "homesetting": {
+      "package": "com.hkmc.system.app.homesetting",
+      "files": [
+        "/system/app/HKMC_HomeSetting_WP.odex"
+      ]
+    },
+    "iap2": {
+      "package": "com.tcc.iap2server",
+      "files": [
+        "/system/app/Iap2ServerApp.odex"
+      ]
+    },
+    "launcher": {
+      "package": "com.android.launcher3",
+      "files": [
+        "/system/app/Launcher_WP3.odex"
+      ]
+    },
+    "panel": {
+      "package": "com.mobis.splitscreen.right",
+      "files": [
+        "/system/app/RightScreenHome.odex"
+      ]
+    },
+    "settings": {
+      "package": "com.android.settings",
+      "files": [
+        "/system/app/Settings_W.odex"
+      ]
+    },
+    "themesettings": {
+      "package": "com.android.themesettings",
+      "files": [
+        "/system/app/ThemeSettings.odex"
+      ]
+    }
+  },
+  "missing": {
+    "buttonsettings.adapter": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.adapter.set_boolean_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.adapter.set_list_items": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.adapter": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.checked_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.cur_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.init_custom_key": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.init_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.keycode": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.list_item": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.menu_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.set_selected": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.head_screen.title_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.item": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.item.get_shortcut": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.item.new": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.row": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.row.is_check": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.row.set_check": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.adapter": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.checked_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.cur_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.init_custom_key": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.init_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.keycode": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.list_item": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.menu_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.set_selected": "no stock /system/app/ButtonSettings.odex in the tree",
+    "buttonsettings.wheel_screen.title_list": "no stock /system/app/ButtonSettings.odex in the tree",
+    "homesetting.edit_entry": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_entry.get_class_name": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_entry.new": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_list": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_list.get_context": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_list.items": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "homesetting.edit_list.load": "no stock /system/app/HKMC_HomeSetting_WP.odex in the tree",
+    "launcher.menu_entry": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_entry.new": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_list": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_list.get_context": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_list.items": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_list.load": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "launcher.menu_list.lock": "no stock /system/app/Launcher_WP3.odex in the tree",
+    "panel.home": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.home.build_views": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.home.page_for_id": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.home.test_page": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.page": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.page.context": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.page.handler": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.page.view": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.page.view_id": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.test_gate": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.test_gate.on": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.test_page": "no stock /system/app/RightScreenHome.odex in the tree",
+    "panel.test_page.get_view": "no stock /system/app/RightScreenHome.odex in the tree",
+    "settings.split_screen": "no stock /system/app/Settings_W.odex in the tree",
+    "settings.split_screen.supported": "no stock /system/app/Settings_W.odex in the tree",
+    "themesettings.split_item": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_item.new": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_item.type": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_items": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_items.available": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_items.make": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_items.string_id": "no stock /system/app/ThemeSettings.odex in the tree",
+    "themesettings.split_items.view_name": "no stock /system/app/ThemeSettings.odex in the tree"
+  },
+  "names": {
+    "btsettings.projection_helper": {
+      "class": "com.android.settings2.bluetooth.iO"
+    }
+  }
+}

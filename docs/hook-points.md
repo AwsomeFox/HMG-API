@@ -42,6 +42,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 351 |
 | Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 351 |
 | Kia EV6 CAN 260206 | mapped from stock files | 351 of 351 |
+| Kia EV6 IND 260430 | mapped from stock files | 283 of 351 |
 | Kia EV6 KOR 260902 | mapped on cars by HMG-API's own mapper | 318 of 351 |
 | Kia EV6 USA 260507 | checked on a car | 351 of 351 |
 | Kia Carnival USA 260507 | mapped from stock files | 351 of 351 |
@@ -290,37 +291,37 @@ App `com.android.buttonsettings`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `buttonsettings.item` | class | `com.android.buttonsettings.customviews.CustomItem` | one ★ key choice: title, summary and icon resource ids, and the action it stores | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.item.new` | ctor | `new (int, int, int, String)` |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.item.get_shortcut` | method | `getShortCut()` → String |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.row` | class | `com.android.buttonsettings.util.IconTextItem` |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.row.set_check` | method | `setCheck(boolean)` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.row.is_check` | method | `isCheck()` → boolean |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.adapter` | class | `com.android.buttonsettings.util.IconTextListAdapter` |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.adapter.set_boolean_list` | method | `setBooleanList(boolean[])` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.adapter.set_list_items` | method | `setListItems(java.util.List)` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen` | class | `com.android.buttonsettings.CustomButtonSetting` | the head unit ★ key's list of choices | all |
-| `buttonsettings.head_screen.menu_list` | field | `mMenuList`: java.util.ArrayList |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.cur_list` | field | `mCurList`: java.util.List |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.title_list` | field | `mCustomKeyTitleList`: int[] |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.checked_list` | field | `mCheckedList`: boolean[] |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.adapter` | field | `adapter`: buttonsettings.adapter |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.keycode` | field | `static mKeycode`: String |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.init_list` | method | `initList()` → void |  | all |
-| `buttonsettings.head_screen.init_custom_key` | method | `initCustomKey()` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.list_item` | method | `getListItem(int, String, int)` → buttonsettings.row |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.head_screen.set_selected` | method | `setSelectedIdem(int)` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen` | class | `com.android.buttonsettings.CustomButtonSettingSWRC` | the steering wheel ★ key's list of choices | all |
-| `buttonsettings.wheel_screen.menu_list` | field | `mMenuList`: java.util.ArrayList |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.cur_list` | field | `mCurList`: java.util.List |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.title_list` | field | `mCustomKeyTitleList`: int[] |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.checked_list` | field | `mCheckedList`: boolean[] |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.adapter` | field | `adapter`: buttonsettings.adapter |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.keycode` | field | `static mKeycode`: String |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.init_list` | method | `initList()` → void |  | all |
-| `buttonsettings.wheel_screen.init_custom_key` | method | `initCustomKey()` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.list_item` | method | `getListItem(int, String, int)` → buttonsettings.row |  | not on Hyundai Ioniq 6 SGP 260907 |
-| `buttonsettings.wheel_screen.set_selected` | method | `setSelectedIdem(int)` → void |  | not on Hyundai Ioniq 6 SGP 260907 |
+| `buttonsettings.item` | class | `com.android.buttonsettings.customviews.CustomItem` | one ★ key choice: title, summary and icon resource ids, and the action it stores | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.item.new` | ctor | `new (int, int, int, String)` |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.item.get_shortcut` | method | `getShortCut()` → String |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.row` | class | `com.android.buttonsettings.util.IconTextItem` |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.row.set_check` | method | `setCheck(boolean)` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.row.is_check` | method | `isCheck()` → boolean |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.adapter` | class | `com.android.buttonsettings.util.IconTextListAdapter` |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.adapter.set_boolean_list` | method | `setBooleanList(boolean[])` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.adapter.set_list_items` | method | `setListItems(java.util.List)` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen` | class | `com.android.buttonsettings.CustomButtonSetting` | the head unit ★ key's list of choices | not on Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.menu_list` | field | `mMenuList`: java.util.ArrayList |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.cur_list` | field | `mCurList`: java.util.List |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.title_list` | field | `mCustomKeyTitleList`: int[] |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.checked_list` | field | `mCheckedList`: boolean[] |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.adapter` | field | `adapter`: buttonsettings.adapter |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.keycode` | field | `static mKeycode`: String |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.init_list` | method | `initList()` → void |  | not on Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.init_custom_key` | method | `initCustomKey()` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.list_item` | method | `getListItem(int, String, int)` → buttonsettings.row |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.head_screen.set_selected` | method | `setSelectedIdem(int)` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen` | class | `com.android.buttonsettings.CustomButtonSettingSWRC` | the steering wheel ★ key's list of choices | not on Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.menu_list` | field | `mMenuList`: java.util.ArrayList |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.cur_list` | field | `mCurList`: java.util.List |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.title_list` | field | `mCustomKeyTitleList`: int[] |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.checked_list` | field | `mCheckedList`: boolean[] |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.adapter` | field | `adapter`: buttonsettings.adapter |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.keycode` | field | `static mKeycode`: String |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.init_list` | method | `initList()` → void |  | not on Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.init_custom_key` | method | `initCustomKey()` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.list_item` | method | `getListItem(int, String, int)` → buttonsettings.row |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `buttonsettings.wheel_screen.set_selected` | method | `setSelectedIdem(int)` → void |  | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
 
 ## dipo
 
@@ -392,13 +393,13 @@ App `com.hkmc.system.app.homesetting`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `homesetting.edit_list` | class | a class in `com.hkmc.system.app.homesetting` (no fixed name) | Edit menu's list of entries (as the launcher's, so the tile can be moved and saved) | all |
-| `homesetting.edit_list.load` | method | `load()` → boolean |  | all |
-| `homesetting.edit_list.items` | field | `static ?`: java.util.List |  | all |
-| `homesetting.edit_list.get_context` | method | `getContext()` → android.content.Context |  | all |
-| `homesetting.edit_entry` | class | a class in `com.hkmc.system.app.homesetting` (no fixed name) |  | all |
-| `homesetting.edit_entry.new` | ctor | `new (homesetting.edit_list, android.content.Context, String, String, int, int, int)` |  | all |
-| `homesetting.edit_entry.get_class_name` | method | `getClassName()` → String |  | all |
+| `homesetting.edit_list` | class | a class in `com.hkmc.system.app.homesetting` (no fixed name) | Edit menu's list of entries (as the launcher's, so the tile can be moved and saved) | not on Kia EV6 IND 260430 |
+| `homesetting.edit_list.load` | method | `load()` → boolean |  | not on Kia EV6 IND 260430 |
+| `homesetting.edit_list.items` | field | `static ?`: java.util.List |  | not on Kia EV6 IND 260430 |
+| `homesetting.edit_list.get_context` | method | `getContext()` → android.content.Context |  | not on Kia EV6 IND 260430 |
+| `homesetting.edit_entry` | class | a class in `com.hkmc.system.app.homesetting` (no fixed name) |  | not on Kia EV6 IND 260430 |
+| `homesetting.edit_entry.new` | ctor | `new (homesetting.edit_list, android.content.Context, String, String, int, int, int)` |  | not on Kia EV6 IND 260430 |
+| `homesetting.edit_entry.get_class_name` | method | `getClassName()` → String |  | not on Kia EV6 IND 260430 |
 
 ## iap2
 
@@ -432,13 +433,13 @@ App `com.android.launcher3`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `launcher.menu_list` | class | a class in `com.android.launcher3` (no fixed name) | the all-apps menu's list of built-in entries (the launcher drops saved entries not in it) | all |
-| `launcher.menu_list.load` | method | `load()` → boolean | fills the list; HMG-API adds mod entries after it | all |
-| `launcher.menu_list.items` | field | `?`: java.util.List |  | all |
-| `launcher.menu_list.lock` | field | `mLock`: Object |  | all |
-| `launcher.menu_list.get_context` | method | `getContext()` → android.content.Context |  | all |
-| `launcher.menu_entry` | class | a class in `com.android.launcher3` (no fixed name) | one menu entry: package, activity, enabled/disabled icon and title resource ids | all |
-| `launcher.menu_entry.new` | ctor | `new (launcher.menu_list, android.content.Context, String, String, int, int, int)` |  | all |
+| `launcher.menu_list` | class | a class in `com.android.launcher3` (no fixed name) | the all-apps menu's list of built-in entries (the launcher drops saved entries not in it) | not on Kia EV6 IND 260430 |
+| `launcher.menu_list.load` | method | `load()` → boolean | fills the list; HMG-API adds mod entries after it | not on Kia EV6 IND 260430 |
+| `launcher.menu_list.items` | field | `?`: java.util.List |  | not on Kia EV6 IND 260430 |
+| `launcher.menu_list.lock` | field | `mLock`: Object |  | not on Kia EV6 IND 260430 |
+| `launcher.menu_list.get_context` | method | `getContext()` → android.content.Context |  | not on Kia EV6 IND 260430 |
+| `launcher.menu_entry` | class | a class in `com.android.launcher3` (no fixed name) | one menu entry: package, activity, enabled/disabled icon and title resource ids | not on Kia EV6 IND 260430 |
+| `launcher.menu_entry.new` | ctor | `new (launcher.menu_list, android.content.Context, String, String, int, int, int)` |  | not on Kia EV6 IND 260430 |
 
 ## panel
 
@@ -446,19 +447,19 @@ App `com.mobis.splitscreen.right`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `panel.home` | class | `com.mobis.splitscreen.right.SplitScreenHome` | the right-hand split-screen panel (a persistent system service drawing its own window) | all |
-| `panel.page` | class | a class in `com.mobis.splitscreen.right` (no fixed name) | base class of every panel page | all |
-| `panel.page.view_id` | field | `viewId`: int |  | all |
-| `panel.page.view` | field | `mView`: android.view.View |  | all |
-| `panel.page.context` | field | `mContext`: android.content.Context |  | all |
-| `panel.page.handler` | field | `mHandler`: android.os.Handler |  | all |
-| `panel.home.page_for_id` | method | `?(int)` → panel.page | the page for a view id | all |
-| `panel.home.build_views` | method | `?(int, boolean, int)` → void | builds the panel's view list by id (slot 22 is the test page's) | all |
-| `panel.test_page` | class | a class in `com.mobis.splitscreen.right` (no fixed name) | Mobis' unused test page (slot 22, getView returns null): HMG-API's page | all |
-| `panel.test_page.get_view` | method | `getView()` → android.view.View |  | all |
-| `panel.home.test_page` | field | `?`: panel.test_page | never set by stock code | not on Hyundai Ioniq 6 SGP 260907 |
-| `panel.test_gate` | class | a class in `com.mobis.splitscreen.right` (no fixed name) |  | all |
-| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | not on Genesis G70 KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
+| `panel.home` | class | `com.mobis.splitscreen.right.SplitScreenHome` | the right-hand split-screen panel (a persistent system service drawing its own window) | not on Kia EV6 IND 260430 |
+| `panel.page` | class | a class in `com.mobis.splitscreen.right` (no fixed name) | base class of every panel page | not on Kia EV6 IND 260430 |
+| `panel.page.view_id` | field | `viewId`: int |  | not on Kia EV6 IND 260430 |
+| `panel.page.view` | field | `mView`: android.view.View |  | not on Kia EV6 IND 260430 |
+| `panel.page.context` | field | `mContext`: android.content.Context |  | not on Kia EV6 IND 260430 |
+| `panel.page.handler` | field | `mHandler`: android.os.Handler |  | not on Kia EV6 IND 260430 |
+| `panel.home.page_for_id` | method | `?(int)` → panel.page | the page for a view id | not on Kia EV6 IND 260430 |
+| `panel.home.build_views` | method | `?(int, boolean, int)` → void | builds the panel's view list by id (slot 22 is the test page's) | not on Kia EV6 IND 260430 |
+| `panel.test_page` | class | a class in `com.mobis.splitscreen.right` (no fixed name) | Mobis' unused test page (slot 22, getView returns null): HMG-API's page | not on Kia EV6 IND 260430 |
+| `panel.test_page.get_view` | method | `getView()` → android.view.View |  | not on Kia EV6 IND 260430 |
+| `panel.home.test_page` | field | `?`: panel.test_page | never set by stock code | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
+| `panel.test_gate` | class | a class in `com.mobis.splitscreen.right` (no fixed name) |  | not on Kia EV6 IND 260430 |
+| `panel.test_gate.on` | method | `static ?()` → boolean | Mobis' test switch for slot 22 (always off on a car; HMG-API answers true only inside page_for_id and build_views) | not on Genesis G70 KOR 260902, Kia K3 KOR 260902, Kia EV6 IND 260430, Kia EV6 KOR 260902 |
 
 ## settings
 
@@ -466,8 +467,8 @@ App `com.android.settings`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `settings.split_screen` | class | `com.android.settings.util.SplitScreenUtils` | Settings' split-screen page list helpers | all |
-| `settings.split_screen.supported` | method | `static isSupportViewId(android.content.Context, int)` → boolean | is a panel view id supported here (unsupported ones are dropped from the page lists) | not on Hyundai Ioniq 6 SGP 260907 |
+| `settings.split_screen` | class | `com.android.settings.util.SplitScreenUtils` | Settings' split-screen page list helpers | not on Kia EV6 IND 260430 |
+| `settings.split_screen.supported` | method | `static isSupportViewId(android.content.Context, int)` → boolean | is a panel view id supported here (unsupported ones are dropped from the page lists) | not on Hyundai Ioniq 6 SGP 260907, Kia EV6 IND 260430 |
 
 ## themesettings
 
@@ -475,11 +476,11 @@ App `com.android.themesettings`.
 
 | Point | Kind | Looks for | About | Cars |
 |---|---|---|---|---|
-| `themesettings.split_item` | class | `com.android.themesettings.splitscreensettings.SplitScreenItem` | one page in the split-screen page editor | all |
-| `themesettings.split_item.new` | ctor | `new (int, String, boolean)` | (view id, title, on) | all |
-| `themesettings.split_item.type` | method | `?()` → int |  | not on Genesis G70 KOR 260902, Kia K3 KOR 260902, Kia EV6 KOR 260902 |
-| `themesettings.split_items` | class | a class in `com.android.themesettings.splitscreensettings` (no fixed name) | the editor's page list helpers | all |
-| `themesettings.split_items.make` | method | `static ?(android.content.Context, java.util.LinkedHashMap)` → java.util.ArrayList | the editor's items from {view id: on/off}; unknown ids are skipped | all |
-| `themesettings.split_items.view_name` | method | `static ?(android.content.Context, int)` → String |  | all |
-| `themesettings.split_items.string_id` | method | `static ?(int)` → int | a page's title (string resource id) by view id; 0 for an id it doesn't know, which the saved-list builder passes to getString | all |
-| `themesettings.split_items.available` | method | `static ?(int, android.content.Context)` → boolean | whether the editor keeps a page (view id); false for ids it doesn't know, and the editor then saves its list without them | all |
+| `themesettings.split_item` | class | `com.android.themesettings.splitscreensettings.SplitScreenItem` | one page in the split-screen page editor | not on Kia EV6 IND 260430 |
+| `themesettings.split_item.new` | ctor | `new (int, String, boolean)` | (view id, title, on) | not on Kia EV6 IND 260430 |
+| `themesettings.split_item.type` | method | `?()` → int |  | not on Genesis G70 KOR 260902, Kia K3 KOR 260902, Kia EV6 IND 260430, Kia EV6 KOR 260902 |
+| `themesettings.split_items` | class | a class in `com.android.themesettings.splitscreensettings` (no fixed name) | the editor's page list helpers | not on Kia EV6 IND 260430 |
+| `themesettings.split_items.make` | method | `static ?(android.content.Context, java.util.LinkedHashMap)` → java.util.ArrayList | the editor's items from {view id: on/off}; unknown ids are skipped | not on Kia EV6 IND 260430 |
+| `themesettings.split_items.view_name` | method | `static ?(android.content.Context, int)` → String |  | not on Kia EV6 IND 260430 |
+| `themesettings.split_items.string_id` | method | `static ?(int)` → int | a page's title (string resource id) by view id; 0 for an id it doesn't know, which the saved-list builder passes to getString | not on Kia EV6 IND 260430 |
+| `themesettings.split_items.available` | method | `static ?(int, android.content.Context)` → boolean | whether the editor keeps a page (view id); false for ids it doesn't know, and the editor then saves its list without them | not on Kia EV6 IND 260430 |
