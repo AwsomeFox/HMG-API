@@ -2,7 +2,71 @@
 
 ## Unreleased
 
-- Add the exact Kia EV6 India 260430 map: 283 stock-derived points plus 68 from two agreeing on-car reports. The original 283 pass the on-car check; the expanded 351-point map awaits that check.
+- **Kia EV6, India 260430 (`CVEV.IND`): a hook map** (`maps/kia/ev6/ind/260430`): 283
+  points from stock files plus 68 from two agreeing Car Reports from one car, all 351
+  of rc.4's points. The 283 pass the check on that car; the full map waits for one.
+  The 31 points newer than the reports are listed as missing (#295).
+
+- **The `parked` reading works without a mod asking for car events.** The vehicle service
+  only followed the power and gear for the parking rule when a mod declared
+  `"car_events"`, so on a car where none did, `parked` stayed 0 (a US EV6: switched off,
+  door closed, no "car off" in the vehicle log). It now follows them whenever the map is
+  ready; an event no mod asked for is still only logged. A door already open when the car
+  goes off counts as "opened" (a test for that order).
+
+- **A swapped voice button no longer leaves the car's voice assistant to start by
+  itself.** A binding's `send` injected the key with scan code 0. For a sent hold of
+  the voice button, the car makes the long press itself
+  (`ModeKeyDispatcher.generateLongKeyEventForPtt`: device 5, the real button's scan
+  code), and Android pairs a key's up with its down by device, source, key code and
+  scan code, so HMG-API's up never ended that down: the button stayed down in the
+  window on screen (Android Auto). The next key the car or HMG-API consumed, or the
+  reversing camera taking the screen, made Android cancel it there, and GPM took the
+  cancelled up for a release and started the car's own assistant, minutes later and
+  with no press. A sent key now carries the press's scan code when it is the same
+  button; for another button, a car repeat with a different scan code is logged, and
+  the input log line says the scan code sent (#301).
+- **Car events: mods can tidy up when you park and before the head unit shuts down.**
+  A mod asks for them in mod.json (`"car_events": {"parked": {"script": "bin/x.sh"},
+  "shutdown": {}}`): its script runs (as the user it gives, with its own log), its apps
+  hear `hmgapi.intent.action.CAR_EVENT`, and its hooks get them through
+  `ModContext.onCarEvent`.
+  - `parked`: the car is off, in P, and by the owner's rule (Settings > Vehicle >
+    "When the car is parked"; `hmgapid park-rule`) a door opened and then all four
+    closed (the default), all four are closed, or they've been closed for a minute or
+    five. The head unit stays on after you switch off, so the default waits for you to
+    get out.
+  - `unparked`: the car is switched on again after `parked`, before the head unit shut
+    down, so a mod can bring back what it put away.
+  - `shutdown`: the head unit is about to shut down. HMG-API answers the car's own
+    system-off (it registers as a responder only while a mod asks), gives scripts 6 s,
+    then lets the shutdown go on; the car never waits more than its own 10 s.
+  - `wake`: back from a QuickBoot suspend, where apps kept running through the off.
+
+  New readings `power`, `doors.closed` and `parked`. Car Check shows every car event.
+  New hook points: the power service (`framework.power_service.*`,
+  `framework.power_listener*`, `framework.car_services.power`), the door status
+  (`framework.bcm_listener_stub.doors`), and for Wireless CarPlay + Android Auto's
+  teardown GPM's ByeBye and wireless reconnect (`gpm.connection_manager.*`,
+  `gpm.receiver_service.connection_manager`, `.wireless_explorer`, `.on_create`,
+  `.connect_wireless_session`, `gpm.wireless_explorer.*`) and DiPO's
+  `dipo.carplay.disconnect` and `.restart_bonjour`: mapped on the 17 builds with stock
+  files, missing on the Car Report maps until a newer report maps them. Off-car only.
+
+- **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
+  projection AP gets the name and key the phone is given.** On the US 260507, Canada
+  260206 and Korea 260902 `hmc`/`kmc` builds (Sonata, Santa Fe, Elantra, K5, Sorento, Niro...),
+  `NetworkManagementService.startAccessPoint` has no branch for the connectivity AP
+  (apMode 2), so it came up with the hotspot's own name and key, and the phone, told
+  `ConnectivitySSID`/`ConnectivityPSK`, never joined (#159; a Korean Palisade too).
+  HMG-API now hands it a copy of the config with those in it, and on the config's own
+  channel even when the hotspot is set to 2.4 GHz, as the newer builds do; the saved
+  hotspot settings aren't touched, and builds that have the branch see no change. New
+  hook points `framework.network_management_service.start_access_point` and
+  `framework.wifi_configuration.ap_mode`, `.connectivity_ssid`, `.connectivity_psk`,
+  `.is_24ghz_band`:
+  mapped on the 17 builds with stock files, missing on the Car Report maps until a
+  newer report maps them.
 
 ## 1.1.0-rc.4 (2026-11-17)
 
