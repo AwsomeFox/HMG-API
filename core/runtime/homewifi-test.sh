@@ -312,6 +312,31 @@ check "... the hotspot off" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
 echo on > "$F/fw/veh.power"
 has "on again: back at once" "the car is on: the car's Wi-Fi client off, the hotspot back" "$(wk)"
 
+# on request (the app's "Connect now"; later the updater): in P, with the car on
+echo on > "$F/fw/veh.power"; echo 0 > "$F/fw/veh.parked"; echo 0 > "$F/fw/veh.gear.park"
+wk >/dev/null
+out=$(verb now 5 || true)
+has "now: refused out of P" "shift to P first" "$out"
+echo 1 > "$F/fw/veh.gear.park"
+check "now: minutes checked" "minutes: 1 to 240" "$(verb now 999 || true)"
+has "now: in P" "home Wi-Fi on for 5 minutes" "$(verb now 5)"
+has "... switched on the next check" "on request: the hotspot off, the car's Wi-Fi client on" "$(wk)"
+check "... the hotspot off" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
+wk >/dev/null
+check "... stays while the car is on, in P" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
+echo 0 > "$F/fw/veh.gear.park"
+has "out of P: back at once" "out of P: the car's Wi-Fi client off, the hotspot back" "$(wk)"
+check "... the hotspot" 2 "$(cat "$F/fw/ap")"
+echo 1 > "$F/fw/veh.gear.park"
+verb now 1 >/dev/null; wk >/dev/null
+verb back >/dev/null
+has "back: the hotspot again" "the car's Wi-Fi client off, the hotspot back" "$(wk)"
+verb now 1 >/dev/null; wk >/dev/null
+echo "2400.00 2000.00" > "$X/proc/uptime"
+has "the time up: back" "the car's Wi-Fi client off, the hotspot back" "$(wk)"
+check "... the request gone" no "$([ -f "$X/data/hmgapi/wifi/manual" ] && echo yes || echo no)"
+mv "$NET" "$NET.keep"; check "now with no saved networks: refused" "no saved networks: add one first" "$(verb now 5 || true)"; mv "$NET.keep" "$NET"
+
 # a restart while parked: Android remembers Wi-Fi on; the hotspot comes back first
 echo delay_mode > "$F/fw/veh.power"; echo 1 > "$F/fw/veh.parked"
 wk >/dev/null

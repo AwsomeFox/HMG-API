@@ -52,7 +52,9 @@
   the car has been off for 30 s (its screen goes dark with it, and the stock apps end projection
   then) or is parked (car events), the projection hotspot goes off and the car's own Wi-Fi
   client joins your home network; the moment you switch on, it's the other way round, the
-  hotspot as it was. While joined, the car's own traffic stays on mobile data
+  hotspot as it was. "Connect now" on the page (`hmgapid wifi now [minutes]`, `back`) does the
+  same with the car on, in P only, until back, out of P or the time is up (30 minutes by
+  default). While joined, the car's own traffic stays on mobile data
   (HKMC's `mobile_hipri` keeps its services there; HMG-API puts the default route and DNS
   back); only HMG-API and mods that ask (`"wifi": {"home": true}`) use home Wi-Fi. The page
   adds and forgets networks (in Android's own Wi-Fi config; a key needs P) and lists what home
@@ -66,7 +68,8 @@
   `overrides.allow_cellular` lets the owner allow one mod, with a warning in the plan.
   This changes mods that used mobile data until now.
 - `hmgapid wpa` (the keeper's helper: a `wpa_supplicant` control command), and `hmgapid wifi
-  saved|seen|join|forget` for HMG-API's app (a key only ever in the keeper's environment).
+  saved|seen|join|forget|now|back` for HMG-API's app (a key only ever in the keeper's
+  environment).
 
 - **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
   projection AP gets the name and key the phone is given.** On the US 260507, Canada

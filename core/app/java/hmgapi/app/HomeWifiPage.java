@@ -46,6 +46,22 @@ final class HomeWifiPage {
             }
         });
         Ui.text(page, "Now: " + now(), 16, false, Ui.TEXT);
+        LinearLayout manual = Ui.row(a);
+        page.addView(manual);
+        Ui.button(manual, "Connect now (30 min)", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                request("now", "30");
+            }
+        });
+        Ui.button(manual, "Back to the car's Wi-Fi", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                request("back", null);
+            }
+        });
+        Ui.text(page, "Connect now works in P: wireless CarPlay and Android Auto are off until it ends (back, out of P, or 30 minutes).",
+                14, false, Ui.GREY);
         Ui.line(page);
         Ui.text(page, "Saved networks", 21, true, Ui.TEXT);
         saved = Ui.column(a);
@@ -98,6 +114,21 @@ final class HomeWifiPage {
         } catch (Exception e) {
             return "off";
         }
+    }
+
+    /** hmgapid wifi now [minutes] | back: home Wi-Fi on request (in P), and back */
+    void request(final String verb, final String minutes) {
+        new Ui.Job<Hmgapid.Result>() {
+            @Override
+            Hmgapid.Result work() throws Exception {
+                return minutes == null ? Hmgapid.call("wifi", verb) : Hmgapid.call("wifi", verb, minutes);
+            }
+
+            @Override
+            void done(Hmgapid.Result r, Exception e) {
+                a.message("Home Wi-Fi", e != null ? "HMG-API isn't answering." : r.output.trim());
+            }
+        }.start(a);
     }
 
     void loadSaved() {

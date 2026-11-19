@@ -370,6 +370,10 @@ check for updates.
   searching, nonetworks, stock (the car's own Wi-Fi settings have the Wi-Fi), off). It never
   gives the network's name. Car events' `parked` is a good moment to start one; switching the
   car on ends it (the client goes off).
+- On request: the HMG-API app's "Connect now" (`hmgapid wifi now [minutes]`, `wifi back`)
+  switches the same way with the car on, in P only (wireless CarPlay and Android Auto are off
+  meanwhile); it ends on "back", out of P, or after the minutes (30 by default, at most 240).
+  It's how HMG-API's updater is meant to get online later.
 - The networks: in Android's own Wi-Fi config, added and forgotten in the HMG-API app (typing
   a key needs P; the page lists what home Wi-Fi saw while parked). Keys are never in a log or
   Car Report.
