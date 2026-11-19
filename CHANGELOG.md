@@ -52,6 +52,29 @@
   `.connect_wireless_session`, `gpm.wireless_explorer.*`) and DiPO's
   `dipo.carplay.disconnect` and `.restart_bonjour`: mapped on the 17 builds with stock
   files, missing on the Car Report maps until a newer report maps them. Off-car only.
+- **Home Wi-Fi while the car is off.** A new owner switch (HMG-API app, Settings > Home Wi-Fi,
+  off by default; it turns the car's own Wi-Fi client feature on, one file and a restart): when
+  the car has been off for 30 s (its screen goes dark with it, and the stock apps end projection
+  then) or is parked (car events), the projection hotspot goes off and the car's own Wi-Fi
+  client joins your home network; the moment you switch on, it's the other way round, the
+  hotspot as it was. "Connect now" on the page (`hmgapid wifi now [minutes]`, `back`) does the
+  same with the car on, in P only, until back, out of P or the time is up (30 minutes by
+  default). While joined, the car's own traffic stays on mobile data
+  (HKMC's `mobile_hipri` keeps its services there; HMG-API puts the default route and DNS
+  back); only HMG-API and mods that ask (`"wifi": {"home": true}`) use home Wi-Fi. The page
+  adds and forgets networks (in Android's own Wi-Fi config; a key needs P) and lists what home
+  Wi-Fi saw. The client library has `homeWifi()` / `homeWifiUp()`. Tried on a US EV6. (A
+  client next to the hotspot, on a second interface, was tried first and dropped: on these
+  units' driver the hotspot's channel moved whenever it scanned, and any hotspot restart left
+  it unusable until a restart.)
+- **Mods never use the car's mobile data**, DNS included: every enabled mod's apps (by
+  uid) and services (now run with HMG-API's group 2950/2951) are refused on `rmnet`, and
+  their lookups can't reach the car's DNS servers. Internet for mods is home Wi-Fi only;
+  `overrides.allow_cellular` lets the owner allow one mod, with a warning in the plan.
+  This changes mods that used mobile data until now.
+- `hmgapid wpa` (the keeper's helper: a `wpa_supplicant` control command), and `hmgapid wifi
+  saved|seen|join|forget|now|back` for HMG-API's app (a key only ever in the keeper's
+  environment).
 
 - **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
   projection AP gets the name and key the phone is given.** On the US 260507, Canada

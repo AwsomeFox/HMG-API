@@ -332,6 +332,7 @@ public final class Engine {
             Set<String> on = new LinkedHashSet<String>();
             Map<String, Map<String, Object>> all = LiveState.mods(this, on);
             out.addAll(ModRuntime.describe(this, all, on));
+            out.addAll(HomeWifi.describe(this, all, on));
             adbTcpWarning(all, on);
         }
         if (!problems.isEmpty()) {
@@ -440,6 +441,15 @@ public final class Engine {
             m.set = best == null ? "" : String.valueOf(cars.get(best));
             all.add(m);
         }
+        Mod core = HomeWifi.coreMod(this);   // the owner's home Wi-Fi: the stock client feature, HMG-API's own
+        if (core != null) {
+            try {
+                features(core);
+                all.add(core);
+            } catch (IllegalArgumentException e) {
+                problems.add("hmgapi: " + e.getMessage());
+            }
+        }
         return order(all);
     }
 
@@ -466,10 +476,10 @@ public final class Engine {
     @SuppressWarnings("unchecked")
     static boolean wifiAsk(Object wifi, String what) {
         if (wifi == null) return false;
-        String usage = "\"wifi\": {\"client\": true} and/or {\"hotspot\": true}";
+        String usage = "\"wifi\": {\"client\": true}, {\"hotspot\": true} and/or {\"home\": true}";
         if (!(wifi instanceof Map)) throw new IllegalArgumentException(usage);
         for (Map.Entry<String, Object> e : ((Map<String, Object>) wifi).entrySet()) {
-            if (!("client".equals(e.getKey()) || "hotspot".equals(e.getKey())) || !(e.getValue() instanceof Boolean)) throw new IllegalArgumentException(usage);
+            if (!("client".equals(e.getKey()) || "hotspot".equals(e.getKey()) || "home".equals(e.getKey())) || !(e.getValue() instanceof Boolean)) throw new IllegalArgumentException(usage);
         }
         return Boolean.TRUE.equals(((Map<String, Object>) wifi).get(what));
     }
