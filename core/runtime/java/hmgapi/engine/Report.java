@@ -43,6 +43,7 @@ final class Report {
         r.put("report", "hmgapi car report 1");
         r.put("date", stamp);
         r.put("hmgapi", Engine.HMGAPI_VERSION);
+        r.put("build", installedBuild(e));   // test builds share a version: which commit this is
         Map<String, Object> unit = new LinkedHashMap<String, Object>();
         for (String k : new String[] {"product", "make", "name", "model", "region", "firmware", "platform", "android", "onebin"}) {
             unit.put(k, e.facts.get(k));
@@ -192,6 +193,23 @@ final class Report {
         return s == null ? "unknown" : s.replaceAll("[^A-Za-z0-9.]", "").toLowerCase();
     }
 
+    /** the installed build (installed.txt "build": commit and date, + if built with changes), or null */
+    static String installedBuild(Engine e) {
+        try {
+            for (String l : Engine.read(new File(e.data, "installed.txt")).split("\n")) {
+                // build.sh's stamp: a commit, + if built with changes, a date. Our own text, not
+                // scrubbed (its date looks like a phone number), but nothing else kept
+                if (l.startsWith("build ") && l.length() > 6) {
+                    String b = l.substring(6).trim().replaceAll("[^0-9A-Za-z +.-]", "");
+                    return b.isEmpty() ? null : b.length() > 40 ? b.substring(0, 40) : b;
+                }
+            }
+        } catch (Exception ignored) {
+            // not installed by the installer (dev setup)
+        }
+        return null;
+    }
+
     /** HMG-API's recent warnings and errors: hmgapid's log and the log keeper's (scrubbed, last 60) */
     static List<Object> errors(Engine e) {
         List<String> lines = new ArrayList<String>();
@@ -257,7 +275,7 @@ final class Report {
         StringBuilder s = new StringBuilder();
         s.append("# Car Report: ").append(carName(unit)).append(' ').append(unit.get("region")).append(' ').append(unit.get("firmware")).append("\n\n");
         s.append("- File: `").append(name).append(".json` (attach it to the issue)\n");
-        s.append("- HMG-API ").append(r.get("hmgapi")).append(", product `").append(unit.get("product")).append("`, platform ")
+        s.append("- HMG-API ").append(r.get("hmgapi")).append(r.get("build") != null ? " (build " + r.get("build") + ")" : "").append(", product `").append(unit.get("product")).append("`, platform ")
                 .append(unit.get("platform")).append(", Android ").append(unit.get("android")).append(", Wi-Fi chip: ")
                 .append(Boolean.TRUE.equals(unit.get("wifi_chip")) ? "yes" : "no").append("\n");
         s.append("- ").append(map.get("summary")).append("\n");
@@ -342,7 +360,8 @@ final class Report {
                 pj = (Map<String, Object>) r.get("map_car");
         Map<String, Object> nf = (Map<String, Object>) pj.get("not_found");
         String title = "Car Report: " + carName(unit) + " " + unit.get("region") + " " + unit.get("firmware");
-        String body = "Product: " + unit.get("product") + "\nHMG-API: " + r.get("hmgapi") + "\nMap: " + map.get("status")
+        String body = "Product: " + unit.get("product") + "\nHMG-API: " + r.get("hmgapi")
+                + (r.get("build") != null ? "\nBuild: " + r.get("build") : "") + "\nMap: " + map.get("status")
                 + (Boolean.TRUE.equals(map.get("hooks_on")) ? " (hooks on)" : " (hooks off)")
                 + "\nFound on this car: " + pj.get("found") + " points, " + (nf == null ? 0 : nf.size()) + " not found"
                 + (r.get("network") instanceof Map && ((Map<String, Object>) r.get("network")).get("summary") != null

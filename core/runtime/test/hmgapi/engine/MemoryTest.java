@@ -96,6 +96,11 @@ public final class MemoryTest {
         for (Object l : errs) if (String.valueOf(l).contains("java.lang.RuntimeException: outer")) inReport = true;
         yes("the next Car Report has it: " + errs, inReport);
 
+        // which build a report is from (test builds share a version)
+        is("no installed.txt: no build", null, Report.installedBuild(e));
+        Engine.write(new File(root, "data/hmgapi/installed.txt"), "version 1.1.0-rc.5\nbuild c8b782c 2026-11-19\ndate x\n");
+        is("the build installed", "c8b782c 2026-11-19", Report.installedBuild(e));
+
         Engine.roomToWork();   // no VMRuntime off the unit: nothing happens, nothing thrown
         System.out.println("ok    " + checks + " memory and engine-error checks");
     }
