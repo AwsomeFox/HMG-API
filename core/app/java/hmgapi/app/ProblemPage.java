@@ -15,7 +15,7 @@ import android.widget.TextView;
  * when the owner leaves the page; coming back shows it.
  */
 final class ProblemPage {
-    static final int MAX_SECONDS = 300;
+    static final int MAX_SECONDS = 1800;
     static boolean recording, dumps;
     static long startedAt;
     static String result, error;
@@ -41,10 +41,10 @@ final class ProblemPage {
         });
         Ui.text(list, "Record a problem", 28, true, Ui.TEXT);
         Ui.text(list, "For when something goes wrong (an app crashes, CarPlay stops, no sound) and someone is helping you "
-                + "find out why. Start recording, make the problem happen, then stop. It records for at most 5 minutes.", 17, false, Ui.TEXT);
+                + "find out why. Start recording, make the problem happen, then stop. It records for at most 30 minutes, so you can drive or use CarPlay meanwhile; keep the USB stick in.", 17, false, Ui.TEXT);
         Ui.text(list, "What the file holds", 20, true, Ui.TEXT);
         Ui.text(list, "• The head unit: model, region, firmware, platform, and HMG-API's version.\n"
-                + "• Log lines from crashes, CarPlay, Android Auto, audio, the Wi-Fi hotspot, HMG-API and its mods, "
+                + "• Log lines from crashes, CarPlay, Android Auto, audio, Bluetooth connections, the Wi-Fi hotspot, HMG-API and its mods, "
                 + "only while it records. Lines from every other app (phone, contacts, messages, navigation, radio) "
                 + "are left out, only counted.\n"
                 + "• Your installed mods, and checksums of the system files they patch.\n"
@@ -116,7 +116,7 @@ final class ProblemPage {
 
             @Override
             void done(String r, Exception e) {
-                if (e != null) status.setText("Couldn't stop it: " + e.getMessage() + " (it stops by itself after 5 minutes)");
+                if (e != null) status.setText("Couldn't stop it: " + e.getMessage() + " (it stops by itself after 30 minutes)");
             }
         }.start(a);
     }
@@ -126,7 +126,7 @@ final class ProblemPage {
             long s = (System.currentTimeMillis() - startedAt) / 1000;
             status.setTextColor(Ui.WARN);
             status.setText("Recording: " + s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60
-                    + " (stops by itself at 5:00). Make the problem happen now, then tap Stop.");
+                    + " (stops by itself at 30:00). Make the problem happen now, then come back here and tap Stop.");
             tick.postDelayed(new Runnable() {
                 @Override
                 public void run() {

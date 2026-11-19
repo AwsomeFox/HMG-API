@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * What it keeps, and nothing else (the app's "Record a problem" page says the same):
  *  - the head unit (model, region, firmware, platform) and HMG-API's version;
  *  - logcat lines (main and system buffers, never radio or events) from the tags in
- *    TAGS/PREFIXES only: crashes, CarPlay, Android Auto, audio, Wi-Fi hotspot, HMG-API
+ *    TAGS/PREFIXES only: crashes, CarPlay, Android Auto, audio, Bluetooth connections, Wi-Fi hotspot, HMG-API
  *    and its mods. Everything else is read and dropped, only counted. Every kept line is
  *    scrubbed (Report.scrub + PHONE_IDS);
  *  - each installed mod (id, version, on, whether it supports this car) and the md5 of
@@ -42,8 +42,8 @@ import java.util.regex.Pattern;
 final class ProblemLog {
     private ProblemLog() {}
 
-    static final int MAX_SECONDS = 300;
-    static final int MAX_BYTES = 4 << 20;
+    static final int MAX_SECONDS = 1800;   // 30 min: a session can drop seconds or minutes in
+    static final int MAX_BYTES = 16 << 20;
     static final int MAX_DUMPS = 5;
     static final int MAX_DUMP_LINES = 600;
 
@@ -58,7 +58,7 @@ final class ProblemLog {
     /** tags starting with these */
     static final String[] PREFIXES = {
         "CarPlay", "TccCarPlay", "DiPO", "iAP2", "Iap2", "AAProjection", "Gpm", "Gal", "TCC_OMX", "TCCCDK",
-        "AudioService", "AudioManager",
+        "AudioService", "AudioManager", "BTCM",   // BTCMService, BTCMStateMachine: Bluetooth connects and drops
     };
     /** ActivityManager logs intents (with their data) too: only its lines about processes dying */
     static final Pattern AM = Pattern.compile("(?i)(has died|crash|anr in|not responding|force finishing|killing|start proc|low memory|died)");

@@ -33,6 +33,7 @@ cat <<'L'
 11-19 13:02:01.700   600   610 I Navi: position 37.774929, -122.419416
 11-19 13:02:01.800  1151  1170 F libc: Fatal signal 11 (SIGSEGV) at 0x00000000 (code=1), thread 1170 (CarPlayAudio)
 11-19 13:02:01.900  1151  1170 I AudioFlinger: route at 47.6062 -122.3321 vin KNAC0000000000000
+11-19 13:02:02.000  1364  1866 I BTCMStateMachine: <BTCM> Bluetooth start disconnection to (Andr***, B0:EC:69:5B:E4:E2) by User Actions
 L
 # then stream until killed, like logcat
 while :; do sleep 1; done
@@ -72,7 +73,7 @@ out=$(HMGAPI_ROOT=$R HMGAPI_HOST=1 HMGAPI_TEST_ANY_CAR=1 java -cp "$CP" hmgapi.e
 set -e
 check "record runs" 0 $rc
 has "file named for the car" "problem: problem-zzev-usa-260507-" "$out"
-has "count of kept lines" "kept: 6 of 10 log lines" "$out"
+has "count of kept lines" "kept: 7 of 11 log lines" "$out"
 has "logcat columns left as they are" "11-19 13:02:01.100  1151  1170 I TccCarPlay:" "$(cat "$D"/public/reports/problem-*.txt)"
 has "ended by the time limit" "ended by time limit (2 s)" "$out"
 has "saved on the USB stick" "usb: /storage/usb0/HMG-API reports/problem-" "$out"
@@ -87,6 +88,8 @@ hasnt "ActivityManager: intents left out" "act=android.intent.action.CALL" "$f"
 hasnt "other apps left out (contacts)" "Jane Doe" "$f"
 hasnt "other apps left out (navigation)" "122.419416" "$f"
 has "kept tags counted" "  CarPlay_Session: 1" "$f"
+has "Bluetooth manager line kept" "BTCMStateMachine: <BTCM> Bluetooth start disconnection to" "$f"
+hasnt "Bluetooth manager line: no address" "5B:E4:E2" "$f"
 hasnt "no Bluetooth address" "3c:22:fb" "$f"
 hasnt "no iPhone UDID" "001A2B3C4D5E802E" "$f"
 hasnt "no GPS position in a kept line" "47.6062" "$f"
