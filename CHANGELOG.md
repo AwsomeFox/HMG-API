@@ -3,7 +3,7 @@
 ## Unreleased
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**
-  (`maps/hyundai/hmc/usa/260903`, all 382 points with code signatures). One system image
+  (`maps/hyundai/hmc/usa/260903`, all 391 points with code signatures). One system image
   serves 25 models in both countries: Elantra (and Hybrid), Sonata (and Hybrid), Santa Fe
   (and Hybrid, Plug-in Hybrid), Kona, Kona Electric 2020-21, Ioniq (Electric, Hybrid,
   Plug-in Hybrid), Venue 2020-22, Veloster N and Palisade 2020-22 (#320). Their maps for
