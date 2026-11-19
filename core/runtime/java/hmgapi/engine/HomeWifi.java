@@ -126,7 +126,7 @@ final class HomeWifi {
     static List<String> describe(Engine e, Map<String, Map<String, Object>> json, Set<String> on) {
         List<String> out = new ArrayList<String>();
         boolean home = on(e);
-        out.add("home Wi-Fi  " + (home ? "on: while parked, the hotspot off and the car's Wi-Fi client on the saved networks" : "off"));
+        out.add("home Wi-Fi  " + (home ? "on: while the car is off, the hotspot off and the car's Wi-Fi client on the saved networks" : "off"));
         for (Map.Entry<String, String> m : modes(e, json, on).entrySet()) {
             String mode = m.getValue();
             out.add("network  " + ("home".equals(mode) ? "home Wi-Fi only (no cellular)" : "allow".equals(mode)
@@ -144,7 +144,7 @@ final class HomeWifi {
      */
     static final String SCRIPT = Network.lines(
         "# HMG-API's home Wi-Fi keeper (written by the engine: hmgapi.engine.HomeWifi). hmgapid runs it",
-        "# as root (service \"hmgapi wifi\"). While the car is parked (car events), the hotspot goes off and",
+        "# as root (service \"hmgapi wifi\"). While the car is off (30 s, or parked), the hotspot goes off and",
         "# the car's own Wi-Fi client joins the saved networks; when the car is on, the client goes off and",
         "# the hotspot comes back as it was. While joined, the car's own traffic stays on mobile data; only",
         "# the mods that asked (and HMG-API) go through home Wi-Fi.",
@@ -268,7 +268,7 @@ final class HomeWifi {
         "    echo $m > $W/apmode",
         "    boot > $W/mode",
         "    r=$(tool client on)",
-        "    say \"parked: the hotspot off, the car's Wi-Fi client on ($r)\"",
+        "    say \"the car off: the hotspot off, the car's Wi-Fi client on ($r)\"",
         "}",
         "client_off() {",
         "    route_down",
@@ -281,6 +281,18 @@ final class HomeWifi {
         "# the car's own Wi-Fi client, not switched on by HMG-API (its Wi-Fi settings, Tilepad): left alone",
         "stock_client() { ! client_mode && case $(getprop init.svc.wpa_supplicant)$(getprop init.svc.p2p_supplicant) in *running*) true ;; *) false ;; esac; }",
         "",
+        "now() { read -r u rest < $X/proc/uptime; echo ${u%.*}; }",
+        "# home Wi-Fi's moment: the car off (its screen goes dark with it, and the stock apps end projection",
+        "# then) for 30 s, or parked (the car events' rule), whichever comes first; a quick off and on again",
+        "# (a stop for a moment) doesn't switch anything",
+        "off_long() {",
+        "    [ \"$p\" = 1 ] && return 0",
+        "    case $pw in on|\"\") rm -f $W/offsince; return 1 ;; esac",
+        "    t=$(now) b=$(boot)",
+        "    [ -f $W/offsince ] && read -r ob ot < $W/offsince && [ \"$ob\" = \"$b\" ] || { echo \"$b $t\" > $W/offsince; return 1; }",
+        "    [ $((t - ot)) -ge 30 ]",
+        "}",
+        "",
         "keep() {",
         "    mkdir -p $W",
         "    # HMG-API's client from before a restart (Android remembers \"Wi-Fi on\"): the hotspot back first",
@@ -291,7 +303,7 @@ final class HomeWifi {
         "    if stock_client; then status stock; return; fi",
         "    pw=$(reading power) p=$(reading parked)",
         "    if client_mode; then",
-        "        if [ \"$pw\" = on ] || [ \"$p\" != 1 ]; then client_off \"the car is on\"; status waiting; return; fi",
+        "        if [ \"$pw\" = on ]; then rm -f $W/offsince; client_off \"the car is on\"; status waiting; return; fi",
         "        st=$(wpa STATUS)",
         "        if [ \"$(echo \"$st\" | field wpa_state)\" = COMPLETED ] && route_up; then",
         "            rssi=$(wpa SIGNAL_POLL | field RSSI)",
@@ -305,7 +317,7 @@ final class HomeWifi {
         "        done > $W/seen.tmp && [ -s $W/seen.tmp ] && mv $W/seen.tmp $W/seen",
         "        return",
         "    fi",
-        "    if [ \"$p\" = 1 ] && [ \"$pw\" != on ]; then",
+        "    if off_long; then",
         "        if [ -n \"$(saved)\" ]; then client_on; status searching; return; fi",
         "        status nonetworks; return",
         "    fi",

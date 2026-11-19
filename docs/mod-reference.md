@@ -355,9 +355,10 @@ For internet, a mod asks for **home Wi-Fi**:
 
 With the owner's switch on (HMG-API app, Settings > Home Wi-Fi; it turns the car's own Wi-Fi
 client feature on: one file, a restart), the head unit joins the owner's home network **while
-the car is parked** (the car events' `parked`: off, in P, the driver got out). Then the hotspot
-wireless CarPlay and Android Auto use goes off and the car's own Wi-Fi client joins; when the
-car is switched on again, the client goes off and the hotspot comes back as it was. (A client
+the car is off**: switched off for 30 s (its screen goes dark with it, and the stock apps end
+projection then), or `parked` (car events), whichever comes first. Then the hotspot wireless
+CarPlay and Android Auto use goes off and the car's own Wi-Fi client joins; the moment the car
+is switched on again, the client goes off and the hotspot comes back as it was. (A client
 next to the hotspot, on a second interface, didn't hold up on these units' Wi-Fi driver.)
 While joined, the traffic of the mods that ask (their apps, and their services) goes through
 home Wi-Fi; the car's own stays on mobile data. A mod that asks while the switch is off has no
@@ -365,10 +366,10 @@ internet (the plan says so). IPv4 only for now. This is also how HMG-API itself 
 check for updates.
 
 - Check before a download: `HmgApi.homeWifiUp()`, or `HmgApi.homeWifi()`
-  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, waiting (not parked),
+  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, waiting (the car is on),
   searching, nonetworks, stock (the car's own Wi-Fi settings have the Wi-Fi), off). It never
-  gives the network's name. Car events' `parked` is the moment to start one; `unparked` ends
-  it (the client goes off).
+  gives the network's name. Car events' `parked` is a good moment to start one; switching the
+  car on ends it (the client goes off).
 - The networks: in Android's own Wi-Fi config, added and forgotten in the HMG-API app (typing
   a key needs P; the page lists what home Wi-Fi saw while parked). Keys are never in a log or
   Car Report.

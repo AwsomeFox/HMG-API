@@ -33,7 +33,7 @@ final class HomeWifiPage {
 
     void show(final SettingsTab tab) {
         Ui.text(page, "Home Wi-Fi", 21, true, Ui.TEXT);
-        Ui.text(page, "On: when the car is parked (switched off and you got out), the head unit joins your home Wi-Fi. "
+        Ui.text(page, "On: when the car has been off for 30 seconds, the head unit joins your home Wi-Fi. "
                 + "The car's Wi-Fi for wireless CarPlay and Android Auto goes off meanwhile and comes back when you switch "
                 + "on. Only HMG-API and mods that ask use home Wi-Fi; the car's own services stay on its mobile data. "
                 + "Turning it on needs applying and a restart.", 16, false, Ui.GREY);
@@ -86,9 +86,9 @@ final class HomeWifiPage {
         try {
             JSONObject w = new JSONObject(UsbFolders.read(new File("/data/hmgapi/public/wifi.json")));
             String s = w.optString("state");
-            if ("up".equals(s)) return "parked and connected, " + w.optInt("rssi") + " dBm, " + w.optInt("freq") + " MHz";
-            if ("waiting".equals(s)) return "waiting for the car to be parked";
-            if ("searching".equals(s)) return "parked: looking for a saved network";
+            if ("up".equals(s)) return "connected (the car is off), " + w.optInt("rssi") + " dBm, " + w.optInt("freq") + " MHz";
+            if ("waiting".equals(s)) return "the car is on: home Wi-Fi waits until it's off";
+            if ("searching".equals(s)) return "the car is off: looking for a saved network";
             if ("nonetworks".equals(s)) return "no saved networks yet";
             if ("nolease".equals(s)) return "joined, waiting for an address";
             if ("stock".equals(s)) return "the car's own Wi-Fi settings have the Wi-Fi";
@@ -164,7 +164,7 @@ final class HomeWifiPage {
                         return Integer.parseInt(y[1]) - Integer.parseInt(x[1]);
                     }
                 });
-                if (list.isEmpty()) Ui.text(found, "Nothing yet: home Wi-Fi hasn't been on (it looks while the car is parked). Add a network by its name.", 16, false, Ui.GREY);
+                if (list.isEmpty()) Ui.text(found, "Nothing yet: home Wi-Fi hasn't been on (it looks while the car is off). Add a network by its name.", 16, false, Ui.GREY);
                 for (final String[] f : list) {
                     final boolean open = !f[2].contains("WPA") && !f[2].contains("WEP");
                     final boolean usable = !f[2].contains("WEP") && !f[2].contains("EAP");
@@ -231,7 +231,7 @@ final class HomeWifiPage {
                     a.message("Home Wi-Fi", e != null ? "HMG-API isn't answering." : r.output.trim());
                     return;
                 }
-                a.message("Home Wi-Fi", "Saved. The head unit joins it the next time the car is parked in range.");
+                a.message("Home Wi-Fi", "Saved. The head unit joins it the next time the car is off in range.");
                 loadSaved();
             }
         }.start(a);

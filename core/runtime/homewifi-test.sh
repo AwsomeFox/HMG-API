@@ -169,6 +169,7 @@ eng publish-state
 X=$T/unit
 mkdir -p "$X/data/misc/wifi/sockets" "$X/data/hmgapi/public" "$X/proc/sys/kernel/random"
 echo boot-1 > "$X/proc/sys/kernel/random/boot_id"
+echo "1000.00 2000.00" > "$X/proc/uptime"
 cat > "$F/bin/hmgapid" <<'S'
 #!/bin/bash
 case $1 in
@@ -252,7 +253,7 @@ check "seen: nothing before home Wi-Fi was on" "" "$(verb seen)"
 echo "wpa_state=SCANNING" > "$F/fw/wpa.status"
 : > "$F/fw/apps.log"
 log=$(wk)
-has "parked: switched" "parked: the hotspot off, the car's Wi-Fi client on" "$log"
+has "parked: switched at once" "the car off: the hotspot off, the car's Wi-Fi client on" "$log"
 check "... the hotspot off" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
 has "... through Android's Wi-Fi service" "hmgapi.engine.WifiAp client on" "$(cat "$F/fw/apps.log")"
 check "... looking" searching "$(state)"
@@ -292,6 +293,24 @@ check "... client off, then the hotspot" "client off
 start 2" "$(grep -o 'client off\|start [12]' "$F/fw/apps.log")"
 check "... table 95 empty" "" "$(grep 'table 95' "$F/fw/ip4.route" || true)"
 check "... waiting again" waiting "$(state)"
+
+# the car off without parked (the screen goes dark with it): 30 s, then home Wi-Fi
+echo adm > "$F/fw/veh.power"; echo 0 > "$F/fw/veh.parked"
+echo "2000.00 2000.00" > "$X/proc/uptime"
+wk >/dev/null
+check "the car just off: not yet (a stop for a moment)" 2 "$(cat "$F/fw/ap")"
+echo "2020.00 2000.00" > "$X/proc/uptime"
+wk >/dev/null
+check "... 20 s: not yet" 2 "$(cat "$F/fw/ap")"
+echo on > "$F/fw/veh.power"; wk >/dev/null; echo adm > "$F/fw/veh.power"
+echo "2040.00 2000.00" > "$X/proc/uptime"
+wk >/dev/null
+check "on and off again: the 30 s start over" 2 "$(cat "$F/fw/ap")"
+echo "2071.00 2000.00" > "$X/proc/uptime"
+has "off 30 s: switched" "the car off: the hotspot off" "$(wk)"
+check "... the hotspot off" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
+echo on > "$F/fw/veh.power"
+has "on again: back at once" "the car is on: the car's Wi-Fi client off, the hotspot back" "$(wk)"
 
 # a restart while parked: Android remembers Wi-Fi on; the hotspot comes back first
 echo delay_mode > "$F/fw/veh.power"; echo 1 > "$F/fw/veh.parked"

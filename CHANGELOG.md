@@ -47,11 +47,12 @@
   `.connect_wireless_session`, `gpm.wireless_explorer.*`) and DiPO's
   `dipo.carplay.disconnect` and `.restart_bonjour`: mapped on the 17 builds with stock
   files, missing on the Car Report maps until a newer report maps them. Off-car only.
-- **Home Wi-Fi while parked.** A new owner switch (HMG-API app, Settings > Home Wi-Fi, off by
-  default; it turns the car's own Wi-Fi client feature on, one file and a restart): when the
-  car is parked (car events: off, in P, the driver got out), the projection hotspot goes off
-  and the car's own Wi-Fi client joins your home network; when you switch on, it's the other
-  way round, the hotspot as it was. While joined, the car's own traffic stays on mobile data
+- **Home Wi-Fi while the car is off.** A new owner switch (HMG-API app, Settings > Home Wi-Fi,
+  off by default; it turns the car's own Wi-Fi client feature on, one file and a restart): when
+  the car has been off for 30 s (its screen goes dark with it, and the stock apps end projection
+  then) or is parked (car events), the projection hotspot goes off and the car's own Wi-Fi
+  client joins your home network; the moment you switch on, it's the other way round, the
+  hotspot as it was. While joined, the car's own traffic stays on mobile data
   (HKMC's `mobile_hipri` keeps its services there; HMG-API puts the default route and DNS
   back); only HMG-API and mods that ask (`"wifi": {"home": true}`) use home Wi-Fi. The page
   adds and forgets networks (in Android's own Wi-Fi config; a key needs P) and lists what home
