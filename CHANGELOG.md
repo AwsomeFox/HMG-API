@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.5 (2026-11-19)
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**
   (`maps/hyundai/hmc/usa/260903`, all 391 points with code signatures). One system image
