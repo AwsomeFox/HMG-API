@@ -485,8 +485,15 @@ public final class Engine {
                 }
             }
             if (cars != null && best == null) {
-                problems.add(m.id + ": doesn't support this head unit (" + product + ")");
-                continue;
+                if (!SystemCheck.ignored(hmgapi, m.id)) {
+                    problems.add(m.id + ": doesn't support this head unit (" + product + ")");
+                    continue;
+                }
+                // "Install anyway" covers the patch set too: without one, the changes that need
+                // none (props, added files, merges onto any version) apply; one checked against a
+                // set's stock files finds none and is refused for that file, as on an unknown build
+                out.add("WARNING: " + m.id + ": its patches.json has no set for this head unit (" + product
+                        + "); overrides.ignore_system is set, so only its changes that need no set apply");
             }
             m.set = best == null ? "" : String.valueOf(cars.get(best));
             all.add(m);

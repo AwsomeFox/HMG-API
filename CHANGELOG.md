@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **"Install anyway" now covers a mod's patch sets too.** A mod's `patches.json` can list the
+  builds it has a set for (`"cars"`); on a head unit missing there, every plan was refused
+  ("doesn't support this head unit") even after the owner chose Install anyway, while the
+  mod's hooks still loaded. So the mod ran half-installed: its code without its system files
+  (seen on a US K5 with the Wireless mod: no audio converter, so CarPlay failed as soon as
+  music started). With `overrides.ignore_system` set for the mod, a missing set is now a
+  warning: the changes that need no set apply (props, added files, merges onto any version),
+  and one checked against a set's stock files finds none and is refused for that file.
+
 ## 1.1.0-rc.5 (2026-11-19)
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**
