@@ -309,6 +309,7 @@ public final class Engine {
         if ("verify-map".equals(cmd)) return MapCheck.run(this);
         if ("map-car".equals(cmd)) return MapProbe.run(this, args);
         if ("report".equals(cmd)) return Report.run(this, args.length > 1 && "--usb".equals(args[1]));
+        if ("problem".equals(cmd)) return ProblemLog.run(this, args);
         if ("usb-scan".equals(cmd)) return UsbUpdates.scan(this);
         if ("publish-state".equals(cmd)) return LiveState.publish(this);
         if ("apps".equals(cmd)) return ModApps.sync(this);

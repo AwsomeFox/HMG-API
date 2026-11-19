@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- **Record a problem** (Logs tab; `engine problem record [--crash-dumps] [--usb] [--seconds N]`,
+  `engine problem stop`): for an owner with an issue (a crash, CarPlay with no sound) to send to
+  whoever helps them. The page says what it takes before it starts; the owner makes the problem
+  happen and stops it (5 minutes at most). The file (`problem-<car>-<stamp>.txt`, on the USB stick
+  and in `public/reports`) holds the unit, the mods and the md5 of the libraries their native
+  patches are for, HMG-API's errors, and logcat lines (main and system) from crash, CarPlay,
+  Android Auto, audio, Wi-Fi hotspot and HMG-API tags only, every other line dropped and only
+  counted; messages are scrubbed (addresses, numbers, VIN, phone ids, GPS positions). Crash dumps
+  are the owner's choice, off by default: the newest 5 tombstones, cut to the crashed process,
+  signal, registers, backtraces and the map near the fault (no stack or memory, no log lines).
+
 ## 1.1.0-rc.5 (2026-11-19)
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**

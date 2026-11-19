@@ -12,7 +12,7 @@ HMG-API (1.1.0-rc.5) is a mod manager for Hyundai/Kia/Genesis **Gen5W** head uni
 
 ## Hard rules (no overrides)
 
-- Never collect or publish per-car secrets: `/data` contents, the telesecurity partition, certificates/keys, account tokens, VIN, serials, SIM/IMEI/phone numbers. Model-level firmware keys only privately, with consent.
+- Never collect or publish per-car secrets: `/data` contents, the telesecurity partition, certificates/keys, account tokens, VIN, serials, SIM/IMEI/phone numbers. Model-level firmware keys only privately, with consent. One exception, the owner's own choice: the problem log's crash dumps (`ProblemLog`, off until the owner turns them on; trimmed to backtraces, no memory or log lines).
 - The repo holds **no full manufacturer apps or libraries**. Allowed: hash-only recipes, delta patch sets (`patches/`), checksums, our own code.
 
 ## Recommendations (warn, then follow the user)
