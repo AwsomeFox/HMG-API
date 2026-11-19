@@ -1368,10 +1368,5 @@
     "field": "TRANSACTION_onDoorAllStateChanged",
     "type": "int",
     "static": true
-  },
-  "framework.wifi_configuration.channel": {
-    "field": "channel",
-    "type": "int",
-    "static": false
   }
 }

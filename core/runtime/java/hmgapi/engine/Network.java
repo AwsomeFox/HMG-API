@@ -679,7 +679,7 @@ final class Network {
         "    iptables -t nat -F HMGAPI_HOMEOUT 2>/dev/null; iptables -t nat -X HMGAPI_HOMEOUT 2>/dev/null",
         "    for _ in 1 2 3 4 5 6 7 8; do ip rule del priority " + HomeWifi.PRIORITY + " 2>/dev/null || break; done",
         "}",
-        "mods_dns() {   # mods' apps look names up through wlan1 in netd: its servers when home Wi-Fi is up, none otherwise",
+        "mods_dns() {   # mods' apps look names up through wlan0 in netd: its servers when home Wi-Fi is up, none otherwise",
         "    while read -r mode u; do",
         "        case $mode in block|home) ndc resolver setifaceforuidrange " + HomeWifi.IFACE + " $u $u >/dev/null 2>&1 ;; esac",
         "    done < \"$MA\"",

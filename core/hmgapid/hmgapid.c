@@ -1680,7 +1680,7 @@ static int forget_answers(int fd)
     return 0;
 }
 
-/* home Wi-Fi's networks for HMG-API's app: wifi saved | scan | join <ssid> [key] | forget <ssid>. The keeper's
+/* home Wi-Fi's networks for HMG-API's app: wifi saved | seen | join <ssid> [key] | forget <ssid>. The keeper's
  * script does it (state/wifi.sh); the key goes in its environment (HMGAPI_WIFI_PSK), never on a command
  * line, which any process on the unit can read. */
 static int op_wifi(int fd, int argc, char **argv)
@@ -1690,9 +1690,9 @@ static int op_wifi(int fd, int argc, char **argv)
     unsigned long long st[16];
     int n = 0;
     const char *v = argv[1];
-    if (!((seq(v, "saved") && argc == 2) || (seq(v, "scan") && argc == 2) || (seq(v, "join") && (argc == 3 || argc == 4))
+    if (!((seq(v, "saved") && argc == 2) || (seq(v, "seen") && argc == 2) || (seq(v, "join") && (argc == 3 || argc == 4))
           || (seq(v, "forget") && argc == 3))) {
-        say(fd, "usage: wifi saved | scan | join <network> [key] | forget <network>\n");
+        say(fd, "usage: wifi saved | seen | join <network> [key] | forget <network>\n");
         return 2;
     }
     if (x_stat64(ROOTDIR "/state/wifi.sh", st) != 0) { say(fd, "home Wi-Fi is off (HMG-API settings)\n"); return 1; }
@@ -2067,124 +2067,17 @@ static int client(int argc, char **argv)
     }
 }
 
-/* ---------------- home Wi-Fi helpers (run locally, not through the daemon) ----------------
- * hmgapid wifi-if add|del <name>   a station interface on wlan0's radio next to the hotspot (nl80211
- *                                  NEW_INTERFACE / DEL_INTERFACE); root
+/* ---------------- home Wi-Fi's helper (run locally, not through the daemon) ----------------
  * hmgapid wpa <ctrl socket> <cmd>  one wpa_supplicant (or hostapd) control command, its answer on stdout
  * Used by HMG-API's home Wi-Fi keeper (state/wifi.sh). */
 #define x_send(fd, b, n) S4(289, fd, b, n, 0)
 #define x_recv(fd, b, n) S4(291, fd, b, n, 0)
 
-typedef unsigned short u16;
-struct nlhdr { u32 len; u16 type, flags; u32 seq, pid; };
 static u8 nlbuf[8192] __attribute__((aligned(4)));
-
-static int nla_put(u8 *m, int len, u16 type, const void *v, int n)
-{
-    u16 l = (u16)(4 + n);
-    mcpy(m + len, &l, 2);
-    mcpy(m + len + 2, &type, 2);
-    mcpy(m + len + 4, v, (ul)n);
-    while (n & 3) m[len + 4 + n++] = 0;
-    return len + 4 + n;
-}
-
-/* one generic netlink request; 0, or the kernel's error (negative) */
-static int genl(int fd, u16 type, u8 cmd, const u8 *attrs, int alen, u16 *family)
-{
-    u8 m[256] __attribute__((aligned(4)));
-    struct nlhdr *h = (struct nlhdr *)m;
-    sl n;
-    mset(m, 0, sizeof m);
-    if (alen > (int)sizeof m - 20) return -22;
-    m[16] = cmd; m[17] = 1;
-    mcpy(m + 20, attrs, (ul)alen);
-    static u32 seqno;
-    u32 want = ++seqno;
-    h->len = (u32)(20 + alen); h->type = type; h->flags = 0x1 | 0x4; h->seq = want;   /* request, ack */
-    if (x_send(fd, m, h->len) != (sl)h->len) return -5;
-    for (;;) {
-        u8 *p;
-        n = x_recv(fd, nlbuf, sizeof nlbuf);
-        if (n == -EINTR) continue;
-        if (n < 16) return -5;
-        for (p = nlbuf; p + 16 <= nlbuf + n;) {
-            struct nlhdr *r = (struct nlhdr *)p;
-            if (r->len < 16) return -5;
-            if (r->seq != want) { p += (r->len + 3) & ~3u; continue; }   /* an earlier request's ack */
-            if (r->type == 2) { int e; mcpy(&e, p + 16, 4); if (e || !family) return e; }   /* NLMSG_ERROR: the ack */
-            else if (family) {   /* CTRL_CMD_GETFAMILY's answer: CTRL_ATTR_FAMILY_ID */
-                u8 *a = p + 20;
-                while (a + 4 <= p + r->len) {
-                    u16 al, at;
-                    mcpy(&al, a, 2); mcpy(&at, a + 2, 2);
-                    if (al < 4) break;
-                    if ((at & 0x3fff) == 1 && al >= 6) { mcpy(family, a + 4, 2); return 0; }
-                    a += (al + 3) & ~3u;
-                }
-            }
-            p += (r->len + 3) & ~3u;
-        }
-    }
-}
-
-static int read_int(const char *path)
-{
-    char b[16];
-    int fd = (int)x_open(path, O_RDONLY, 0), v = 0, i;
-    sl n;
-    if (fd < 0) return -1;
-    n = x_read(fd, b, sizeof b - 1);
-    x_close(fd);
-    if (n <= 0) return -1;
-    for (i = 0; i < n && b[i] >= '0' && b[i] <= '9'; i++) v = v * 10 + (b[i] - '0');
-    return i ? v : -1;
-}
-
-static int wifi_if(int argc, char **argv)
-{
-    u8 a[64] __attribute__((aligned(4)));
-    char path[64];
-    u16 fam = 0;
-    int fd, alen, e;
-    const char *name;
-    if (argc != 4 || !(seq(argv[2], "add") || seq(argv[2], "del"))) { out(2, "usage: hmgapid wifi-if add|del <name>\n"); return 2; }
-    name = argv[3];
-    if (slen(name) < 5 || slen(name) > 15 || !spre(name, "wlan")) { out(2, "hmgapid: wifi-if: a wlanN name\n"); return 2; }
-    path3(path, sizeof path, "/sys/class/net/", name, "/ifindex");
-    if (seq(argv[2], "add") ? read_int(path) > 0 : read_int(path) <= 0) return 0;   /* there already / gone already */
-    if (x_geteuid() != 0) { out(2, "hmgapid: wifi-if: needs root\n"); return 1; }
-    fd = (int)x_socket(16, 3, 16);   /* AF_NETLINK, SOCK_RAW, NETLINK_GENERIC */
-    if (fd < 0) { out(2, "hmgapid: wifi-if: no netlink\n"); return 1; }
-    alen = nla_put(a, 0, 2, "nl80211", 8);   /* CTRL_ATTR_FAMILY_NAME */
-    if (genl(fd, 0x10, 3, a, alen, &fam) || !fam) { out(2, "hmgapid: wifi-if: no nl80211\n"); x_close(fd); return 1; }
-    if (seq(argv[2], "add")) {
-        /* wlan0's radio: its number goes up each time the driver is reloaded (client mode and back) */
-        int pi = read_int("/sys/class/net/wlan0/phy80211/index");
-        u32 phy = pi < 0 ? 0 : (u32)pi, type = 2;   /* NL80211_IFTYPE_STATION */
-        alen = nla_put(a, 0, 1, &phy, 4);                        /* NL80211_ATTR_WIPHY */
-        alen = nla_put(a, alen, 4, name, (int)slen(name) + 1);   /* NL80211_ATTR_IFNAME */
-        alen = nla_put(a, alen, 5, &type, 4);                    /* NL80211_ATTR_IFTYPE */
-        e = genl(fd, fam, 7, a, alen, 0);                        /* NL80211_CMD_NEW_INTERFACE */
-    } else {
-        u32 idx = (u32)read_int(path);
-        alen = nla_put(a, 0, 3, &idx, 4);   /* NL80211_ATTR_IFINDEX */
-        e = genl(fd, fam, 8, a, alen, 0);   /* NL80211_CMD_DEL_INTERFACE */
-    }
-    x_close(fd);
-    if (e) {
-        line_t l;
-        l.n = 0; l.b[0] = 0;
-        lput(&l, "hmgapid: wifi-if: the kernel refused ("); lnum(&l, e); lput(&l, ")\n");
-        out(2, l.b);
-        return 1;
-    }
-    return 0;
-}
 
 static int wpa_ctl(int argc, char **argv)
 {
-    struct { u16 fam; char path[108]; } to, me;
+    struct { unsigned short fam; char path[108]; } to, me;
     struct { int fd; short ev, rev; } pf;
     int fd, i, r;
     sl n, pid = x_getpid();
@@ -2229,7 +2122,6 @@ int main(int argc, char **argv, char **envp)
     }
     if (seq(argv[1], "daemon")) return daemon_main();
     if (seq(argv[1], "boot") && argc == 2) return boot_main();
-    if (seq(argv[1], "wifi-if")) return wifi_if(argc, argv);
     if (seq(argv[1], "wpa")) return wpa_ctl(argc, argv);
     return client(argc - 1, argv + 1);
 }

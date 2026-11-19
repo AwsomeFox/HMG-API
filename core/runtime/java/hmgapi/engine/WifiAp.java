@@ -4,11 +4,10 @@ import java.lang.reflect.Method;
 
 /**
  * The projection hotspot, through Android's own Wi-Fi service, as the projection apps start it:
- * app_process /system/bin hmgapi.engine.WifiAp restart | stop | start <mode> (root; CLASSPATH
- * hmgapi-hook.jar). Home Wi-Fi's keeper turns it off while the car is parked (the phones off it,
- * home Wi-Fi alone on the radio) and back on when the car is on, and restarts it when a phone can't finish joining the
- * hotspot (seen 2026-11-17 on a US EV6: with the radio shared, the firmware moved the
- * hotspot's channel, and phones then never completed the key handshake until it restarted).
+ * app_process /system/bin hmgapi.engine.WifiAp restart | stop | start <mode> | client on|off (root;
+ * CLASSPATH hmgapi-hook.jar). Home Wi-Fi's keeper turns the hotspot off and the car's own Wi-Fi
+ * client on while the car is parked, and back when it's on: the stock path, the one this driver
+ * handles well (a second interface next to the hotspot didn't hold up: US EV6, 2026-11-18).
  * The same mode as before: the projection AP (apMode 2) or the plain hotspot.
  * Through IWifiManager by reflection (hidden API on 4.4); no Context under app_process.
  */
@@ -23,8 +22,9 @@ public final class WifiAp {
      */
     public static void main(String[] args) throws Exception {
         String v = args.length > 0 ? args[0] : "";
-        if (!(("restart".equals(v) || "stop".equals(v)) && args.length == 1) && !("start".equals(v) && args.length == 2)) {
-            System.out.println("usage: WifiAp restart | stop | start <1|2>");
+        boolean client = "client".equals(v) && args.length == 2 && ("on".equals(args[1]) || "off".equals(args[1]));
+        if (!(("restart".equals(v) || "stop".equals(v)) && args.length == 1) && !("start".equals(v) && args.length == 2) && !client) {
+            System.out.println("usage: WifiAp restart | stop | start <1|2> | client on|off");
             System.exit(2);
         }
         Object b = Class.forName("android.os.ServiceManager").getMethod("getService", String.class).invoke(null, "wifi");
@@ -35,6 +35,18 @@ public final class WifiAp {
         Class<?> i = Class.forName("android.net.wifi.IWifiManager");
         Object wifi = Class.forName("android.net.wifi.IWifiManager$Stub").getMethod("asInterface", Class.forName("android.os.IBinder")).invoke(null, b);
         Class<?> conf = Class.forName("android.net.wifi.WifiConfiguration");
+        if (client) {   // the stock Wi-Fi client (home Wi-Fi while parked); the hotspot must be off first
+            boolean on = "on".equals(args[1]);
+            i.getMethod("setWifiEnabled", boolean.class).invoke(wifi, on);
+            for (int t = 0; t < 60; t++) {   // WIFI_STATE_ENABLED 3, DISABLED 1
+                int st = (Integer) i.getMethod("getWifiEnabledState").invoke(wifi);
+                if (st == (on ? 3 : 1)) break;
+                Thread.sleep(250);
+            }
+            int st = (Integer) i.getMethod("getWifiEnabledState").invoke(wifi);
+            System.out.println("client " + (st == 3 ? "on" : st == 1 ? "off" : "state " + st));
+            System.exit(st == (on ? 3 : 1) ? 0 : 1);
+        }
         int state = (Integer) i.getMethod("getWifiApEnabledState").invoke(wifi);
         int mode;
         if ("start".equals(v)) {

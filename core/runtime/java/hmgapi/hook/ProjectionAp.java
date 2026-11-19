@@ -33,32 +33,6 @@ final class ProjectionAp {
     static final String SSID = "framework.wifi_configuration.connectivity_ssid";
     static final String PSK = "framework.wifi_configuration.connectivity_psk";
     static final String BAND24 = "framework.wifi_configuration.is_24ghz_band";
-    static final String CHANNEL = "framework.wifi_configuration.channel";
-    /** set by home Wi-Fi's keeper (state/wifi.sh) while the car is parked: the channel the hotspot goes on */
-    static final String PARKED = "hmgapi.wifi.parked";
-
-    /**
-     * Home Wi-Fi while the car is parked: the hotspot comes up with a name and key no phone knows, on
-     * the home network's channel, so phones leave it and can't rejoin, and home Wi-Fi has the radio
-     * on one channel (on two, this firmware loses the hotspot after a while). The keeper clears it
-     * when the car is on again and restarts the hotspot as it was. A runtime property: gone at boot.
-     */
-    static boolean parked(MethodHook.Param p, WifiConfiguration w) throws Exception {
-        String ch = (String) Class.forName("android.os.SystemProperties").getMethod("get", String.class, String.class).invoke(null, PARKED, "");
-        if (!ch.matches("[0-9]{1,3}") || !Points.has(CHANNEL)) return false;
-        java.security.SecureRandom r = new java.security.SecureRandom();
-        String name = "HMGAPI-" + Integer.toHexString(0x1000 + r.nextInt(0xf000)), key = Long.toHexString(r.nextLong() | 0x8000000000000000L);
-        WifiConfiguration copy = (WifiConfiguration) WifiConfiguration.class.getConstructor(WifiConfiguration.class).newInstance(w);
-        copy.SSID = name;
-        copy.preSharedKey = key;
-        Points.field(null, SSID).set(copy, name);   // the projection AP (apMode 2) uses these
-        Points.field(null, PSK).set(copy, key);
-        Points.field(null, CHANNEL).setInt(copy, Integer.parseInt(ch));
-        Points.field(null, BAND24).setBoolean(copy, false);
-        p.args[0] = copy;
-        HmgApi.i("projection AP: parked: up under a name and key no phone knows, on channel " + ch + " (home Wi-Fi's), until the car is on");
-        return true;
-    }
 
     /** In the zygote: the hook is inherited by system_server, the only caller. */
     static void zygote() {
@@ -70,7 +44,6 @@ final class ProjectionAp {
                     Object c = p.args[0];
                     if (!(c instanceof WifiConfiguration)) return;
                     WifiConfiguration w = (WifiConfiguration) c;
-                    if (parked(p, w)) return;
                     Object mode = Points.get(null, MODE, w);
                     if (!(mode instanceof Integer) || (Integer) mode != 2) return;
                     String ssid = (String) Points.get(null, SSID, w);

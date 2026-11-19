@@ -16,11 +16,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Settings > Home Wi-Fi: the owner's switch, the networks HMG-API joins (its own list, the car's
- * Wi-Fi settings' networks imported once), a scan, join and forget. Everything goes through
- * hmgapid wifi (the keeper's script, as root); a key is only ever sent to it, never shown or
- * logged. Joining with a key needs the car in P (typing). The scan runs on HMG-API's own client
- * (wlan1), next to the hotspot: wireless CarPlay and Android Auto keep running.
+ * Settings > Home Wi-Fi: the owner's switch, the saved networks (Android's own Wi-Fi config), the
+ * networks seen last time home Wi-Fi was on, add and forget. Everything goes through hmgapid wifi
+ * (the keeper's script, as root); a key is only ever sent to it, never shown or logged. Typing a
+ * key needs the car in P.
  */
 final class HomeWifiPage {
     final MainActivity a;
@@ -34,15 +33,16 @@ final class HomeWifiPage {
 
     void show(final SettingsTab tab) {
         Ui.text(page, "Home Wi-Fi", 21, true, Ui.TEXT);
-        Ui.text(page, "On: the head unit also joins your home Wi-Fi, on a second connection next to the one wireless "
-                + "CarPlay and Android Auto use. They come first: while a phone is on the car's Wi-Fi, home Wi-Fi waits, and "
-                + "it's back once the car is parked or the phone has been gone 2 minutes. Only mods that ask use it; the car's "
-                + "own services stay on its mobile data.", 16, false, Ui.GREY);
+        Ui.text(page, "On: when the car is parked (switched off and you got out), the head unit joins your home Wi-Fi. "
+                + "The car's Wi-Fi for wireless CarPlay and Android Auto goes off meanwhile and comes back when you switch "
+                + "on. Only HMG-API and mods that ask use home Wi-Fi; the car's own services stay on its mobile data. "
+                + "Turning it on needs applying and a restart.", 16, false, Ui.GREY);
         android.widget.Switch sw = Ui.switchRow(page, "Use home Wi-Fi");
         Ui.allowSwitch(a, sw, "home_wifi", false, new Runnable() {
             @Override
             public void run() {
-                a.plan();   // the keeper starts (or stops) once applied; no restart
+                a.needRestart();   // the car's Wi-Fi client feature: one file, read at boot
+                a.plan();
             }
         });
         Ui.text(page, "Now: " + now(), 16, false, Ui.TEXT);
@@ -50,12 +50,13 @@ final class HomeWifiPage {
         Ui.text(page, "Saved networks", 21, true, Ui.TEXT);
         saved = Ui.column(a);
         page.addView(saved);
-        Ui.button(page, "Look for networks", new View.OnClickListener() {
+        Ui.button(page, "Add a network", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                scan();
+                add();
             }
         });
+        Ui.text(page, "Seen last time home Wi-Fi was on", 18, true, Ui.TEXT);
         found = Ui.column(a);
         page.addView(found);
         Ui.line(page);
@@ -63,15 +64,31 @@ final class HomeWifiPage {
         Ui.text(page, "Mods never use the car's mobile data, DNS lookups included: only home Wi-Fi, for the mods that ask. "
                 + "To let one mod use it anyway, at your own risk, list it in hmgapi.json overrides.allow_cellular.", 16, false, Ui.GREY);
         loadSaved();
+        scan();
+    }
+
+    void add() {
+        final EditText name = new EditText(a);
+        name.setHint("Network name");
+        name.setSingleLine(true);
+        new AlertDialog.Builder(a).setTitle("Add a network").setView(name)
+                .setPositiveButton("Next", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int w) {
+                        String n = name.getText().toString().trim();
+                        if (!n.isEmpty()) join(n, false);
+                    }
+                })
+                .setNegativeButton("Cancel", null).show();
     }
 
     static String now() {
         try {
             JSONObject w = new JSONObject(UsbFolders.read(new File("/data/hmgapi/public/wifi.json")));
             String s = w.optString("state");
-            if ("up".equals(s)) return "connected, " + w.optInt("rssi") + " dBm, " + w.optInt("freq") + " MHz";
-            if ("yield".equals(s)) return "waiting: a phone is on the car's Wi-Fi";
-            if ("searching".equals(s)) return "looking for a saved network";
+            if ("up".equals(s)) return "parked and connected, " + w.optInt("rssi") + " dBm, " + w.optInt("freq") + " MHz";
+            if ("waiting".equals(s)) return "waiting for the car to be parked";
+            if ("searching".equals(s)) return "parked: looking for a saved network";
             if ("nonetworks".equals(s)) return "no saved networks yet";
             if ("nolease".equals(s)) return "joined, waiting for an address";
             if ("stock".equals(s)) return "the car's own Wi-Fi settings have the Wi-Fi";
@@ -118,18 +135,18 @@ final class HomeWifiPage {
 
     void scan() {
         found.removeAllViews();
-        Ui.text(found, "Looking…", 16, false, Ui.GREY);
+
         new Ui.Job<Hmgapid.Result>() {
             @Override
             Hmgapid.Result work() throws Exception {
-                return Hmgapid.call(30000, "wifi", "scan");
+                return Hmgapid.call("wifi", "seen");
             }
 
             @Override
             void done(Hmgapid.Result r, Exception e) {
                 found.removeAllViews();
                 if (e != null || r.code != 0) {
-                    Ui.text(found, e != null ? "HMG-API isn't answering." : r.output.trim() + " (turn home Wi-Fi on and apply first)", 16, false, Ui.GREY);
+                    Ui.text(found, e != null ? "HMG-API isn't answering." : r.output.trim(), 16, false, Ui.GREY);
                     return;
                 }
                 // strongest per name; "<MHz>\t<dBm>\t<flags>\t<name>"
@@ -147,7 +164,7 @@ final class HomeWifiPage {
                         return Integer.parseInt(y[1]) - Integer.parseInt(x[1]);
                     }
                 });
-                if (list.isEmpty()) Ui.text(found, "No networks in range.", 16, false, Ui.GREY);
+                if (list.isEmpty()) Ui.text(found, "Nothing yet: home Wi-Fi hasn't been on (it looks while the car is parked). Add a network by its name.", 16, false, Ui.GREY);
                 for (final String[] f : list) {
                     final boolean open = !f[2].contains("WPA") && !f[2].contains("WEP");
                     final boolean usable = !f[2].contains("WEP") && !f[2].contains("EAP");
@@ -214,7 +231,7 @@ final class HomeWifiPage {
                     a.message("Home Wi-Fi", e != null ? "HMG-API isn't answering." : r.output.trim());
                     return;
                 }
-                a.message("Home Wi-Fi", "Saved. HMG-API joins it within a few seconds when no phone is on the car's Wi-Fi.");
+                a.message("Home Wi-Fi", "Saved. The head unit joins it the next time the car is parked in range.");
                 loadSaved();
             }
         }.start(a);

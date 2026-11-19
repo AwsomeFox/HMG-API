@@ -441,6 +441,15 @@ public final class Engine {
             m.set = best == null ? "" : String.valueOf(cars.get(best));
             all.add(m);
         }
+        Mod core = HomeWifi.coreMod(this);   // the owner's home Wi-Fi: the stock client feature, HMG-API's own
+        if (core != null) {
+            try {
+                features(core);
+                all.add(core);
+            } catch (IllegalArgumentException e) {
+                problems.add("hmgapi: " + e.getMessage());
+            }
+        }
         return order(all);
     }
 

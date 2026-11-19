@@ -342,7 +342,7 @@ sysctl comes back).
 A mod never uses the car's cellular link (`rmnet`), DNS lookups included. Its apps (by
 uid) and its services (hmgapid runs them with HMG-API's group 2950 or 2951 as their
 effective group) are refused there by the network keeper, and their lookups can't reach
-the car's DNS servers: an app's go through `wlan1` in netd, a service's run in its own
+the car's DNS servers: an app's go through `wlan0` in netd (no servers there unless home Wi-Fi is up), a service's run in its own
 process (`ANDROID_DNS_MODE=local`). The owner can let one mod use mobile data anyway, at
 their own risk: `"overrides": {"allow_cellular": ["<mod>"]}` in `hmgapi.json` (the plan
 warns).
@@ -353,31 +353,25 @@ For internet, a mod asks for **home Wi-Fi**:
 "wifi": {"home": true}
 ```
 
-With the owner's switch on (HMG-API app, Settings > Home Wi-Fi), the head unit joins the
-owner's home networks on a second interface (`wlan1`) next to the hotspot wireless CarPlay
-and Android Auto use (`wlan0`). The traffic of the mods that ask (their apps, and their
-services) goes through it; the car's own stays on mobile data. A mod that asks while the
-switch is off has no internet (the plan says so). IPv4 only for now.
-
-**The hotspot comes first.** This radio can't keep both on two channels for long (on a US
-EV6, after about ten minutes the firmware moved the hotspot's channel and the phone could no
-longer join), so while a phone is on the hotspot, home Wi-Fi is disconnected. It's back 2
-minutes after the last phone left, or at once when the car is `parked` (the car events' rule,
-Settings > Vehicle): then the hotspot restarts on the home network's channel under a name and
-key no phone knows, so phones leave it and can't rejoin, and both share one channel. It's
-back as it was the moment the car is on. In practice: home Wi-Fi is there while the car sits
-in the driveway, not while you drive. A phone that can't finish joining the hotspot for 30 s
-gets the hotspot restarted.
+With the owner's switch on (HMG-API app, Settings > Home Wi-Fi; it turns the car's own Wi-Fi
+client feature on: one file, a restart), the head unit joins the owner's home network **while
+the car is parked** (the car events' `parked`: off, in P, the driver got out). Then the hotspot
+wireless CarPlay and Android Auto use goes off and the car's own Wi-Fi client joins; when the
+car is switched on again, the client goes off and the hotspot comes back as it was. (A client
+next to the hotspot, on a second interface, didn't hold up on these units' Wi-Fi driver.)
+While joined, the traffic of the mods that ask (their apps, and their services) goes through
+home Wi-Fi; the car's own stays on mobile data. A mod that asks while the switch is off has no
+internet (the plan says so). IPv4 only for now. This is also how HMG-API itself is meant to
+check for updates.
 
 - Check before a download: `HmgApi.homeWifiUp()`, or `HmgApi.homeWifi()`
-  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, yield (a phone is on the
-  hotspot), searching, nolease, nonetworks, stock, clash, nochip, error or off). It never
-  gives the network's name. A download that must finish can wait for the car events'
-  `parked`.
-- The networks: HMG-API's own list, added and forgotten in the HMG-API app (a scan runs
-  next to the hotspot; typing a key needs P); the car's own Wi-Fi settings' networks are
-  imported once. Keys stay in `/data/hmgapi/wifi` (root only), never in a log or Car
-  Report. A network handing out `192.168.0.x` clashes with the hotspot and isn't used.
+  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, waiting (not parked),
+  searching, nonetworks, stock (the car's own Wi-Fi settings have the Wi-Fi), off). It never
+  gives the network's name. Car events' `parked` is the moment to start one; `unparked` ends
+  it (the client goes off).
+- The networks: in Android's own Wi-Fi config, added and forgotten in the HMG-API app (typing
+  a key needs P; the page lists what home Wi-Fi saw while parked). Keys are never in a log or
+  Car Report.
 - The keeper: `hmgapi wifi` (`/data/hmgapi/state/wifi.sh`), its log
   `/data/hmgapi/logs/hmgapi/wifi.log`; routing table 95, rule priority 900, mark 0x2951.
 
@@ -389,8 +383,8 @@ gets the hotspot restarted.
 - **Wi-Fi client:** `"wifi": {"client": true}` (the `android.hardware.wifi` feature
   and `persist.wifi.state=3`, as Tilepad's toggle does); any number of mods can ask. The
   stock client and the hotspot don't run together (the stock Wi-Fi stack ignores the
-  client switch while the hotspot is up); for internet next to wireless projection, ask
-  for home Wi-Fi instead (above).
+  client switch while the hotspot is up); for internet, ask for home Wi-Fi instead (above),
+  which switches between them while parked.
 - **Wi-Fi hotspot:** `"wifi": {"hotspot": true}`: the stock hotspot feature
   (`com.hkmc.software.wifihotspot`), without which the unit never powers its Wi-Fi chip.
   Korean units and some US trims ship without it, or delete it at boot from

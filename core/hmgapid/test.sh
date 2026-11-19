@@ -177,8 +177,6 @@ has "the home Wi-Fi keeper runs" "wifi keeper" "$(run root service-log hmgapi wi
 check "a keeper script only under its own name" "" "$(run root services hmgapi | awk '$2 == "wifinet"')"
 has "a mod's service: its lookups in its own process (never netd's cellular DNS)" "dns=local" "$(run root service-log svc dnsmode)"
 has "HMG-API's own keepers: the system's DNS" "wifi keeper dns=." "$(run root service-log hmgapi wifi)"
-check "wifi-if: a wlanN name only" 2 "$(code root wifi-if add eth0)"
-check "wifi-if: usage" 2 "$(code root wifi-if up wlan1)"
 has "wpa: nobody listening" "wpa_supplicant isn't answering" "$(run root wpa "$T/no-such-socket" STATUS)"
 # wifi: the app's home Wi-Fi verbs, through the keeper's script; the key only in its environment
 mv "$S/state/wifi.sh" "$S/state/wifi.sh.keep"

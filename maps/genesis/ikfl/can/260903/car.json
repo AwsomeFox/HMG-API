@@ -172,7 +172,6 @@
     "framework.power_service_stub.as_interface": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.wifi_configuration": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.wifi_configuration.ap_mode": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
-    "framework.wifi_configuration.channel": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.wifi_configuration.connectivity_psk": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.wifi_configuration.connectivity_ssid": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
     "framework.wifi_configuration.is_24ghz_band": "not in the Car Report: newer than the HMG-API that made it (a Car Report from a newer HMG-API maps it)",
