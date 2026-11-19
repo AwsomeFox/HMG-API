@@ -6,6 +6,14 @@
   points from stock files plus 68 from two agreeing Car Reports from one car, all 351
   of rc.4's points. The 283 pass the check on that car; the full map waits for one.
   The 31 points newer than the reports are listed as missing (#295).
+- **Hook points for Phone Projection's service** (`framework.pp_service.*`: `PPService` in
+  system_server, binder `phoneprojection`): `connect_pp`, `disconnect_pp`,
+  `cancel_connection_pp`, `send_connect_pp_from_bt` (Device Connections), `on_wireless_connected`,
+  `on_wireless_disconnected`, `aa_connected_address`, `cp_connected_address`. Every CarPlay and
+  Android Auto connect, from any screen, and every wireless session report goes through it;
+  the Wireless mod's projection manager (which phone projects) uses them. Mapped on the 17
+  builds with stock files, missing on the Car Report maps until a newer report maps them.
+  Off-car only.
 
 - **The `parked` reading works without a mod asking for car events.** The vehicle service
   only followed the power and gear for the parking rule when a mod declared

@@ -17,43 +17,43 @@ Every point and map lives here, in HMG-API, including the ones only a mod in its
 uses (the wireless mod's, for one): a mod gets new points through an HMG-API release and its
 mod SDK ([mod-repos.md](mod-repos.md), section 4).
 
-382 hook points. **Cars** (`maps/`):
+391 hook points. **Cars** (`maps/`):
 
 | Car | Map | Points |
 |---|---|---|
-| Genesis G70 CAN 260903 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 382 |
-| Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 382 |
-| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 382 |
-| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 312 of 382 |
-| Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 382 |
-| Hyundai Ioniq 6 USA 260903 | checked on a car | 382 of 382 |
-| Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Hyundai Elantra USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 382 of 382 |
-| Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 382 of 382 |
-| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 382 |
-| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 382 of 382 |
-| Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 382 of 382 |
-| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 382 of 382 |
-| Hyundai Ioniq 5 USA 260903 | mapped from stock files | 382 of 382 |
-| Hyundai Kona USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 382 |
-| Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 382 |
-| Kia EV6 CAN 260206 | mapped from stock files | 382 of 382 |
-| Kia EV6 IND 260430 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Kia EV6 KOR 260902 | mapped on cars by HMG-API's own mapper | 318 of 382 |
-| Kia EV6 USA 260507 | checked on a car | 382 of 382 |
-| Kia Carnival USA 260507 | mapped from stock files | 382 of 382 |
-| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-21, Telluride 2020-21 CAN 260206 | mapped from stock files | 382 of 382 |
-| Kia K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave, K7, Morning, Ray KOR 260902 | mapped from stock files | 382 of 382 |
-| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 382 of 382 |
-| Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped from stock files | 382 of 382 |
-| Kia Telluride USA 260507 | mapped from stock files | 382 of 382 |
-| Kia Niro EV CAN 260206 | mapped on cars by HMG-API's own mapper | 351 of 382 |
-| Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped from stock files | 382 of 382 |
-| Kia Niro EV USA 260507 | mapped from stock files | 382 of 382 |
+| Genesis G70 CAN 260903 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Genesis G70 KOR 260902 | mapped on cars by HMG-API's own mapper | 341 of 391 |
+| Genesis G70 USA 260507 | mapped on cars by HMG-API's own mapper | 325 of 391 |
+| Hyundai Ioniq 6 CAN 260206 | checked on a car | 351 of 391 |
+| Hyundai Ioniq 6 SGP 260907 | mapped on cars by HMG-API's own mapper | 312 of 391 |
+| Hyundai Ioniq 6 USA 260507 | mapped from stock files | 351 of 391 |
+| Hyundai Ioniq 6 USA 260903 | checked on a car | 391 of 391 |
+| Hyundai Elantra N USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Hyundai Elantra USA 260507 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 391 of 391 |
+| Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 391 of 391 |
+| Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 391 |
+| Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 391 of 391 |
+| Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 391 of 391 |
+| Hyundai Ioniq 5 USA 260507 | mapped from stock files | 391 of 391 |
+| Hyundai Ioniq 5 USA 260903 | mapped from stock files | 391 of 391 |
+| Hyundai Kona USA 260903 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Hyundai Creta IND 260430 | mapped on cars by HMG-API's own mapper | 338 of 391 |
+| Kia K3 KOR 260902 | mapped on cars by HMG-API's own mapper | 323 of 391 |
+| Kia EV6 CAN 260206 | mapped from stock files | 391 of 391 |
+| Kia EV6 IND 260430 | mapped on cars by HMG-API's own mapper | 360 of 391 |
+| Kia EV6 KOR 260902 | mapped on cars by HMG-API's own mapper | 318 of 391 |
+| Kia EV6 USA 260507 | checked on a car | 391 of 391 |
+| Kia Carnival USA 260507 | mapped from stock files | 391 of 391 |
+| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-21, Telluride 2020-21 CAN 260206 | mapped from stock files | 391 of 391 |
+| Kia K5, Sorento, Stinger, Seltos, Soul, Niro, Mohave, K7, Morning, Ray KOR 260902 | mapped from stock files | 391 of 391 |
+| Kia K5, Sorento, Stinger, Soul, Seltos 2021, Niro 2020-22, Cadenza, Telluride 2020-21 USA 260507 | mapped from stock files | 391 of 391 |
+| Kia Sportage (and Hybrid, Plug-in Hybrid), Forte, Carnival 2022, Niro Hybrid and Plug-in Hybrid, Soul, Seltos 2024 USA 260507 | mapped from stock files | 391 of 391 |
+| Kia Telluride USA 260507 | mapped from stock files | 391 of 391 |
+| Kia Niro EV CAN 260206 | mapped on cars by HMG-API's own mapper | 351 of 391 |
+| Kia Niro, Sportage, Carnival, Telluride, Forte, Soul, Seltos 2024 CAN 260206 | mapped from stock files | 391 of 391 |
+| Kia Niro EV USA 260507 | mapped from stock files | 391 of 391 |
 
 In the tables, **Cars** is "all" when every car above has the point, otherwise the cars without it.
 
@@ -293,6 +293,15 @@ Android framework and the car's service interfaces (any process).
 | `framework.power_listener_stub.power_status_changed` | field | `static TRANSACTION_onPowerStatusChanged`: int | onPowerStatusChanged(status): sent on registration and on every change | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 IND 260430, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 | `framework.power_listener_stub.system_off` | field | `static TRANSACTION_onSystemOff`: int | onSystemOff(): the head unit is about to shut down; responders confirm with confirmSystemOff | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 IND 260430, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 | `framework.bcm_listener_stub.doors` | field | `static TRANSACTION_onDoorAllStateChanged`: int | onDoorAllStateChanged(unlock: driver, passenger, rear left, rear right; open: driver, passenger, rear left, rear right, trunk; hood): open 1, closed 0, -1 unknown; sent on registration and on change | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 IND 260430, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service` | class | `com.android.server.phoneprojection.PPService` | Phone Projection's service (services.jar, in system_server, binder "phoneprojection"): every CarPlay / Android Auto connect, disconnect and session report goes through it | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.connect_pp` | method | `connectPP(int, String, String, int)` → void | a projection connect: (type 1 CarPlay / 2 Android Auto, Bluetooth address, name, connection 0 USB / 1 wireless), from any app (Device Connections, Phone Projection, auto connection) | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.disconnect_pp` | method | `disconnectPP(int, String, String, int)` → void |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.cancel_connection_pp` | method | `cancelConnectionPP(int, String, String, int)` → void |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.send_connect_pp_from_bt` | method | `sendConnectPPFromBT(String, String)` → void | Bluetooth settings' Device Connections connects a phone for projection (address, type) | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.on_wireless_connected` | method | `onWirelessConnected(int, String)` → void | a wireless session is up (type, Bluetooth address) | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.on_wireless_disconnected` | method | `onWirelessDisconnected(int, String)` → void | a wireless session ended (type, Bluetooth address) | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.aa_connected_address` | method | `getAAConnectedBTAddress()` → String |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
+| `framework.pp_service.cp_connected_address` | method | `getCPConnectedBTAddress()` → String |  | not on Genesis G70 CAN 260903, Genesis G70 KOR 260902, Genesis G70 USA 260507, Hyundai Ioniq 6 CAN 260206, Hyundai Ioniq 6 SGP 260907, Hyundai Ioniq 6 USA 260507, Hyundai Elantra N USA 260903, Hyundai Elantra USA 260507, Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902, Hyundai Palisade USA 260903, Hyundai Kona USA 260903, Hyundai Creta IND 260430, Kia K3 KOR 260902, Kia EV6 KOR 260902, Kia Niro EV CAN 260206 |
 
 ## btsettings
 
