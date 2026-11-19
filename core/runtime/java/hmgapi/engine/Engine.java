@@ -134,12 +134,14 @@ public final class Engine {
     }
 
     public static void main(String[] args) {
+        roomToWork();
         Engine e = new Engine();
         int rc;
         try {
             rc = e.run(args);
         } catch (Throwable t) {
             e.out.add("engine error: " + t);
+            e.failedAt(t, args);
             rc = 1;
         }
         if (!e.mirrors.isEmpty() || !e.restarts.isEmpty()) e.out.add("then    " + e.describeAfter());
@@ -153,6 +155,54 @@ public final class Engine {
         }
         System.exit(rc);
     }
+
+    /**
+     * The whole heap Dalvik allows (dalvik.vm.heapsize), not its growth limit: the engine is
+     * a command-line app_process, which gets the growth limit apps do (128 MB of 256 on the
+     * TCC897x builds: the K5's Car Report ran out of memory there). Off the unit there's no
+     * VMRuntime: nothing to do.
+     */
+    static void roomToWork() {
+        try {
+            Class<?> c = Class.forName("dalvik.system.VMRuntime");
+            Object rt = c.getMethod("getRuntime").invoke(null);
+            c.getMethod("clearGrowthLimit").invoke(rt);
+        } catch (Throwable ignored) {
+            // not Dalvik, or no such method: the growth limit stays
+        }
+    }
+
+    static final int ERROR_FRAMES = 8;
+
+    /**
+     * Where an engine error happened: its first frames in the output (the app shows it, so a
+     * photo of the screen says where), and the whole trace in state/engine-error.txt (the
+     * next Car Report's errors). Best effort: after an OutOfMemoryError this may fail too.
+     */
+    void failedAt(Throwable t, String[] args) {
+        try {
+            StackTraceElement[] st = t.getStackTrace();
+            for (int i = 0; i < st.length && i < ERROR_FRAMES; i++) out.add("  at " + st[i]);
+            if (st.length > ERROR_FRAMES) out.add("  ... " + (st.length - ERROR_FRAMES) + " more");
+            for (Throwable c = t.getCause(); c != null && c != c.getCause(); c = c.getCause()) {
+                out.add("  caused by " + c);
+                if (c.getStackTrace().length > 0) out.add("    at " + c.getStackTrace()[0]);
+            }
+        } catch (Throwable ignored) {
+            // no room even for that: the first line is out already
+        }
+        try {
+            if (!data.isDirectory()) return;
+            java.io.StringWriter w = new java.io.StringWriter();
+            w.write("engine " + (args.length > 0 ? args[0] : "") + " at " + new java.util.Date() + "\n");
+            t.printStackTrace(new java.io.PrintWriter(w, true));
+            write(errorFile, w.toString());
+        } catch (Throwable ignored) {
+            // the output has the frames
+        }
+    }
+
+    final File errorFile = new File(stateDir, "engine-error.txt");
 
     /** Live properties and service restarts, run after the result is printed. */
     final Map<String, String> mirrors = new LinkedHashMap<String, String>();
