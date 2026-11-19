@@ -642,7 +642,7 @@ static int op_engine(int fd, int argc, char **argv)
           || seq(sub, "map-car") || seq(sub, "report") || seq(sub, "problem") || seq(sub, "nemesis-sync"))) {
         say(fd, "usage: engine plan | apply [--trial] [--force] | keep | restore | status | recover | install <zip> | remove <id>"
                 " | nemesis-sync | map | map-car [--local | --write | --forget] | verify-map | report [--usb]"
-                " | problem record [--crash-dumps] [--usb] [--seconds N] | problem stop\n");
+                " | problem record [--no-log] [--crash-dumps] [--crash-reports] [--kernel] [--usb] [--seconds N] | problem stop\n");
         return 2;
     }
     a[n++] = APP_PROCESS;

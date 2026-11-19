@@ -15,7 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * engine problem record [--crash-dumps] [--usb] [--seconds N] | stop: the problem log, for an
+ * engine problem record [--no-log] [--crash-dumps] [--crash-reports] [--kernel] [--usb] [--seconds N]
+ *   | stop: the problem log, for an
  * owner with an issue (a crash, a feature that stops) to send to whoever is helping them.
  * Separate from the Car Report: the owner starts it, makes the problem happen, stops it.
  *
@@ -27,12 +28,21 @@ import java.util.regex.Pattern;
  *    scrubbed (Report.scrub + PHONE_IDS);
  *  - each installed mod (id, version, on, whether it supports this car) and the md5 of
  *    the system libraries its native patches are for (stock files, model-level);
- *  - HMG-API's recent errors (as in the Car Report);
+ *  - HMG-API's recent errors (as in the Car Report), and its state: the hook switches and the
+ *    boot guard (/data/hmgapi/hook), and HMG-API's own lines in the kernel log ("hmgapi-hook":
+ *    each zygote start, hooks on or off and why);
+ *  - each mod's added system files and whether they're on the unit (md5 or absent);
  *  - with --crash-dumps: the newest crash dumps in /data/tombstones (an exception to
  *    "nothing from /data", which the owner turns on knowingly): per dump only the
  *    crashed process, signal, registers, backtraces and the library map near the fault.
  *    The raw memory (stack, "memory near", "code around") and the process's own log
  *    lines in the dump are dropped.
+ *  - with --crash-reports: Android's own crash reports in /data/system/dropbox (also kept
+ *    across restarts: a system_server crash at boot is there): app and system crashes, freezes
+ *    (ANR) and native crashes, newest MAX_REPORTS, each cut to its header and stack trace
+ *    (MAX_REPORT_LINES; native ones trimmed like the dumps), scrubbed. The owner's choice too.
+ *  - with --kernel: the kernel log (dmesg), scrubbed, at most MAX_KERNEL bytes. The owner's choice.
+ *  - --no-log: no logcat recording, the rest is collected at once (a problem that already happened).
  *
  * Stops on "engine problem stop" (state/problem.stop), after --seconds (default and most
  * MAX_SECONDS), or at MAX_BYTES of kept lines. Writes public/reports/problem-*.txt (and
@@ -46,6 +56,11 @@ final class ProblemLog {
     static final int MAX_BYTES = 16 << 20;
     static final int MAX_DUMPS = 5;
     static final int MAX_DUMP_LINES = 600;
+    static final int MAX_REPORTS = 10;
+    static final int MAX_REPORT_LINES = 150;
+    static final int MAX_KERNEL = 256 << 10;
+    /** dropbox entries kept with --crash-reports: crashes, freezes, watchdog, native crashes */
+    static final Pattern DROPBOX = Pattern.compile("^((system_server|system_app|data_app)_(crash|anr|wtf|native_crash)|system_server_watchdog|SYSTEM_TOMBSTONE)@(\\d+)\\.txt(\\.gz)?$");
 
     /** whole tags kept as they are (after scrubbing) */
     static final String[] TAGS = {
@@ -70,6 +85,7 @@ final class ProblemLog {
         Pattern.compile("(?i)\\b0000[0-9a-f]{4}-[0-9a-f]{16}\\b"),                                // newer iPhone UDIDs
         Pattern.compile("(?i)\\b[0-9a-f]{24,}\\b"),                                                // older UDIDs, tokens
         Pattern.compile("-?\\b\\d{1,3}\\.\\d{4,}\\s*[,/ ]\\s*-?\\d{1,3}\\.\\d{4,}\\b"),           // latitude, longitude
+        Pattern.compile("(?i)(?<=serial ?(number)?[:=] ?)\\S+"),                                 // USB device serials (kernel log)
     };
 
     static String scrub(String s) {
@@ -101,13 +117,16 @@ final class ProblemLog {
             return 0;
         }
         if (!"record".equals(sub)) {
-            e.out.add("usage: engine problem record [--crash-dumps] [--usb] [--seconds N] | stop");
+            e.out.add("usage: engine problem record [--no-log] [--crash-dumps] [--crash-reports] [--kernel] [--usb] [--seconds N] | stop");
             return 2;
         }
-        boolean dumps = false, usb = false;
+        boolean dumps = false, reports = false, kernel = false, record = true, usb = false;
         int seconds = MAX_SECONDS;
         for (int i = 2; i < args.length; i++) {
             if ("--crash-dumps".equals(args[i])) dumps = true;
+            else if ("--crash-reports".equals(args[i])) reports = true;
+            else if ("--kernel".equals(args[i])) kernel = true;
+            else if ("--no-log".equals(args[i])) record = false;
             else if ("--usb".equals(args[i])) usb = true;
             else if ("--seconds".equals(args[i]) && i + 1 < args.length) seconds = Math.max(1, Math.min(MAX_SECONDS, Integer.parseInt(args[++i])));
         }
@@ -119,7 +138,7 @@ final class ProblemLog {
         final Map<String, Integer> perTag = new TreeMap<String, Integer>();
         final long[] counts = new long[2];   // seen, kept
         String logcat = e.root + "/system/bin/logcat";
-        final Process p = new ProcessBuilder(logcat, "-v", "threadtime", "-b", "main", "-b", "system").redirectErrorStream(true).start();
+        final Process p = record ? new ProcessBuilder(logcat, "-v", "threadtime", "-b", "main", "-b", "system").redirectErrorStream(true).start() : null;
         Thread reader = new Thread() {
             @Override
             public void run() {
@@ -144,9 +163,9 @@ final class ProblemLog {
             }
         };
         reader.setDaemon(true);
-        reader.start();
-        long start = System.currentTimeMillis(), end = start + seconds * 1000L;
-        String why = "time limit (" + seconds + " s)";
+        if (record) reader.start();
+        long start = System.currentTimeMillis(), end = record ? start + seconds * 1000L : start;
+        String why = record ? "time limit (" + seconds + " s)" : "collected only, no recording";
         while (System.currentTimeMillis() < end) {
             if (stop.exists()) { why = "stopped"; break; }
             synchronized (kept) {
@@ -155,8 +174,8 @@ final class ProblemLog {
             if (!reader.isAlive()) { why = "logcat ended"; break; }
             Thread.sleep(250);
         }
-        p.destroy();
-        reader.join(2000);
+        if (p != null) p.destroy();
+        if (record) reader.join(2000);
         stop.delete();
         long took = (System.currentTimeMillis() - start) / 1000;
 
@@ -167,25 +186,41 @@ final class ProblemLog {
         if (build != null) s.append(" (build ").append(build).append(")");
         s.append("\nunit: ");
         for (String k : new String[] {"product", "model", "region", "firmware", "platform", "android"}) s.append(k).append('=').append(e.facts.get(k)).append(' ');
-        s.append("\nrecorded: ").append(took).append(" s, ended by ").append(why).append("\n");
+        s.append("\nrecorded: ").append(record ? took + " s, ended by " + why : "no (" + why + ")").append("\n");
         s.append("crash dumps: ").append(dumps ? "included (trimmed: no memory contents)" : "not included").append("\n");
-        s.append("\nThis file holds only what's listed above and below: logcat lines from crash, CarPlay, Android Auto,\n"
-                + "audio, Wi-Fi hotspot and HMG-API tags (scrubbed of addresses, numbers and device ids), installed mods,\n"
-                + "library checksums, HMG-API's errors").append(dumps ? ", and trimmed crash dumps" : "").append(".\n");
+        s.append("crash reports: ").append(reports ? "included (header and stack trace)" : "not included").append("\n");
+        s.append("kernel log: ").append(kernel ? "included" : "not included (HMG-API's own lines only)").append("\n");
+        s.append("\nThis file holds only what's listed above and below: ").append(record ? "logcat lines from crash, CarPlay, Android Auto,\n"
+                + "audio, Bluetooth, Wi-Fi hotspot and HMG-API tags, " : "").append("installed mods and their files, HMG-API's state and errors")
+                .append(dumps ? ", trimmed crash dumps" : "").append(reports ? ", Android's crash reports" : "").append(kernel ? ", the kernel log" : "")
+                .append(".\nEverything is scrubbed of addresses, numbers and device ids.\n");
 
         s.append("\n== Mods\n");
         mods(e, s);
+        String dmesg = dmesg(e);   // HMG-API's own lines always; the whole log only with --kernel
+        s.append("\n== HMG-API state\n");
+        hmgapiState(e, s, dmesg);
         s.append("\n== HMG-API errors\n");
         for (Object o : Report.errors(e)) s.append(o).append('\n');
         if (dumps) {
             s.append("\n== Crash dumps\n");
             crashDumps(e, s);
         }
-        s.append("\n== Log (").append(counts[1]).append(" of ").append(counts[0]).append(" lines kept)\n");
-        for (Map.Entry<String, Integer> t : perTag.entrySet()) s.append("  ").append(t.getKey()).append(": ").append(t.getValue()).append('\n');
-        s.append('\n');
-        synchronized (kept) {
-            s.append(kept);
+        if (reports) {
+            s.append("\n== Crash reports\n");
+            crashReports(e, s);
+        }
+        if (kernel) {
+            s.append("\n== Kernel log\n");
+            for (String l : dmesg.split("\n")) s.append(scrub(l)).append('\n');
+        }
+        if (record) {
+            s.append("\n== Log (").append(counts[1]).append(" of ").append(counts[0]).append(" lines kept)\n");
+            for (Map.Entry<String, Integer> t : perTag.entrySet()) s.append("  ").append(t.getKey()).append(": ").append(t.getValue()).append('\n');
+            s.append('\n');
+            synchronized (kept) {
+                s.append(kept);
+            }
         }
 
         String name = "problem-" + Report.safe(e.facts.get("model")) + "-" + Report.safe(e.facts.get("region")) + "-"
@@ -198,7 +233,7 @@ final class ProblemLog {
         Engine.write(f, s.toString());
         f.setReadable(true, false);
         e.out.add("problem: " + name);
-        e.out.add("kept: " + counts[1] + " of " + counts[0] + " log lines, " + took + " s, ended by " + why);
+        e.out.add(record ? "kept: " + counts[1] + " of " + counts[0] + " log lines, " + took + " s, ended by " + why : "kept: no log lines (collected only)");
         e.out.add("saved: " + f.getPath());
         if (usb) {
             boolean any = false;
@@ -238,9 +273,119 @@ final class ProblemLog {
                         s.append("  ").append(lib).append(' ').append(l.isFile() ? CarMap.md5(l) : "absent").append('\n');
                     }
                 }
+                // the system files it adds: absent means its changes never applied here
+                File pj = new File(d, "patches.json");
+                Object changes = pj.isFile() ? Json.object(Engine.read(pj)).get("changes") : null;
+                if (changes instanceof List) {
+                    for (Object o : (List<Object>) changes) {
+                        if (!(o instanceof Map) || !"add".equals(((Map<String, Object>) o).get("type"))) continue;
+                        String path = String.valueOf(((Map<String, Object>) o).get("path"));
+                        File t = new File(e.root + path);
+                        s.append("  adds ").append(path).append(' ').append(t.isFile() ? CarMap.md5(t) : "absent").append('\n');
+                    }
+                }
             } catch (Exception x) {
                 s.append(d.getName()).append(": ").append(scrub(String.valueOf(x))).append('\n');
             }
+        }
+    }
+
+    /** the kernel log (dmesg; as root, the whole ring), cut at MAX_KERNEL */
+    static String dmesg(Engine e) {
+        try {
+            String bin = new File(e.root + "/system/bin/dmesg").isFile() ? e.root + "/system/bin/dmesg" : "dmesg";
+            String t = Engine.exec(bin).text;
+            return t.length() > MAX_KERNEL ? "[cut to the last " + (MAX_KERNEL >> 10) + " KB]\n" + t.substring(t.length() - MAX_KERNEL) : t;
+        } catch (Exception x) {
+            return "[dmesg: " + x.getMessage() + "]";
+        }
+    }
+
+    /** the hook switches, the boot guard, and HMG-API's own kernel lines (its zygote wrapper's, one per start) */
+    static void hmgapiState(Engine e, StringBuilder s, String dmesg) {
+        File hook = new File(e.data, "hook");
+        String starts = "absent";
+        try {
+            File f = new File(hook, "starts");
+            if (f.isFile()) starts = Engine.read(f).trim();
+        } catch (Exception ignored) {
+            // unreadable: left as absent
+        }
+        s.append("hook/enable: ").append(new File(hook, "enable").exists() ? "yes" : "no")
+                .append(", hook/disable: ").append(new File(hook, "disable").exists() ? "yes (hooks switched off)" : "no")
+                .append(", hook/starts: ").append(starts).append('\n');
+        try {
+            if (Integer.parseInt(starts) >= 3) s.append("boot guard: hooks off (the zygote failed to start 3 times in a row with them; a reinstall of HMG-API resets it)\n");
+        } catch (NumberFormatException ignored) {
+            // no number: nothing to say
+        }
+        s.append("hook library: ").append(new File(e.root + "/system/lib/libhmgapi_hook.so").isFile() ? "there" : "absent").append('\n');
+        int n = 0;
+        for (String l : dmesg.split("\n")) {
+            if (!l.contains("hmgapi")) continue;
+            if (n++ == 0) s.append("kernel log, HMG-API's lines:\n");
+            s.append("  ").append(scrub(l.trim())).append('\n');
+        }
+        if (n == 0) s.append("kernel log: no HMG-API lines (the ring holds only the latest)\n");
+    }
+
+    /** Android's own crash reports (dropbox), newest first, each cut to its header and stack trace */
+    static void crashReports(Engine e, StringBuilder s) {
+        File[] fs = new File(e.root + "/data/system/dropbox").listFiles();
+        List<Object[]> list = new ArrayList<Object[]>();   // {file, time, type}
+        if (fs != null) {
+            for (File f : fs) {
+                Matcher m = DROPBOX.matcher(f.getName());
+                if (f.isFile() && m.matches()) list.add(new Object[] { f, Long.parseLong(m.group(4)), m.group(1) });
+            }
+        }
+        if (list.isEmpty()) { s.append("(none on this unit)\n"); return; }
+        java.util.Collections.sort(list, new Comparator<Object[]>() {
+            @Override
+            public int compare(Object[] a, Object[] b) {
+                return Long.compare((Long) b[1], (Long) a[1]);
+            }
+        });
+        Map<String, Integer> counts = new TreeMap<String, Integer>();
+        for (Object[] o : list) {
+            Integer c = counts.get((String) o[2]);
+            counts.put((String) o[2], c == null ? 1 : c + 1);
+        }
+        s.append("on this unit: ").append(counts).append(" (the newest ").append(Math.min(MAX_REPORTS, list.size())).append(" below)\n");
+        SimpleDateFormat when = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        for (int i = 0; i < list.size() && i < MAX_REPORTS; i++) {
+            File f = (File) list.get(i)[0];
+            String type = (String) list.get(i)[2];
+            s.append("--- ").append(type).append(" (").append(when.format(new Date((Long) list.get(i)[1]))).append(")\n");
+            try {
+                String text = readMaybeGz(f);
+                if (type.endsWith("native_crash") || type.equals("SYSTEM_TOMBSTONE")) {
+                    s.append(trimDump(text));
+                    continue;
+                }
+                String[] ls = text.split("\n");
+                int k = 0;
+                for (String l : ls) {
+                    if (++k > MAX_REPORT_LINES) { s.append("(cut at ").append(MAX_REPORT_LINES).append(" lines)\n"); break; }
+                    s.append(scrub(l)).append('\n');
+                }
+            } catch (Exception x) {
+                s.append("(unreadable: ").append(scrub(String.valueOf(x))).append(")\n");
+            }
+        }
+    }
+
+    static String readMaybeGz(File f) throws java.io.IOException {
+        if (!f.getName().endsWith(".gz")) return Engine.read(f);
+        java.io.InputStream in = new java.util.zip.GZIPInputStream(new java.io.FileInputStream(f));
+        try {
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            byte[] b = new byte[8192];
+            int n;
+            while ((n = in.read(b)) > 0 && out.size() < (4 << 20)) out.write(b, 0, n);
+            return new String(out.toByteArray(), "UTF-8");
+        } finally {
+            in.close();
         }
     }
 

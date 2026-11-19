@@ -19,6 +19,7 @@ hasnt() { case "$3" in *"$2"*) echo "FAIL  $1: [$2] in [$3]"; fail=1 ;; *) echo 
 mkdir -p "$D/mods/wireless/" "$R/system/bin" "$R/system/lib" "$R/data/tombstones" "$R/storage/usb0"
 printf 'ro.build.product=ZZEV.USA.0000.V015.012.260507\nro.board.platform=tcc897x\n' > "$R/props.txt"
 printf '{"id": "wireless", "version": "1.0", "hooks": {"native": {"libCarPlayUtils.so": ["recipes/x.recipe"], "libGone.so": []}}}' > "$D/mods/wireless/mod.json"
+printf '{"changes": [{"type": "add", "path": "/system/lib/libleafiaaac.so", "src": "files/libleafiaaac.so"}, {"type": "prop", "key": "persist.x", "value": "1"}]}' > "$D/mods/wireless/patches.json"
 printf 'stock bytes' > "$R/system/lib/libCarPlayUtils.so"
 cat > "$R/system/bin/logcat" <<'EOF'
 #!/bin/sh
@@ -107,6 +108,62 @@ hasnt "dump: no stack" "SECRETSTACK" "$f"
 hasnt "dump: no memory near registers" "SECRETMEM" "$f"
 hasnt "dump: no code bytes" "e5901000" "$f"
 hasnt "dump: no log lines" "SECRETLOG" "$f"
+
+# collect only, with Android's crash reports, the kernel log and HMG-API's state
+mkdir -p "$R/data/system/dropbox" "$D/hook"
+cat > "$R/data/system/dropbox/system_server_crash@1795114800000.txt" <<'X'
+Process: system_server
+Build: tcc/tcc897x/tcc897x:4.4.2/KOT49H/1:user/release-keys
+
+java.lang.NullPointerException: hotspot for Jane Doe +1 555 123 4567
+	at com.android.server.wifi.WifiApService.start(WifiApService.java:120)
+	at hmgapi.hook.ProjectionAp.before(ProjectionAp.java:42)
+X
+printf 'Process: com.daudio.app.dipo\n\njava.lang.IllegalStateException: older\n\tat com.daudio.app.dipo.X.y(X.java:1)\n' | gzip > "$R/data/system/dropbox/system_app_crash@1795114700000.txt.gz"
+printf 'Process: com.android.settings\nSubject: Input dispatching timed out\n' > "$R/data/system/dropbox/system_app_anr@1795114600000.txt"
+cp "$R/data/tombstones/tombstone_00" "$R/data/system/dropbox/system_app_native_crash@1795114500000.txt"
+printf 'unrelated' > "$R/data/system/dropbox/event_data@1795114400000.txt"
+printf '3\n' > "$D/hook/starts"; : > "$D/hook/enable"
+cat > "$R/system/bin/dmesg" <<'X'
+#!/bin/sh
+echo "<6>[   10.1] hmgapi-hook: zygote pid 120, hooks on, start 3"
+echo "<6>[   41.7] hmgapi-hook: zygote pid 340, hooks off (boot guard, starts=3)"
+echo "<6>[   50.2] usb 1-1: SerialNumber: 0123456789ABCDEF"
+echo "<6>[   51.0] wlan0: associated with 3c:22:fb:12:34:56"
+X
+chmod +x "$R/system/bin/dmesg"
+rm -f "$D"/public/reports/problem-*
+start=$(date +%s)
+out=$(HMGAPI_ROOT=$R HMGAPI_HOST=1 HMGAPI_TEST_ANY_CAR=1 java -cp "$CP" hmgapi.engine.Engine problem record --no-log --crash-reports --kernel 2>&1)
+check "collect only: at once" yes "$([ $(( $(date +%s) - start )) -lt 20 ] && echo yes || echo no)"
+has "collect only: said so" "kept: no log lines (collected only)" "$out"
+f=$(cat "$D"/public/reports/problem-*.txt)
+hasnt "collect only: no log section" "== Log (" "$f"
+has "state: boot guard" "hook/starts: 3" "$f"
+has "state: explained" "boot guard: hooks off" "$f"
+has "state: HMG-API's kernel lines" "hooks off (boot guard, starts=3)" "$f"
+has "mods: the files it adds, absent here" "adds /system/lib/libleafiaaac.so absent" "$f"
+has "reports: counted by type" "system_server_crash=1" "$f"
+has "reports: system_server's stack" "at com.android.server.wifi.WifiApService.start(WifiApService.java:120)" "$f"
+has "reports: gzipped one read" "java.lang.IllegalStateException: older" "$f"
+has "reports: freezes" "Input dispatching timed out" "$f"
+has "reports: native crash trimmed like a dump" "LeafiaAudioConverterFillComplexBuffer+88" "$f"
+hasnt "reports: native crash's memory dropped" "SECRETMEM" "$f"
+hasnt "reports: other dropbox kinds left out" "unrelated" "$f"
+hasnt "reports: scrubbed (phone number)" "555 123 4567" "$f"
+has "kernel log: kept" "wlan0: associated" "$f"
+hasnt "kernel log: no MAC" "3c:22:fb" "$f"
+hasnt "kernel log: no USB serial" "0123456789ABCDEF" "$f"
+
+# by default (no options): HMG-API's state yes, reports and the whole kernel log no
+rm -f "$D"/public/reports/problem-*
+HMGAPI_ROOT=$R HMGAPI_HOST=1 HMGAPI_TEST_ANY_CAR=1 java -cp "$CP" hmgapi.engine.Engine problem record --no-log > /dev/null 2>&1
+f=$(cat "$D"/public/reports/problem-*.txt)
+has "default: HMG-API's kernel lines" "hmgapi-hook: zygote pid 340" "$f"
+hasnt "default: no crash reports" "WifiApService" "$f"
+hasnt "default: no other kernel lines" "wlan0: associated" "$f"
+has "default: said so" "crash reports: not included" "$f"
+rm -rf "$R/data/system/dropbox" "$D/hook" "$R/system/bin/dmesg"
 
 # without --crash-dumps: none
 rm -f "$D"/public/reports/problem-*

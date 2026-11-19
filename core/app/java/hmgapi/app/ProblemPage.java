@@ -11,17 +11,22 @@ import android.widget.TextView;
  * Logs > Record a problem: the problem log (hmgapid engine problem record), for an owner with
  * an issue to send to whoever helps them. Says first what it takes, then records while the
  * owner makes the problem happen, and saves a .txt on the USB stick and in HMG-API's folder.
- * Crash dumps are the owner's choice, off until they turn them on. The recording keeps going
+ * The sensitive parts (crash dumps, Android's crash reports, the kernel log) are the owner's
+ * choice, off until they turn them on; recording can be off too (collect at once). The recording keeps going
  * when the owner leaves the page; coming back shows it.
  */
 final class ProblemPage {
     static final int MAX_SECONDS = 1800;
-    static boolean recording, dumps;
+    static boolean recording;
+    /** record new log lines (on), crash dumps, Android's crash reports, kernel log (off: the owner's choice) */
+    static final boolean[] on = { true, false, false, false };
+    static final String[] FLAGS = { null, "--crash-dumps", "--crash-reports", "--kernel" };
     static long startedAt;
     static String result, error;
 
     final MainActivity a;
     TextView status;
+    Button goButton;
     final Handler tick = new Handler();
 
     ProblemPage(MainActivity a) {
@@ -40,33 +45,34 @@ final class ProblemPage {
             }
         });
         Ui.text(list, "Record a problem", 28, true, Ui.TEXT);
-        Ui.text(list, "For when something goes wrong (an app crashes, CarPlay stops, no sound) and someone is helping you "
-                + "find out why. Start recording, make the problem happen, then stop. It records for at most 30 minutes, so you can drive or use CarPlay meanwhile; keep the USB stick in.", 17, false, Ui.TEXT);
-        Ui.text(list, "What the file holds", 20, true, Ui.TEXT);
+        Ui.text(list, "For when something goes wrong (an app crashes, CarPlay stops, no sound, HMG-API's hooks stop) and "
+                + "someone is helping you find out why. Pick what to include, then start recording, make the problem "
+                + "happen and stop (30 minutes at most; keep the USB stick in). For a problem that already happened, "
+                + "turn recording off and collect at once.", 17, false, Ui.TEXT);
+        Ui.text(list, "Always in the file", 20, true, Ui.TEXT);
         Ui.text(list, "• The head unit: model, region, firmware, platform, and HMG-API's version.\n"
-                + "• Log lines from crashes, CarPlay, Android Auto, audio, Bluetooth connections, the Wi-Fi hotspot, HMG-API and its mods, "
-                + "only while it records. Lines from every other app (phone, contacts, messages, navigation, radio) "
-                + "are left out, only counted.\n"
-                + "• Your installed mods, and checksums of the system files they patch.\n"
-                + "• HMG-API's recent errors.\n"
+                + "• Your installed mods, the system files they add or patch (checksums), and whether those are there.\n"
+                + "• HMG-API's state and recent errors: whether its hooks are on, its boot guard, and its own lines from "
+                + "each start.\n"
                 + "Device addresses, phone numbers, VIN, serial numbers, device ids and GPS positions are removed from "
-                + "every line. CarPlay and Android Auto lines can still name your phone or what's playing: open the "
-                + "file and look before you send it.", 16, false, Ui.GREY);
-        final Switch sw = Ui.switchRow(list, "Include crash dumps");
-        sw.setChecked(dumps);
-        sw.setEnabled(!recording);
-        sw.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(android.widget.CompoundButton b, boolean on) {
-                dumps = on;
-            }
-        });
-        Ui.text(list, "Crash dumps are the head unit's own records of the last crashes (in /data/tombstones). With this on, "
-                + "the file gets the newest 5, cut down to which program crashed, how, and where in its code. The memory "
-                + "contents and log lines a dump also holds are left out.", 16, false, Ui.GREY);
+                + "every line. Open the file and look before you send it.", 16, false, Ui.GREY);
+        Ui.text(list, "Your choice", 20, true, Ui.TEXT);
+        option(list, 0, "Record new log lines", "While it records: lines from crashes, CarPlay, Android Auto, audio, Bluetooth "
+                + "connections, the Wi-Fi hotspot, HMG-API and its mods. Lines from every other app (phone, contacts, messages, "
+                + "navigation, radio) are left out, only counted. CarPlay and Android Auto lines can name your phone or what's playing.");
+        option(list, 1, "Crash dumps (native)", "The head unit's records of the last program crashes (/data/tombstones): the "
+                + "newest 5, cut down to which program crashed, how, and where in its code. The memory contents and log lines "
+                + "a dump also holds are left out.");
+        option(list, 2, "Android's crash reports", "Android's own reports of app and system crashes and freezes "
+                + "(/data/system/dropbox), kept across restarts, so they include crashes while the head unit was starting: "
+                + "the newest 10, each cut to which program, the error and where in its code. An error message can quote "
+                + "what the program was handling (a name, a song).");
+        option(list, 3, "Kernel log", "The head unit's low-level log since it started (drivers, USB, Wi-Fi, Bluetooth). It "
+                + "names the devices you plugged in or paired; their serial numbers and addresses are removed.");
         LinearLayout buttons = Ui.row(a);
         list.addView(buttons);
-        final Button go = Ui.button(buttons, recording ? "Stop" : "Start recording", true, null);
+        final Button go = Ui.button(buttons, recording ? "Stop" : on[0] ? "Start recording" : "Collect now", true, null);
+        goButton = go;
         go.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,17 +85,31 @@ final class ProblemPage {
         return root;
     }
 
+    void option(LinearLayout list, final int i, String title, String what) {
+        final Switch sw = Ui.switchRow(list, title);
+        sw.setChecked(on[i]);
+        sw.setEnabled(!recording);
+        sw.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(android.widget.CompoundButton b, boolean v) {
+                on[i] = v;
+                if (i == 0 && goButton != null) goButton.setText(v ? "Start recording" : "Collect now");
+            }
+        });
+        Ui.text(list, what, 16, false, Ui.GREY);
+    }
+
     void start() {
         recording = true;
         startedAt = System.currentTimeMillis();
         result = error = null;
-        final boolean withDumps = dumps;
+        final java.util.List<String> cmd = new java.util.ArrayList<String>(java.util.Arrays.asList("engine", "problem", "record", "--usb"));
+        if (!on[0]) cmd.add("--no-log");
+        for (int i = 1; i < on.length; i++) if (on[i]) cmd.add(FLAGS[i]);
         new Ui.Job<String>() {
             @Override
             String work() throws Exception {
-                Hmgapid.Result r = withDumps
-                        ? Hmgapid.call((MAX_SECONDS + 120) * 1000, "engine", "problem", "record", "--usb", "--crash-dumps")
-                        : Hmgapid.call((MAX_SECONDS + 120) * 1000, "engine", "problem", "record", "--usb");
+                Hmgapid.Result r = Hmgapid.call((MAX_SECONDS + 120) * 1000, cmd.toArray(new String[0]));
                 if (r.code != 0) throw new Exception(r.output.trim());
                 return r.output;
             }
@@ -125,7 +145,7 @@ final class ProblemPage {
         if (recording) {
             long s = (System.currentTimeMillis() - startedAt) / 1000;
             status.setTextColor(Ui.WARN);
-            status.setText("Recording: " + s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60
+            status.setText(!on[0] ? "Collecting…" : "Recording: " + s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60
                     + " (stops by itself at 30:00). Make the problem happen now, then come back here and tap Stop.");
             tick.postDelayed(new Runnable() {
                 @Override
