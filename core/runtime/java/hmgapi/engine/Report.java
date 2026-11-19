@@ -67,7 +67,7 @@ final class Report {
         Map<String, Object> pj = new LinkedHashMap<String, Object>();
         try {
             File maps = new File(e.root + "/data/hmgapi/maps");
-            MapProbe p = new MapProbe(e.root + "/system", e.root + "/data/hmgapi/stock", maps);
+            MapProbe p = new MapProbe(e.root + "/system", e.root + "/data/hmgapi/stock", maps, new File(maps, "catalogue"));
             p.run(new File(maps, "catalogue"));
             pj.put("found", (long) p.points.size());
             pj.put("by_reference", new ArrayList<Object>(p.byReference));
@@ -218,6 +218,15 @@ final class Report {
         }
         List<Object> out = new ArrayList<Object>();
         for (int i = Math.max(0, lines.size() - 60); i < lines.size(); i++) out.add(scrub(lines.get(i)));
+        // the engine's last error, where it happened (Engine.failedAt): first 30 lines
+        try {
+            if (e.errorFile.isFile()) {
+                String[] t = Engine.read(e.errorFile).split("\n");
+                for (int i = 0; i < t.length && i < 30; i++) out.add(scrub(t[i]));
+            }
+        } catch (Exception ignored) {
+            // unreadable: left out
+        }
         return out;
     }
 
