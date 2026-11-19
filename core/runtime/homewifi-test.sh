@@ -106,8 +106,8 @@ case $o.$c in
     route.show) if [ "$1" = dev ]; then grep -- " dev $2 .*table main\$" "$f" | sed 's/ table main$//' || true; else grep -- " table ${3:-main}\$" "$f" || true; fi ;;
     route.replace) n=$#; if [ "${@:$((n-1)):1}" = table ]; then tb=${!n}; set -- "${@:1:$((n-2))}"; else tb=main; fi
         grep -v -- "^$1 .*table $tb\$" "$f" > "$f.new"; mv "$f.new" "$f"; echo "$* table $tb" >> "$f" ;;
-    route.del) grep -q -- "^$1 .*dev $3 .*table main\$\|^$1 dev $3 .*table main\$" "$f" || exit 2
-        grep -v -m1 -- "^$1 .*dev $3" "$f" > "$f.new"; mv "$f.new" "$f" ;;
+    route.del) grep -q -e "^$1 .*dev $3 .*table main\$" -e "^$1 dev $3 .*table main\$" "$f" || exit 2
+        awk -v r="$1" -v d="$3" '!x && $1 == r && index($0, " dev " d " ") { x = 1; next } { print }' "$f" > "$f.new"; mv "$f.new" "$f" ;;
     route.flush) grep -v -- " table $2\$" "$f" > "$f.new"; mv "$f.new" "$f" ;;
     route.get) [ "$2" = oif ] && grep -q "^10\.1\." <<< "$1" && echo "$1 dev $3" ;;
     addr.flush) : ;;
