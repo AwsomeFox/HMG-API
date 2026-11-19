@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **The `parked` reading works without a mod asking for car events.** The vehicle service
+  only followed the power and gear for the parking rule when a mod declared
+  `"car_events"`, so on a car where none did, `parked` stayed 0 (a US EV6: switched off,
+  door closed, no "car off" in the vehicle log). It now follows them whenever the map is
+  ready; an event no mod asked for is still only logged. A door already open when the car
+  goes off counts as "opened" (a test for that order).
+
 - **A swapped voice button no longer leaves the car's voice assistant to start by
   itself.** A binding's `send` injected the key with scan code 0. For a sent hold of
   the voice button, the car makes the long press itself
