@@ -35,6 +35,7 @@ mod SDK ([mod-repos.md](mod-repos.md), section 4).
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 CAN 260206 | mapped from stock files | 391 of 391 |
 | Hyundai Sonata, Sonata Hybrid, Santa Fe, Palisade KOR 260902 | mapped on cars by HMG-API's own mapper | 351 of 391 |
 | Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260507 | mapped from stock files | 391 of 391 |
+| Hyundai Elantra, Sonata, Santa Fe, Kona, Ioniq, Venue, Veloster N, Palisade 2020-22 USA 260903 | mapped from stock files | 391 of 391 |
 | Hyundai Palisade USA 260903 | mapped on cars by HMG-API's own mapper | 343 of 391 |
 | Hyundai Ioniq 5 CAN 260206 | mapped from stock files | 391 of 391 |
 | Hyundai Ioniq 5 KOR 260902 | mapped from stock files | 391 of 391 |

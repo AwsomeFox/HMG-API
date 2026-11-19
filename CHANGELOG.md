@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **The older Hyundai models on 260903, US and Canada: a hook map from stock files**
+  (`maps/hyundai/hmc/usa/260903`, all 391 points with code signatures). One system image
+  serves 25 models in both countries: Elantra (and Hybrid), Sonata (and Hybrid), Santa Fe
+  (and Hybrid, Plug-in Hybrid), Kona, Kona Electric 2020-21, Ioniq (Electric, Hybrid,
+  Plug-in Hybrid), Venue 2020-22, Veloster N and Palisade 2020-22 (#320). Their maps for
+  260507 (US) and 260206 (Canada) stay for cars not yet updated. Waiting for a check on a car.
 - **Maps for five more cars, from Car Reports.**
   - The Korean Avante (`CN7`, #275) has the same 18 stock files as the Korean Hyundai
     260902 map, and a US Ioniq 6 on 260206 (#319) has the same files as the Canadian
