@@ -1680,6 +1680,33 @@ static int forget_answers(int fd)
     return 0;
 }
 
+/* home Wi-Fi's networks for HMG-API's app: wifi saved | scan | join <ssid> [key] | forget <ssid>. The keeper's
+ * script does it (state/wifi.sh); the key goes in its environment (HMGAPI_WIFI_PSK), never on a command
+ * line, which any process on the unit can read. */
+static int op_wifi(int fd, int argc, char **argv)
+{
+    static char psk[200];
+    char *a[6], *extra[2];
+    unsigned long long st[16];
+    int n = 0;
+    const char *v = argv[1];
+    if (!((seq(v, "saved") && argc == 2) || (seq(v, "scan") && argc == 2) || (seq(v, "join") && (argc == 3 || argc == 4))
+          || (seq(v, "forget") && argc == 3))) {
+        say(fd, "usage: wifi saved | scan | join <network> [key] | forget <network>\n");
+        return 2;
+    }
+    if (x_stat64(ROOTDIR "/state/wifi.sh", st) != 0) { say(fd, "home Wi-Fi is off (HMG-API settings)\n"); return 1; }
+    if (argc == 4 && slen(argv[3]) > 100) { say(fd, "that key is too long\n"); return 2; }
+    a[n++] = SH; a[n++] = ROOTDIR "/state/wifi.sh"; a[n++] = argv[1];
+    if (argc >= 3) a[n++] = argv[2];
+    a[n] = 0;
+    path3(psk, sizeof psk, "HMGAPI_WIFI_PSK=", argc == 4 ? argv[3] : "", "");
+    extra[0] = psk; extra[1] = 0;
+    n = run_env(fd, a, extra, 1);
+    mset(psk, 0, sizeof psk);
+    return n;
+}
+
 static int op_allow(int fd, int argc, char **argv)
 {
     char p[160];
@@ -1794,6 +1821,7 @@ static int handle(int fd, int whoami, int argc, char **argv)
     if (seq(op, "vehicle") && argc >= 2) return op_vehicle(fd, 0, argc, argv);
     if (seq(op, "vehicle-do") && argc >= 2 && argc <= 5) return op_vehicle_do(fd, 0, argc, argv);
     if (seq(op, "allow") && (argc == 2 || argc == 3)) return op_allow(fd, argc, argv);
+    if (seq(op, "wifi") && argc >= 2 && argc <= 4) return op_wifi(fd, argc, argv);
     if (seq(op, "park-rule") && argc <= 2) return op_park_rule(fd, argc, argv);
     if (seq(op, "micom-watch") && argc <= 9) return op_micom_watch(fd, argc, argv);
     if (seq(op, "micom-log") && argc == 1) return op_svc_log(fd, "hmgapi", "micom");
@@ -2042,7 +2070,7 @@ static int client(int argc, char **argv)
 /* ---------------- home Wi-Fi helpers (run locally, not through the daemon) ----------------
  * hmgapid wifi-if add|del <name>   a station interface on wlan0's radio next to the hotspot (nl80211
  *                                  NEW_INTERFACE / DEL_INTERFACE); root
- * hmgapid wpa <ctrl socket> <cmd>  one wpa_supplicant control command, its answer on stdout
+ * hmgapid wpa <ctrl socket> <cmd>  one wpa_supplicant (or hostapd) control command, its answer on stdout
  * Used by HMG-API's home Wi-Fi keeper (state/wifi.sh). */
 #define x_send(fd, b, n) S4(289, fd, b, n, 0)
 #define x_recv(fd, b, n) S4(291, fd, b, n, 0)

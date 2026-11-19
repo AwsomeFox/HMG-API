@@ -183,8 +183,9 @@ public final class HmgApi {
     /** the car's own on-screen notice (shown over any app, CarPlay and Android Auto too) */
     /**
      * Home Wi-Fi as this mod sees it (mod.json "wifi": {"home": true}): {"state": "up", "rssi": -61,
-     * "freq": 2437}. state: up, searching, nolease, nonetworks, stock (the car's Wi-Fi settings page has
-     * the radio), clash, nochip, error or off. Mods never use the car's mobile data, so with home Wi-Fi
+     * "freq": 2437}. state: up, yield (a phone is on the car's hotspot: home Wi-Fi waits until the car is
+     * parked or the phone has been gone 2 minutes), searching, nolease, nonetworks, stock (the car's own
+     * Wi-Fi settings have the radio), clash, nochip, error or off. Mods never use the car's mobile data, so with home Wi-Fi
      * not up a mod has no internet; check this before a download. No network name: that's the owner's.
      */
     public static JSONObject homeWifi() {

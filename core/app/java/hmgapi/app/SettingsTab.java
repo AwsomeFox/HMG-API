@@ -180,34 +180,7 @@ final class SettingsTab {
     }
 
     void homeWifi() {
-        owner("Home Wi-Fi", "On: the head unit also joins the Wi-Fi networks you save in the car's own Wi-Fi settings, on a "
-                + "second connection next to the one wireless CarPlay and Android Auto use, so both keep working. Only mods that "
-                + "ask use it; the car's own services stay on its mobile data. To add a network, open the car's Wi-Fi settings "
-                + "in P and turn Wi-Fi on there: wireless CarPlay and Android Auto pause while that page is open. Takes effect "
-                + "after applying and a restart.",
-                "Use home Wi-Fi", "home_wifi", false, new Runnable() {
-                    @Override
-                    public void run() {
-                        a.needRestart();
-                        a.plan();
-                    }
-                });
-        String st = "off";
-        try {
-            JSONObject w = new JSONObject(UsbFolders.read(new File("/data/hmgapi/public/wifi.json")));
-            String s = w.optString("state");
-            st = "up".equals(s) ? "connected, " + w.optInt("rssi") + " dBm, " + w.optInt("freq") + " MHz"
-                    : "searching".equals(s) ? "looking for a saved network" : "nonetworks".equals(s) ? "no networks saved in Wi-Fi settings"
-                    : "stock".equals(s) ? "the Wi-Fi settings page has the Wi-Fi" : "clash".equals(s)
-                    ? "this network uses 192.168.0.x, the hotspot's own addresses: it can't be used" : s;
-        } catch (Exception e) {
-            // no keeper running: off
-        }
-        Ui.text(page, "Now: " + st, 16, false, Ui.TEXT);
-        Ui.line(page);
-        Ui.text(page, "Mobile data", 21, true, Ui.TEXT);
-        Ui.text(page, "Mods never use the car's mobile data, DNS lookups included: only home Wi-Fi, for the mods that ask. "
-                + "To let one mod use it anyway, at your own risk, list it in hmgapi.json overrides.allow_cellular.", 16, false, Ui.GREY);
+        new HomeWifiPage(a, page).show(this);
     }
 
     void updates() {

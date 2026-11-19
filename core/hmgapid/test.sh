@@ -180,6 +180,16 @@ has "HMG-API's own keepers: the system's DNS" "wifi keeper dns=." "$(run root se
 check "wifi-if: a wlanN name only" 2 "$(code root wifi-if add eth0)"
 check "wifi-if: usage" 2 "$(code root wifi-if up wlan1)"
 has "wpa: nobody listening" "wpa_supplicant isn't answering" "$(run root wpa "$T/no-such-socket" STATUS)"
+# wifi: the app's home Wi-Fi verbs, through the keeper's script; the key only in its environment
+mv "$S/state/wifi.sh" "$S/state/wifi.sh.keep"
+check "wifi: off without its keeper" "home Wi-Fi is off (HMG-API settings)" "$(run root wifi saved)"
+mkdir -p "$T/app/root/state"
+for d in "$S" "$T/app/root"; do printf 'echo "verb=$1 net=$2 key=$HMGAPI_WIFI_PSK args=$#"\n' > "$d/state/wifi.sh"; done
+check "wifi: join, the key in the environment" "verb=join net=Home key=sekret-key args=2" "$(run root wifi join Home sekret-key)"
+check "wifi: saved" "verb=saved net= key= args=1" "$(run root wifi saved)"
+check "wifi: the HMG-API app may" "verb=forget net=Home key= args=2" "$(run app wifi forget Home)"
+check "wifi: anyone else may not" 13 "$(code other wifi saved)"
+check "wifi: unknown verb" 2 "$(code root wifi up)"
 has "HMG-API's network keeper runs from state/net.sh" "keeper 1a2b" "$(run root service-log hmgapi net)"
 check "... no other HMG-API script" "" "$(run root services hmgapi | awk '$2 == "netx"')"
 check "... and a mod can't run it" "" "$(st netsteal)"

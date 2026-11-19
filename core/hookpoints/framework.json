@@ -226,93 +226,14 @@
       "about": "the hotspot runs on 2.4 GHz (channel24GHzBand) instead of channel; newer builds ignore it for the projection AP"
     },
     {
-      "id": "framework.wifi_service",
-      "kind": "class",
-      "find": {
-        "name": "com.android.server.wifi.WifiService"
-      },
-      "about": "Android's Wi-Fi service (services.jar, in system_server)"
-    },
-    {
-      "id": "framework.wifi_service.set_wifi_enabled",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "setWifiEnabled",
-        "params": [
-          "boolean"
-        ],
-        "ret": "boolean"
-      },
-      "about": "the Wi-Fi client on or off (the stock Wi-Fi settings page's switch); home Wi-Fi turns the hotspot off first, in P"
-    },
-    {
-      "id": "framework.wifi_service.set_wifi_ap_enabled",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "setWifiApEnabled",
-        "params": [
-          "android.net.wifi.WifiConfiguration",
-          "boolean"
-        ],
-        "ret": "void"
-      }
-    },
-    {
-      "id": "framework.wifi_service.set_wifi_ap_enabled_for_connectivity",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "setWifiApEnabledForConnectivity",
-        "params": [
-          "android.net.wifi.WifiConfiguration",
-          "boolean"
-        ],
-        "ret": "void"
-      },
-      "about": "HKMC's projection AP (apMode 2) on or off"
-    },
-    {
-      "id": "framework.wifi_service.get_wifi_ap_enabled_state",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "getWifiApEnabledState",
-        "params": [],
-        "ret": "int"
-      }
-    },
-    {
-      "id": "framework.wifi_service.get_wifi_ap_mode",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "getWifiApMode",
-        "params": [],
-        "ret": "int"
-      },
-      "about": "2 while the projection AP runs"
-    },
-    {
-      "id": "framework.wifi_service.check_and_start_wifi",
-      "kind": "method",
-      "of": "framework.wifi_service",
-      "find": {
-        "name": "checkAndStartWifi",
-        "params": [],
-        "ret": "void"
-      },
-      "about": "Wi-Fi starts at boot"
-    },
-    {
-      "id": "framework.wifi_service.context",
+      "id": "framework.wifi_configuration.channel",
       "kind": "field",
-      "of": "framework.wifi_service",
+      "of": "framework.wifi_configuration",
       "find": {
-        "name": "mContext",
-        "type": "android.content.Context"
-      }
+        "name": "channel",
+        "type": "int"
+      },
+      "about": "the hotspot's channel (5 GHz; channel24GHzBand for 2.4); home Wi-Fi puts the hotspot on the home network's while the car is parked"
     },
     {
       "id": "framework.navigation_cluster",

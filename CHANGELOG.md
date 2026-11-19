@@ -28,24 +28,28 @@
   `.connect_wireless_session`, `gpm.wireless_explorer.*`) and DiPO's
   `dipo.carplay.disconnect` and `.restart_bonjour`: mapped on the 17 builds with stock
   files, missing on the Car Report maps until a newer report maps them. Off-car only.
-- **Home Wi-Fi next to wireless CarPlay and Android Auto.** A new owner switch (HMG-API
-  app, Settings > Home Wi-Fi, off by default): the head unit joins the networks saved in
-  the car's own Wi-Fi settings on a second interface (`wlan1`) while the projection
-  hotspot keeps `wlan0`; the BCM4359 runs both, time-sharing two channels (tried on a US
-  EV6 by hand: a wireless projection session kept working while it was on home Wi-Fi). HMG-API's keeper
-  (`hmgapi wifi`) runs its client, DHCP, its own routing table and DNS, pins a mesh's
-  strongest access point, and never takes `wlan1` down mid-session. The car's Wi-Fi
-  settings page now works in P: HMG-API turns the hotspot off while it's open and back on
-  when it's left or the car leaves P. Mods use it with `"wifi": {"home": true}`; the
-  client library has `homeWifi()` / `homeWifiUp()`. New hook points: `framework.wifi_service`
-  and seven of its members.
+- **Home Wi-Fi, next to wireless CarPlay and Android Auto.** A new owner switch (HMG-API
+  app, Settings > Home Wi-Fi, off by default; no restart): the head unit joins your home
+  networks on a second interface (`wlan1`) while the projection hotspot keeps `wlan0`. The
+  page scans and joins with the hotspot running (typing a key needs P), forgets networks,
+  and imports the car's own Wi-Fi settings' networks once. The hotspot comes first: tried on
+  a US EV6, the radio couldn't hold both on two channels for more than about ten minutes,
+  so while a phone is on the hotspot home Wi-Fi waits; it's back 2 minutes after the phone
+  left, or at once when the car is parked (car events): the hotspot then restarts on the home
+  network's channel under a name and key no phone knows, until the car is on again. A phone
+  that can't finish joining gets the hotspot restarted. New hook point
+  `framework.wifi_configuration.channel`. HMG-API's keeper (`hmgapi wifi`) runs its client, DHCP, its
+  own routing table and DNS, and pins a mesh's strongest access point. Mods use it with
+  `"wifi": {"home": true}`; the client library has `homeWifi()` / `homeWifiUp()`.
 - **Mods never use the car's mobile data**, DNS included: every enabled mod's apps (by
   uid) and services (now run with HMG-API's group 2950/2951) are refused on `rmnet`, and
   their lookups can't reach the car's DNS servers. Internet for mods is home Wi-Fi only;
   `overrides.allow_cellular` lets the owner allow one mod, with a warning in the plan.
   This changes mods that used mobile data until now.
 - `hmgapid wifi-if add|del` and `hmgapid wpa` (the keeper's helpers: an nl80211 station
-  interface, a `wpa_supplicant` control command).
+  interface on the hotspot's radio, a `wpa_supplicant`/`hostapd` control command), and
+  `hmgapid wifi saved|scan|join|forget` for HMG-API's app (a key only ever in the keeper's
+  environment).
 
 - **Wireless CarPlay and Android Auto on the older Hyundai and Kia builds: the
   projection AP gets the name and key the phone is given.** On the US 260507, Canada

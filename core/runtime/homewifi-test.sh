@@ -59,7 +59,8 @@ eng plan
 has "the plan: home Wi-Fi on" "home Wi-Fi  on" "$out"
 has "the plan: home Wi-Fi only for the mod that asked" "network  home Wi-Fi only (no cellular) [dl]" "$out"
 has "the plan: the allowed one" "may use cellular (overrides.allow_cellular, at your own risk) [cell]" "$out"
-has "the plan: the stock client feature, HMG-API's own" "android.hardware.wifi" "$out"
+hasnt "the plan: nothing in /system for it (no stock client feature, no restart)" "android.hardware.wifi" "$out"
+has "the vehicle service runs for it (parked, power)" "hmgapi vehicle " "$(cat "$D/state/services.txt")"
 echo '{"id": "bad", "version": "1.0.0", "wifi": {"home": "yes"}}' > "$D/mods/cell/mod.json"
 eng plan
 has "a bad \"wifi\" ask refused" "\"home\": true}" "$out"
@@ -166,15 +167,29 @@ eng publish-state
 
 # ---- the home Wi-Fi keeper, against fake tools
 X=$T/unit
-mkdir -p "$X/sys/class/net/wlan0" "$X/data/misc/wifi" "$X/data/misc/dhcp" "$X/data/hmgapi/public"
+mkdir -p "$X/sys/class/net/wlan0" "$X/data/misc/wifi/hostapd" "$X/data/misc/dhcp" "$X/data/hmgapi/public" "$X/proc"
+echo "1000.00 2000.00" > "$X/proc/uptime"
+mkdir -p "$X/proc/sys/kernel/random"; echo boot-1 > "$X/proc/sys/kernel/random/boot_id"
 cat > "$F/bin/hmgapid" <<'S'
 #!/bin/bash
 case $1 in
     wifi-if) [ "$2" = add ] && { mkdir -p "$FW/wlan1"; echo "add $3" >> "$FW/ifs.log"; }; exit 0 ;;
-    wpa) c=$3; echo "$c" >> "$FW/wpa.log"
+    vehicle) v=$(cat "$FW/veh.$2" 2>/dev/null); [ -n "$v" ] && echo "$2 $v"; exit 0 ;;
+    wpa) sock=$2 c=$3
+        case $sock in
+            */hostapd/*)   # the hotspot: $FW/phones, one "<mac> <flags>" line each
+                case $c in
+                    STA-FIRST) l=$(sed -n 1p "$FW/phones" 2>/dev/null) ;;
+                    "STA-NEXT "*) m=${c#STA-NEXT }; l=$(grep -A1 "^$m " "$FW/phones" 2>/dev/null | sed -n 2p) ;;
+                esac
+                [ -n "$l" ] && printf '%s\nflags=%s\n' "${l%% *}" "${l#* }"
+                exit 0 ;;
+        esac
+        echo "$c" >> "$FW/wpa.log"
         case $c in
             STATUS) cat "$FW/wpa.status" ;;
             SIGNAL_POLL) echo "RSSI=-61" ;;
+            PING) echo PONG ;;
             LIST_NETWORKS) printf 'network id / ssid / bssid / flags\n0\tCascadia\tany\t\n1\tWillows\tany\t[CURRENT]\n' ;;
             SCAN_RESULTS) printf 'bssid / frequency / signal level / flags / ssid\naa:aa\t2462\t-79\t[WPA2]\tWillows\nbb:bb\t2437\t-61\t[WPA2]\tWillows\ncc:cc\t2437\t-60\t[WPA2]\tOther\n' ;;
             *) echo OK ;;
@@ -196,18 +211,23 @@ printf 1.1.1.1 > "$FW/props/dhcp.wlan1.dns1"; printf ok > "$FW/props/dhcp.wlan1.
 ip route replace default via 10.1.0.1 dev wlan1 metric 1000
 ip route replace 10.1.0.0/16 dev wlan1 proto kernel
 S
+printf '#!/bin/sh\necho "app_process $*" >> "$FW/apps.log"; echo "projection AP restarted"\n' > "$F/bin/app_process"
 printf '#!/bin/sh\n:\n' > "$F/bin/ifconfig"
 printf '#!/bin/sh\n:\n' > "$F/bin/chown"
 chmod +x "$F/bin/"*
-wk() { HMGAPI_TEST_ROOT=$X PATH=$F/bin:$PATH $UNIT_SH -c ". $D/state/wifi.sh.once${1:-}" 2>&1; }
-# one pass of the keeper (its loop replaced by one keep), and three (a counter across checks)
-sed -e 's/^while :; do$/keep; exit 0/' "$D/state/wifi.sh" > "$D/state/wifi.sh.once"
-sed -e 's/^while :; do$/keep; keep; keep; exit 0/' "$D/state/wifi.sh" > "$D/state/wifi.sh.once3"
+# the keeper's loop replaced by N keeps (its state carries across them)
+sed -e 's/^while :; do$/for _k in $(seq 1 ${KEEPS:-1}); do keep; done; exit 0/' "$D/state/wifi.sh" > "$D/state/wifi.sh.n"
+wk() { HMGAPI_TEST_ROOT=$X KEEPS=${1:-1} PATH=$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh.n" 2>&1; }
+verb() { HMGAPI_TEST_ROOT=$X PATH=$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh" "$@" 2>&1; }
 pub() { cat "$X/data/hmgapi/public/wifi.json" 2>/dev/null; }
+state() { pub | sed 's/.*"state": "\([a-z]*\)".*/\1/'; }
+NET=$X/data/hmgapi/wifi/networks.conf
 
+echo "wpa_state=SCANNING" > "$F/fw/wpa.status"
 wk >/dev/null
-check "no saved networks: nothing started" '{"state": "nonetworks", "rssi": 0, "freq": 0}' "$(pub)"
-check "... no wlan1" "" "$(cat "$F/fw/ifs.log" 2>/dev/null)"
+check "no saved networks, none in the car's settings: nothing to join" nonetworks "$(state)"
+check "... its client runs anyway (for the app's scans)" "add wlan1" "$(cat "$F/fw/ifs.log")"
+rm -rf "$X/data/hmgapi/wifi"
 cat > "$X/data/misc/wifi/wpa_supplicant.conf" <<'C'
 ctrl_interface=wlan0
 update_config=1
@@ -219,16 +239,40 @@ network={
 	key_mgmt=WPA-PSK
 }
 C
-echo "wpa_state=SCANNING" > "$F/fw/wpa.status"
 log=$(wk)
-has "saved networks: looking" "looking for the saved networks" "$log"
-check "wlan1 made" "add wlan1" "$(cat "$F/fw/ifs.log")"
-has "its own config: the network blocks" 'ssid="Willows"' "$(cat "$F/fw/wpa.conf")"
+has "the car's own saved networks imported once" "1 network(s) from the car's own Wi-Fi settings" "$log"
+has "... into HMG-API's own list" 'ssid="Willows"' "$(cat "$NET")"
+check "... owner only" "-rw-------" "$(ls -l "$NET" | cut -c1-10)"
+has "its client's config: the networks" 'ssid="Willows"' "$(cat "$F/fw/wpa.conf")"
 hasnt "... not the stock global settings" "ctrl_interface=wlan0" "$(cat "$F/fw/wpa.conf")"
-has "... its own control socket" "ctrl_interface=DIR=$X/data/hmgapi/wifi/ctrl GROUP=wifi" "$(cat "$F/fw/wpa.conf")"
-check "searching" '{"state": "searching", "rssi": 0, "freq": 0}' "$(pub)"
+check "searching" searching "$(state)"
 has "it asks for a scan (this build's supplicant doesn't scan by itself)" "SCAN" "$(cat "$F/fw/wpa.log")"
-hasnt "the password never in the log" "secret" "$log"
+hasnt "the key never in the log" "secret" "$log"
+
+# the app's verbs
+check "saved: the names" "Willows" "$(verb saved)"
+out=$(HMGAPI_WIFI_PSK=short verb join "Cascadia" || true)
+check "join: a key under 8 characters refused" "a Wi-Fi key is 8 to 63 characters" "$out"
+out=$(HMGAPI_WIFI_PSK='has"quote' verb join "Cascadia" || true)
+has "join: a key that could break the config refused" "can't be used" "$out"
+out=$(HMGAPI_WIFI_PSK= verb join 'Bad"Name' || true)
+has "join: a name that could break the config refused" "can't be used" "$out"
+check "join: saved" "saved: Cascadia" "$(HMGAPI_WIFI_PSK=cascadia-key verb join Cascadia)"
+check "... both now" "Willows
+Cascadia" "$(verb saved)"
+has "... its key in the list, not in anything printed" 'psk="cascadia-key"' "$(cat "$NET")"
+HMGAPI_WIFI_PSK=new-willows-key verb join Willows >/dev/null
+check "join again: the network replaced, not doubled" 1 "$(grep -c 'ssid="Willows"' "$NET")"
+has "... with its new key" 'psk="new-willows-key"' "$(cat "$NET")"
+check "an open network" "saved: Cafe" "$(HMGAPI_WIFI_PSK= verb join Cafe)"
+has "... no key" "key_mgmt=NONE" "$(cat "$NET")"
+check "forget" "forgotten: Cafe" "$(verb forget Cafe)"
+check "... gone, the others kept" "Cascadia
+Willows" "$(verb saved | sort)"
+has "scan: what the client sees" "2437	-61	[WPA2]	Willows" "$(verb scan)"
+log=$(wk)
+has "the keeper takes the changed list" "saved networks changed" "$log"
+has "... its client reconfigured" "RECONFIGURE" "$(cat "$F/fw/wpa.log")"
 
 printf 'wpa_state=COMPLETED\nfreq=2437\n' > "$F/fw/wpa.status"
 echo 10.1.174.175 > "$F/fw/lease.ip"
@@ -239,36 +283,109 @@ has "table 95: the default route" "default via 10.1.0.1 dev wlan1 table 95" "$(c
 has "table 95: the subnet" "10.1.0.0/16 dev wlan1 table 95" "$(cat "$F/fw/ip4.route")"
 hasnt "nothing in the main table's default" "default via 10.1.0.1 dev wlan1 metric 1000 table main" "$(cat "$F/fw/ip4.route")"
 has "netd: wlan1's DNS servers (no search domains)" "resolver setifdns wlan1  1.1.1.1" "$(cat "$F/fw/ndc.log")"
-has "a DNS server off the subnet: routed through wlan1" "1.1.1.1/32 via 10.1.0.1 dev wlan1 metric 1000" "$(cat "$F/fw/ip4.route")"
+has "a DNS server that isn't the gateway: through the gateway" "1.1.1.1/32 via 10.1.0.1 dev wlan1 metric 1000" "$(cat "$F/fw/ip4.route")"
 check "mods' services' DNS to the home router's" "-m owner --gid-owner 2951 -p udp --dport 53 -j DNAT --to-destination 1.1.1.1
 -m owner --gid-owner 2951 -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1" "$(cat "$F/fw/4/nat/HMGAPI_HOMEDNS")"
-ip_route_main_default() { grep "^default .*dev wlan1" "$F/fw/ip4.route" | grep -c "table main" || true; }
 FW=$F/fw PATH=$F/bin:$PATH ip route replace default via 10.1.0.1 dev wlan1 metric 1000   # a renewal puts it back
 wk >/dev/null
-check "a renewal's main default taken out again" 0 "$(ip_route_main_default)"
+check "a renewal's main default taken out again" 0 "$(grep "^default .*dev wlan1" "$F/fw/ip4.route" | grep -c "table main" || true)"
 
+# the hotspot comes first
+echo "aa:bb:cc:dd:ee:01 [AUTH][ASSOC][AUTHORIZED]" > "$F/fw/phones"
+: > "$F/fw/wpa.log"
+log=$(wk)
+has "a phone on the hotspot: home Wi-Fi gives way" "a phone on the hotspot: home Wi-Fi gives way" "$log"
+has "... disconnected" "DISCONNECT" "$(cat "$F/fw/wpa.log")"
+hasnt "... the client kept running (not taken down)" "TERMINATE" "$(cat "$F/fw/wpa.log")"
+check "... wlan1 kept" "" "$(grep del "$F/fw/ifs.log" || true)"
+check "... its lease gone" "" "$(grep 'table 95' "$F/fw/ip4.route" || true)"
+check "says so" yield "$(state)"
+echo "wpa_state=DISCONNECTED" > "$F/fw/wpa.status"
+: > "$F/fw/phones"
+echo "1060.00 2000.00" > "$X/proc/uptime"
+: > "$F/fw/wpa.log"
+wk >/dev/null
+check "the phone gone a minute, not parked: still waiting" yield "$(state)"
+hasnt "... not reconnected yet" "RECONNECT" "$(cat "$F/fw/wpa.log")"
+echo 1 > "$F/fw/veh.parked"
+: > "$F/fw/apps.log"
+log=$(wk)
+has "parked (the car events' rule): back at once" "no phone on the hotspot: home Wi-Fi again" "$log"
+has "... reconnected" "RECONNECT" "$(cat "$F/fw/wpa.log")"
+has "parked: the hotspot moves to the home network's channel, under a name no phone knows" "parked: the hotspot on channel 6 under a name no phone knows" "$log"
+check "... the channel for the startAccessPoint hook" 6 "$(cat "$F/fw/props/hmgapi.wifi.parked")"
+has "... the hotspot restarted through Android's Wi-Fi service" "hmgapi.engine.WifiAp restart" "$(cat "$F/fw/apps.log")"
+: > "$F/fw/apps.log"
+check "still parked: left as it is" "" "$(wk | grep -i hotspot || true)"
+check "... no second restart" "" "$(cat "$F/fw/apps.log")"
+echo on > "$F/fw/veh.power"
+has "the car on: the hotspot back as it was" "the car is on: the hotspot back as it was" "$(wk)"
+check "... the channel cleared" "" "$(cat "$F/fw/props/hmgapi.wifi.parked")"
+rm "$F/fw/veh.power"
+D=$D HMGAPI_TEST_ROOT=$X PATH=$F/bin:$PATH $UNIT_SH -c ". /dev/stdin" <<'C' > "$F/fw/ch.txt"
+eval "$(sed -n '/^channel_of() {/,/^}/p' "$D/state/wifi.sh")"
+for f in 2437 2462 5180 5240 5260 5500 5745 5825; do echo "$f:$(channel_of $f)"; done
+C
+check "channels the hotspot may take: 2.4 GHz, 5 GHz 36-48 and 149-165, not the radar ones" "2437:6 2462:11 5180:36 5240:48 5260: 5500: 5745:149 5825:165" "$(cat "$F/fw/ch.txt" | xargs)"
+rm "$F/fw/veh.parked"
+echo "1200.00 2000.00" > "$X/proc/uptime"
+echo "aa:bb:cc:dd:ee:01 [AUTH][ASSOC][AUTHORIZED]" > "$F/fw/phones"; wk >/dev/null
+: > "$F/fw/phones"; echo "1250.00 2000.00" > "$X/proc/uptime"
+check "not parked, the phone gone under 2 minutes: waits" yield "$(wk >/dev/null; state)"
+echo "1330.00 2000.00" > "$X/proc/uptime"
+has "not parked: back 2 minutes after the last phone left" "home Wi-Fi again" "$(wk)"
+
+echo "aa:bb:cc:dd:ee:01 [AUTH][ASSOC][AUTHORIZED]" > "$F/fw/phones"; wk >/dev/null; : > "$F/fw/phones"
+echo "30.00 60.00" > "$X/proc/uptime"; echo boot-2 > "$X/proc/sys/kernel/random/boot_id"   # a restart: the clock starts again
+check "a last phone from before a restart doesn't hold home Wi-Fi back" "" "$(wk | grep 'gives way' || true)$(state | grep yield || true)"
+echo "1330.00 2000.00" > "$X/proc/uptime"
+
+# a phone that can't finish joining
+echo "aa:bb:cc:dd:ee:02 [AUTH][ASSOC]" > "$F/fw/phones"
+: > "$F/fw/apps.log"
+wk 2 >/dev/null
+check "associated, not joined, 20 s: nothing yet" "" "$(cat "$F/fw/apps.log")"
+log=$(wk 3)
+has "30 s: the hotspot restarted" "a phone can't finish joining the hotspot: the hotspot restarted" "$log"
+has "... through Android's Wi-Fi service" "hmgapi.engine.WifiAp restart" "$(cat "$F/fw/apps.log")"
+check "... once in 5 minutes" 1 "$(grep -c WifiAp "$F/fw/apps.log")"
+: > "$F/fw/phones"
+
+# switching off
+printf 'wpa_state=COMPLETED\nfreq=2437\n' > "$F/fw/wpa.status"
+echo "2000.00 2000.00" > "$X/proc/uptime"
+echo 1 > "$F/fw/veh.parked"; wk >/dev/null; rm "$F/fw/veh.parked"
+check "up again before the off" up "$(state)"
+echo preparing_off > "$F/fw/veh.power"
+has "the car switching off: let go" "the car is switching off: home Wi-Fi gives way" "$(wk)"
+check "... says so" off "$(state)"
+rm "$F/fw/veh.power"
+
+# the network clash
+echo 1 > "$F/fw/veh.parked"
+printf 'wpa_state=COMPLETED\nfreq=2437\nid=1\n' > "$F/fw/wpa.status"
+echo 192.168.0.40 > "$F/fw/lease.ip"
+log=$(wk)
+has "a network on the hotspot's range: not used" "192.168.0.x, the hotspot's own range" "$log"
+check "... status says so" clash "$(state)"
+has "... that network off, the others still usable" "DISABLE_NETWORK 1" "$(cat "$F/fw/wpa.log")"
 echo "wpa_state=SCANNING" > "$F/fw/wpa.status"
-has "lost: the lease goes" "home Wi-Fi lost" "$(wk)"
-hasnt "... table 95 empty" "table 95" "$(cat "$F/fw/ip4.route")"
-check "... the DNS redirect empty" "" "$(cat "$F/fw/4/nat/HMGAPI_HOMEDNS")"
+wk >/dev/null
+check "... still says so while searching" clash "$(state)"
 : > "$F/fw/wpa.log"
 wk 3 >/dev/null
 has "can't join three times: the strongest access point's channel pinned" "SET_NETWORK 1 freq_list 2437" "$(cat "$F/fw/wpa.log")"
 
-printf 'wpa_state=COMPLETED\nfreq=2437\nid=1\n' > "$F/fw/wpa.status"
-echo 192.168.0.40 > "$F/fw/lease.ip"
-log=$(wk)
-has "a network on the hotspot's range: left" "192.168.0.x, the hotspot's own range" "$log"
-check "... status says so" clash "$(pub | sed 's/.*"state": "\([a-z]*\)".*/\1/')"
-has "... that network off, the others still usable" "DISABLE_NETWORK 1" "$(cat "$F/fw/wpa.log")"
-echo "wpa_state=SCANNING" > "$F/fw/wpa.status"
-wk >/dev/null
-check "... still says so while searching" clash "$(pub | sed 's/.*"state": "\([a-z]*\)".*/\1/')"
-
 echo running > "$F/fw/props/init.svc.wpa_supplicant"
-has "the stock client on (Wi-Fi settings): ours stops" "home Wi-Fi waits" "$(wk)"
-check "... and says why" stock "$(pub | sed 's/.*"state": "\([a-z]*\)".*/\1/')"
-check "... wlan1 never taken down" "" "$(grep -c 'del' "$F/fw/ifs.log" | grep -v '^0$' || true)"
+has "the car's own client on: ours stops" "home Wi-Fi waits" "$(wk)"
+check "... and says why" stock "$(state)"
+check "... wlan1 never taken down" "" "$(grep del "$F/fw/ifs.log" || true)"
+
+rm -f "$F/fw/props/init.svc.wpa_supplicant"
+echo 9 > "$F/fw/props/hmgapi.wifi.parked"; : > "$F/fw/apps.log"
+verb down >/dev/null
+check "stopping while parked: the hotspot never left under the parked name" "" "$(cat "$F/fw/props/hmgapi.wifi.parked")"
+has "... restarted as it was" "WifiAp restart" "$(cat "$F/fw/apps.log")"
 
 [ $fail = 0 ] && echo "all home Wi-Fi checks passed"
 exit $fail

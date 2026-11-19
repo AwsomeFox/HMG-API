@@ -441,7 +441,7 @@ final class ModRuntime {
             for (Event x : d.events) evs.append(id).append(' ').append(x.event).append(' ').append(x.service == null ? "-" : x.service.name).append('\n');
         }
         boolean watch = new File(e.stateDir, "micom-watch.txt").isFile();   // the owner's MICOM recorder (hmgapid micom-watch)
-        if (veh.length() > 0 || cmd.length() > 0 || evs.length() > 0 || watch) svcs.append(VEHICLE_SERVICE).append('\n');
+        if (veh.length() > 0 || cmd.length() > 0 || evs.length() > 0 || watch || HomeWifi.on(e)) svcs.append(VEHICLE_SERVICE).append('\n');   // home Wi-Fi reads parked and power
         svcs.append(LOG_SERVICE).append('\n');
         e.stateDir.mkdirs();
         String net = Network.publish(e, json, on);   // the network keeper, while a mod has network asks (or some are still in)

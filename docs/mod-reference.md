@@ -354,19 +354,30 @@ For internet, a mod asks for **home Wi-Fi**:
 ```
 
 With the owner's switch on (HMG-API app, Settings > Home Wi-Fi), the head unit joins the
-networks saved in the car's own Wi-Fi settings on a second interface (`wlan1`) next to
-the hotspot wireless CarPlay and Android Auto use (`wlan0`): both run at once, the radio
-time-sharing two channels. The traffic of the mods that ask (their apps, and their
+owner's home networks on a second interface (`wlan1`) next to the hotspot wireless CarPlay
+and Android Auto use (`wlan0`). The traffic of the mods that ask (their apps, and their
 services) goes through it; the car's own stays on mobile data. A mod that asks while the
 switch is off has no internet (the plan says so). IPv4 only for now.
 
+**The hotspot comes first.** This radio can't keep both on two channels for long (on a US
+EV6, after about ten minutes the firmware moved the hotspot's channel and the phone could no
+longer join), so while a phone is on the hotspot, home Wi-Fi is disconnected. It's back 2
+minutes after the last phone left, or at once when the car is `parked` (the car events' rule,
+Settings > Vehicle): then the hotspot restarts on the home network's channel under a name and
+key no phone knows, so phones leave it and can't rejoin, and both share one channel. It's
+back as it was the moment the car is on. In practice: home Wi-Fi is there while the car sits
+in the driveway, not while you drive. A phone that can't finish joining the hotspot for 30 s
+gets the hotspot restarted.
+
 - Check before a download: `HmgApi.homeWifiUp()`, or `HmgApi.homeWifi()`
-  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, searching, nolease,
-  nonetworks, stock, clash, nochip, error or off). It never gives the network's name.
-- Adding networks: the car's Wi-Fi settings page, in P (HMG-API turns the hotspot off
-  while it's open and back on when it's left or the car leaves P; wireless CarPlay and
-  Android Auto pause meanwhile). A network handing out `192.168.0.x` clashes with the
-  hotspot and isn't used.
+  (`{"state": "up", "rssi": -61, "freq": 2437}`; `state` up, yield (a phone is on the
+  hotspot), searching, nolease, nonetworks, stock, clash, nochip, error or off). It never
+  gives the network's name. A download that must finish can wait for the car events'
+  `parked`.
+- The networks: HMG-API's own list, added and forgotten in the HMG-API app (a scan runs
+  next to the hotspot; typing a key needs P); the car's own Wi-Fi settings' networks are
+  imported once. Keys stay in `/data/hmgapi/wifi` (root only), never in a log or Car
+  Report. A network handing out `192.168.0.x` clashes with the hotspot and isn't used.
 - The keeper: `hmgapi wifi` (`/data/hmgapi/state/wifi.sh`), its log
   `/data/hmgapi/logs/hmgapi/wifi.log`; routing table 95, rule priority 900, mark 0x2951.
 

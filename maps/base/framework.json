@@ -1288,58 +1288,6 @@
     "type": "boolean",
     "static": false
   },
-  "framework.wifi_service": {
-    "class": "com.android.server.wifi.WifiService"
-  },
-  "framework.wifi_service.set_wifi_enabled": {
-    "method": "setWifiEnabled",
-    "params": [
-      "boolean"
-    ],
-    "ret": "boolean",
-    "static": false
-  },
-  "framework.wifi_service.set_wifi_ap_enabled": {
-    "method": "setWifiApEnabled",
-    "params": [
-      "android.net.wifi.WifiConfiguration",
-      "boolean"
-    ],
-    "ret": "void",
-    "static": false
-  },
-  "framework.wifi_service.set_wifi_ap_enabled_for_connectivity": {
-    "method": "setWifiApEnabledForConnectivity",
-    "params": [
-      "android.net.wifi.WifiConfiguration",
-      "boolean"
-    ],
-    "ret": "void",
-    "static": false
-  },
-  "framework.wifi_service.get_wifi_ap_enabled_state": {
-    "method": "getWifiApEnabledState",
-    "params": [],
-    "ret": "int",
-    "static": false
-  },
-  "framework.wifi_service.get_wifi_ap_mode": {
-    "method": "getWifiApMode",
-    "params": [],
-    "ret": "int",
-    "static": false
-  },
-  "framework.wifi_service.check_and_start_wifi": {
-    "method": "checkAndStartWifi",
-    "params": [],
-    "ret": "void",
-    "static": false
-  },
-  "framework.wifi_service.context": {
-    "field": "mContext",
-    "type": "android.content.Context",
-    "static": false
-  },
   "framework.car_services.power": {
     "field": "POWER_SERVICE",
     "type": "java.lang.String",
@@ -1420,5 +1368,10 @@
     "field": "TRANSACTION_onDoorAllStateChanged",
     "type": "int",
     "static": true
+  },
+  "framework.wifi_configuration.channel": {
+    "field": "channel",
+    "type": "int",
+    "static": false
   }
 }
