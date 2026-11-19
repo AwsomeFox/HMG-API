@@ -330,7 +330,7 @@ final class HomeWifi {
         "            if manual; then",
         "                if [ \"$(reading gear.park)\" != 1 ]; then rm -f $W/manual; client_off \"out of P\"; status waiting; return; fi",
         "            else",
-        "                client_off \"the car is on\"; status waiting; return",
+        "                client_off \"back to the car's Wi-Fi (the car is on)\"; status waiting; return",
         "            fi",
         "        fi",
         "        st=$(wpa STATUS)",

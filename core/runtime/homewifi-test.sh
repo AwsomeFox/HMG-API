@@ -287,7 +287,7 @@ hasnt "... taken out again" "default via 10.4.0.1 dev wlan0 table main" "$(cat "
 echo on > "$F/fw/veh.power"; echo 0 > "$F/fw/veh.parked"
 : > "$F/fw/apps.log"
 log=$(wk)
-has "the car on: back" "the car is on: the car's Wi-Fi client off, the hotspot back" "$log"
+has "the car on: back" "back to the car's Wi-Fi (the car is on): the car's Wi-Fi client off, the hotspot back" "$log"
 check "... the projection hotspot, in its mode" 2 "$(cat "$F/fw/ap")"
 check "... client off, then the hotspot" "client off
 start 2" "$(grep -o 'client off\|start [12]' "$F/fw/apps.log")"
@@ -310,7 +310,7 @@ echo "2071.00 2000.00" > "$X/proc/uptime"
 has "off 30 s: switched" "the car off: the hotspot off" "$(wk)"
 check "... the hotspot off" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
 echo on > "$F/fw/veh.power"
-has "on again: back at once" "the car is on: the car's Wi-Fi client off, the hotspot back" "$(wk)"
+has "on again: back at once" "back to the car's Wi-Fi (the car is on): the car's Wi-Fi client off, the hotspot back" "$(wk)"
 
 # on request (the app's "Connect now"; later the updater): in P, with the car on
 echo on > "$F/fw/veh.power"; echo 0 > "$F/fw/veh.parked"; echo 0 > "$F/fw/veh.gear.park"
