@@ -6,6 +6,7 @@
 # (wifi.sh) against fake tools that keep their state in files.
 # UNIT_SH: the shell to run the keepers with (mksh, the unit's, when it's installed).
 set -e
+trap 'echo "FAIL  stopped at line $LINENO (exit $?)"' ERR
 cd "$(dirname "$0")/../.."
 case "$UNIT_SH" in *busybox*) UNIT_SH= ;; esac
 UNIT_SH=${UNIT_SH:-$(command -v mksh || command -v bash)}
