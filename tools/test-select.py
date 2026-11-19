@@ -64,6 +64,7 @@ RULES = [
     (['tools/mark-verified.py', 'tools/report-map.py', 'tools/report-map-test.py'], HOOKS),   # they write or read the maps
     (['catalog/*', 'tools/catalog*', 'maps/authors.json', '.github/workflows/catalog.yml'], ['tools/catalog-test.sh']),
     (['tools/micom-*'], ['tools/micom-decode-test.sh']),
+    (['tools/car-triage*', '.github/workflows/car-triage.yml'], ['tools/car-triage-test.sh']),
     (['tools/check-scripts.sh'], ['tools/check-scripts.sh']),
     (['tools/requirements.txt'], ALL),
     (['.github/workflows/release.yml', '.github/workflows/wiki.yml', '.github/CODEOWNERS', '.github/FUNDING.yml', '.github/dependabot.yml'], []),
