@@ -162,7 +162,6 @@ hasnt "... no routing rule" "900:" "$(cat "$F/fw/ip4.rule")"
 check "... still off cellular" 4 "$(grep -c REJECT "$F/fw/4/filter/HMGAPI_CELL")"
 keeper down >/dev/null
 hasnt "down: the cellular chain gone" "HMGAPI_CELL" "$(ipt -S OUTPUT)"
-[ "$(uname)" = Darwin ] && set -x   # TEMP: where macOS stops
 : > "$D/settings/allow/home_wifi"
 eng publish-state
 
@@ -212,7 +211,6 @@ NET=$X/data/misc/wifi/wpa_supplicant.conf
 echo on > "$F/fw/veh.power"; echo 0 > "$F/fw/veh.parked"
 wk >/dev/null
 check "the car on: waits for parked" waiting "$(state)"
-set +x
 check "... the hotspot left as it is" 2 "$(cat "$F/fw/ap")"
 echo delay_mode > "$F/fw/veh.power"; echo 1 > "$F/fw/veh.parked"
 wk >/dev/null
