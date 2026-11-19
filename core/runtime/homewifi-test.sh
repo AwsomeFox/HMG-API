@@ -201,7 +201,8 @@ mkdir -p "$F/fw/props"
 echo 2 > "$F/fw/ap"   # the projection hotspot is up
 # the keeper's loop replaced by N keeps
 sed -e 's/^while :; do$/for _k in $(seq 1 ${KEEPS:-1}); do keep; done; exit 0/' "$D/state/wifi.sh" > "$D/state/wifi.sh.n"
-wk() { HMGAPI_TEST_ROOT=$X KEEPS=${1:-1} PATH=$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh.n" 2>&1; }
+wk() { r=0; HMGAPI_TEST_ROOT=$X KEEPS=${1:-1} PATH=$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh.n" 2>&1 || r=$?
+    [ $r = 0 ] || { echo "FAIL  the keeper exited $r, after: $last" >&2; fail=1; }; }
 verb() { HMGAPI_TEST_ROOT=$X PATH=$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh" "$@" 2>&1; }
 pub() { cat "$X/data/hmgapi/public/wifi.json" 2>/dev/null; }
 state() { pub | sed 's/.*"state": "\([a-z]*\)".*/\1/'; }
