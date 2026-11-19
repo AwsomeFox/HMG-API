@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Maps for five more cars, from Car Reports.**
+  - The Korean Avante (`CN7`, #275) has the same 18 stock files as the Korean Hyundai
+    260902 map, and a US Ioniq 6 on 260206 (#319) has the same files as the Canadian
+    Ioniq 6 260206 map: `CN7.KOR.` and `CEEV.USA.` join those maps' products. #319's
+    report also confirms the Canadian map's 9 points that were mapped before code
+    signatures, so none are unconfirmed now.
+  - New maps: the facelifted Avante in Korea (`CN7PE.KOR` 260902, all 351 rc.4
+    points, #297), the Creta Electric in India (`SU2IEV.IND` 260430, all 351, #325)
+    and the Ioniq 6 in Korea (`CEEV.KOR` 260902, 333 of 351 from a 1.0.2 report, #310).
+    Each one is waiting for a check on a car.
+  - `tools/report-map.py` leaves out points that aren't in the catalogue, from a fork
+    or a local build (#325's report carried 127 of them), and says how many.
+  - The EV6 India map (#295) lists the 9 Phone Projection service points (#331) as
+    missing, like the other maps made from Car Reports; it claimed all 391 before.
 - **Kia EV6, India 260430 (`CVEV.IND`): a hook map** (`maps/kia/ev6/ind/260430`): 283
   points from stock files plus 68 from two agreeing Car Reports from one car, all 351
   of rc.4's points. The 283 pass the check on that car; the full map waits for one.
