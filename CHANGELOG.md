@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- **The boot guard no longer mistakes quick restarts for crashes.** It turned HMG-API's hooks
+  off after three zygote starts in a row that didn't last 120 s, so restarting the head unit
+  (or switching the car off) within two minutes of starting, three times, as during an
+  install, an apply and a restart, turned them off with nothing wrong (seen on a US K5; the
+  v1.0.1 and v1.0.2 notes describe the same). The zygote wrapper now also keeps the kernel's
+  `boot_id` with a count for that boot (`/data/hmgapi/hook/boot`): three failed starts within
+  one boot (a hook crashing the system: init starts the zygote again in the same boot) turn
+  the hooks off as before, and starts across restarts count only toward six in a row, which
+  still stops a loop of full restarts. With no `boot_id`, every start counts as before.
+
 ## 1.1.0-rc.5 (2026-11-19)
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**
