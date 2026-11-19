@@ -65,7 +65,7 @@ public final class Cluster {
         call("update_tbt_sub_info_b", distance, distanceErr, unit, hour, minute, timeType, timeFormat, direction, directionErr, estPoint);
     }
 
-    /** NavigationCluster.updateTBTSubInfo2C: three (unit, fraction, whole) distance points. */
+    /** NavigationCluster.updateTBTSubInfo2C: the HUD's distance (unit, tenths, whole) and the rest zero. */
     public void tbtSubInfo2C(int a, int b, int c, int d, int e, int f, int g, int h, int i) {
         call("update_tbt_sub_info_2c", a, b, c, d, e, f, g, h, i);
     }

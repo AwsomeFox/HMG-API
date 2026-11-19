@@ -59,7 +59,7 @@ import java.util.TreeMap;
  * names the lpatch binary.
  */
 public final class Engine {
-    public static final String HMGAPI_VERSION = "1.1.0-rc.3";
+    public static final String HMGAPI_VERSION = "1.1.0-rc.4";
     /**
      * The release a pre-release leads to (1.1.0 for 1.1.0-rc.1): what a mod's "hmgapi"
      * range of final versions is checked against (Version.meetsHmgapi). Updates compare
@@ -332,6 +332,7 @@ public final class Engine {
             Set<String> on = new LinkedHashSet<String>();
             Map<String, Map<String, Object>> all = LiveState.mods(this, on);
             out.addAll(ModRuntime.describe(this, all, on));
+            out.addAll(HomeWifi.describe(this, all, on));
             adbTcpWarning(all, on);
         }
         if (!problems.isEmpty()) {
@@ -440,6 +441,15 @@ public final class Engine {
             m.set = best == null ? "" : String.valueOf(cars.get(best));
             all.add(m);
         }
+        Mod core = HomeWifi.coreMod(this);   // the owner's home Wi-Fi: the stock client feature, HMG-API's own
+        if (core != null) {
+            try {
+                features(core);
+                all.add(core);
+            } catch (IllegalArgumentException e) {
+                problems.add("hmgapi: " + e.getMessage());
+            }
+        }
         return order(all);
     }
 
@@ -466,10 +476,10 @@ public final class Engine {
     @SuppressWarnings("unchecked")
     static boolean wifiAsk(Object wifi, String what) {
         if (wifi == null) return false;
-        String usage = "\"wifi\": {\"client\": true} and/or {\"hotspot\": true}";
+        String usage = "\"wifi\": {\"client\": true}, {\"hotspot\": true} and/or {\"home\": true}";
         if (!(wifi instanceof Map)) throw new IllegalArgumentException(usage);
         for (Map.Entry<String, Object> e : ((Map<String, Object>) wifi).entrySet()) {
-            if (!("client".equals(e.getKey()) || "hotspot".equals(e.getKey())) || !(e.getValue() instanceof Boolean)) throw new IllegalArgumentException(usage);
+            if (!("client".equals(e.getKey()) || "hotspot".equals(e.getKey()) || "home".equals(e.getKey())) || !(e.getValue() instanceof Boolean)) throw new IllegalArgumentException(usage);
         }
         return Boolean.TRUE.equals(((Map<String, Object>) wifi).get(what));
     }
@@ -792,10 +802,12 @@ public final class Engine {
         Set<String> settingsRestore = new LinkedHashSet<String>();
         Map<String, String> rebased = new TreeMap<String, String>();   // path -> live md5: changed outside HMG-API, built on again
         Map<String, String> rebasedFrom = new TreeMap<String, String>();   // path -> what HMG-API had written (merges: checked after build)
+        boolean force;           // --force: owned files that aren't what HMG-API wrote are written again
 
-        boolean isEmpty() {
+        boolean isEmpty() throws IOException {
             if (!rebased.isEmpty()) return false;
             for (Target t : targets.values()) if (t.restore || t.result == null || !t.result.equals(owned(t.path))) return false;
+            if (force) for (Target t : targets.values()) if (!t.result.equals(md5(sys(t.path)))) return false;
             for (String k : settings.keySet()) if (!String.valueOf(settings.get(k)[0]).equals(ownedSetting(k))) return false;
             return settingsRestore.isEmpty() && bindsText(binds).equals(currentBinds());
         }
@@ -848,6 +860,7 @@ public final class Engine {
     @SuppressWarnings("unchecked")
     Plan plan(boolean restoreAll, boolean force) throws Exception {
         Plan p = new Plan();
+        p.force = force;
         p.state = loadState();
         Map<String, Object> files = (Map<String, Object>) p.state.get("files");
         Map<String, Object> st = (Map<String, Object>) p.state.get("settings");
@@ -1035,7 +1048,8 @@ public final class Engine {
      */
     @SuppressWarnings("unchecked")
     String rebaseWhy(String path, String live, Map<String, Object> owned, Target t) throws IOException {
-        if ("absent".equals(live)) return null;
+        // gone, as before HMG-API added it (another package's uninstall deleted it): stock again, safe to build on
+        if ("absent".equals(live)) return "absent".equals(owned.get("stock")) ? "not there, as before HMG-API added it" : null;
         if (t != null && !t.changes.isEmpty()) {
             boolean merge = true;
             for (Ch ch : t.changes) merge &= MERGES.contains(ch.type) && "any".equals(ch.c.get("stock"));
@@ -1679,7 +1693,10 @@ public final class Engine {
         Map<String, Object> files = (Map<String, Object>) p.state.get("files");
         Map<String, Object> st = (Map<String, Object>) p.state.get("settings");
         List<Target> changed = new ArrayList<Target>();
-        for (Target t : p.targets.values()) if (t.restore || !t.result.equals(p.owned(t.path))) changed.add(t);
+        for (Target t : p.targets.values()) {
+            // --force: also a file whose result is unchanged but which was deleted or changed outside HMG-API (#103)
+            if (t.restore || !t.result.equals(p.owned(t.path)) || (p.force && !t.result.equals(md5(sys(t.path))))) changed.add(t);
+        }
 
         // journal: what each file was before, so a lost apply or a trial can be rolled back
         rm(prevDir);
