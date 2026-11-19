@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Kia EV6, India 260430 (`CVEV.IND`): a hook map** (`maps/kia/ev6/ind/260430`): 283
+  points from stock files plus 68 from two agreeing Car Reports from one car, all 351
+  of rc.4's points. The 283 pass the check on that car; the full map waits for one.
+  The 31 points newer than the reports are listed as missing (#295).
+
 - **The `parked` reading works without a mod asking for car events.** The vehicle service
   only followed the power and gear for the parking rule when a mod declared
   `"car_events"`, so on a car where none did, `parked` stayed 0 (a US EV6: switched off,
