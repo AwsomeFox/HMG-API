@@ -6,21 +6,20 @@
 # (wifi.sh) against fake tools that keep their state in files.
 # UNIT_SH: the shell to run the keepers with (mksh, the unit's, when it's installed).
 set -e
-trap 'echo "FAIL  stopped at line $LINENO (exit $?)"' ERR
 cd "$(dirname "$0")/../.."
 case "$UNIT_SH" in *busybox*) UNIT_SH= ;; esac
 UNIT_SH=${UNIT_SH:-$(command -v mksh || command -v bash)}
 CP=$(mktemp -d)
 sh tools/engine-classes.sh "$CP"
 T=$(mktemp -d)
-cleanup() { [ -f "$T/fake/fw/wpa.sleep" ] && kill "$(cat "$T/fake/fw/wpa.sleep")" 2>/dev/null || true; rm -rf "$T" "$CP"; }
+cleanup() { r=$?; [ $r != 0 ] && [ -z "$done" ] && echo "FAIL  stopped (exit $r) after: ${last:-the start}"; [ -f "$T/fake/fw/wpa.sleep" ] && kill "$(cat "$T/fake/fw/wpa.sleep")" 2>/dev/null || true; rm -rf "$T" "$CP"; }
 trap cleanup EXIT
 R=$T/root
 D=$R/data/hmgapi
 fail=0
-check() { if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted [$2], got [$3]"; fail=1; fi; }
-has() { case "$3" in *"$2"*) echo "ok    $1" ;; *) echo "FAIL  $1: wanted [$2] in [$3]"; fail=1 ;; esac; }
-hasnt() { case "$3" in *"$2"*) echo "FAIL  $1: [$2] in [$3]"; fail=1 ;; *) echo "ok    $1" ;; esac; }
+check() { last=$1; if [ "$2" = "$3" ]; then echo "ok    $1"; else echo "FAIL  $1: wanted [$2], got [$3]"; fail=1; fi; }
+has() { last=$1; case "$3" in *"$2"*) echo "ok    $1" ;; *) echo "FAIL  $1: wanted [$2] in [$3]"; fail=1 ;; esac; }
+hasnt() { last=$1; case "$3" in *"$2"*) echo "FAIL  $1: [$2] in [$3]"; fail=1 ;; *) echo "ok    $1" ;; esac; }
 eng() { set +e; out=$(HMGAPI_ROOT=$R HMGAPI_HOST=1 HMGAPI_TEST_ANY_CAR=1 HMGAPI_PRODUCT=CVEV.USA.0000.V015 java -cp "$CP" hmgapi.engine.Engine "$@" 2>&1); rc=$?; set -e; }
 
 mkdir -p "$D/mods/dl" "$D/mods/quiet" "$D/mods/cell" "$D/settings" "$D/state"
@@ -359,5 +358,6 @@ verb down >/dev/null
 check "down while parked: the hotspot back" 2 "$(cat "$F/fw/ap")"
 check "... the client off" no "$([ -f "$F/fw/client" ] && echo yes || echo no)"
 
+done=1
 [ $fail = 0 ] && echo "all home Wi-Fi checks passed"
 exit $fail
