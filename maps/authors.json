@@ -22,7 +22,8 @@
     "28ad71e0-07c0-8e61-8bf3-380cc71f9280": {
       "name": "lemoyneiv",
       "repos": [
-        "https://github.com/lemoyneiv/hmgapi-comfort"
+        "https://github.com/lemoyneiv/hmgapi-comfort",
+        "https://github.com/lemoyneiv/hmgapi-tile-manager"
       ]
     }
   }
