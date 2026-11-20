@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0-rc.7 (2026-11-19)
+
+- **Comes with wireless CarPlay + Android Auto 2.2.0-rc.8** (it needs this RC's hook points): more
+  Kia and Hyundai builds, wireless ending when you park and leave, the "connect a phone" popup
+  fixed. No other change from rc.6.
+
 ## 1.1.0-rc.6 (2026-11-19)
 
 - **"Install anyway" now covers a mod's patch sets too.** A mod's `patches.json` can list the
