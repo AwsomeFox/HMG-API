@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.6 (2026-11-19)
 
 - **"Install anyway" now covers a mod's patch sets too.** A mod's `patches.json` can list the
   builds it has a set for (`"cars"`); on a head unit missing there, every plan was refused
