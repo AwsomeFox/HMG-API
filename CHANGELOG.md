@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **A mod's settings save themselves; no more "Save settings" button.** Changing a
+  setting and pressing Apply changes without saving first lost the change. Now a switch
+  or choice saves when tapped, a text or number field when you tap Done or move on, and
+  anything still being typed is saved before Apply changes runs, before another tab or
+  mod is shown, and when you leave the app. A value that can't be saved (a number field
+  with letters) stops Apply and says why. Fast taps no longer start overlapping saves or
+  show "Changes not applied" twice. Built only: not tried on a car.
 - **Installing a mod from Updates could stop at "engine error: java.io.IOException: rename
   …/.features/….xml.tmp"** (the wireless mod, and any mod with `"feature_flags"` or
   `"wifi"`). Back from Updates, the app checked what would change twice at once, and both
