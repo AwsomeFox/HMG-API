@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **The boot guard no longer mistakes quick restarts for crashes.** It turned HMG-API's hooks
+  off after three zygote starts in a row that didn't last 120 s, so restarting the head unit
+  (or switching the car off) within two minutes of starting, three times, as during an
+  install, an apply and a restart, turned them off with nothing wrong (seen on a US K5; the
+  v1.0.1 and v1.0.2 notes describe the same). The zygote wrapper now also keeps the kernel's
+  `boot_id` with a count for that boot (`/data/hmgapi/hook/boot`): three failed starts within
+  one boot (a hook crashing the system: init starts the zygote again in the same boot) turn
+  the hooks off as before, and starts across restarts count only toward six in a row, which
+  still stops a loop of full restarts. With no `boot_id`, every start counts as before.
 - **Maps from rc.4 and rc.5 Car Reports: the newest hook points on five builds.** Ioniq 6
   260206 (Canada and US, #354, #319: two cars, same points) and Elantra `CN7PE` USA 260507
   (#252) now map all 391 points; Genesis G70 USA 260507 (#2) and Palisade USA 260903 (#54)
