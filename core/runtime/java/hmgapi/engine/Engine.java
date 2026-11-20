@@ -138,13 +138,15 @@ public final class Engine {
      * up saying who holds it. The engine's own child processes (the installer's engine
      * firmware-reset, NEMESIS scripts) run inside the holder's run: HMGAPI_ENGINE_LOCKED=1
      * passes them through. status and map only read, for the app's screens: never wait.
+     * problem neither: it only reads, and writes its own file in public/reports and its stop
+     * flag; a recording lasts up to 30 minutes and its "problem stop" must get through.
      */
     static final String LOCKED_ENV = "HMGAPI_ENGINE_LOCKED";
     static volatile boolean locked;
     static java.io.RandomAccessFile lockFile;   // held open (the lock goes with the process)
 
     boolean lock(String cmd) throws IOException, InterruptedException {
-        if ("status".equals(cmd) || "map".equals(cmd) || "1".equals(env(LOCKED_ENV, null))) return true;
+        if ("status".equals(cmd) || "map".equals(cmd) || "problem".equals(cmd) || "1".equals(env(LOCKED_ENV, null))) return true;
         File f = new File(stateDir, "engine.lock");
         java.io.RandomAccessFile raf = new java.io.RandomAccessFile(f, "rw");
         long wait = Long.parseLong(env("HMGAPI_LOCK_WAIT", "900")) * 1000000000L, start = System.nanoTime();
@@ -371,6 +373,7 @@ public final class Engine {
         if ("verify-map".equals(cmd)) return MapCheck.run(this);
         if ("map-car".equals(cmd)) return MapProbe.run(this, args);
         if ("report".equals(cmd)) return Report.run(this, args.length > 1 && "--usb".equals(args[1]));
+        if ("problem".equals(cmd)) return ProblemLog.run(this, args);
         if ("usb-scan".equals(cmd)) return UsbUpdates.scan(this);
         if ("publish-state".equals(cmd)) return LiveState.publish(this);
         if ("apps".equals(cmd)) return ModApps.sync(this);
