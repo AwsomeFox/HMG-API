@@ -18,6 +18,28 @@
   native crashes, kept across restarts, so a crash while the head unit starts is there; the
   newest 10, cut to header and stack trace), and the kernel log. With recording off it
   collects at once, for a problem that already happened.
+- **A mod's settings save themselves; no more "Save settings" button.** Changing a
+  setting and pressing Apply changes without saving first lost the change. Now a switch
+  or choice saves when tapped, a text or number field when you tap Done or move on, and
+  anything still being typed is saved before Apply changes runs, before another tab or
+  mod is shown, and when you leave the app. A value that can't be saved (a number field
+  with letters) stops Apply and says why. Fast taps no longer start overlapping saves or
+  show "Changes not applied" twice. Built only: not tried on a car.
+- **Installing a mod from Updates could stop at "engine error: java.io.IOException: rename
+  …/.features/….xml.tmp"** (the wireless mod, and any mod with `"feature_flags"` or
+  `"wifi"`). Back from Updates, the app checked what would change twice at once, and both
+  runs wrote the mod's new feature file through the same temporary file. Opening HMG-API
+  again and applying worked. Now only one engine run happens at a time (`state/engine.lock`;
+  a run waits up to 15 minutes, then says which run is still busy), each run writes its own
+  temporary files, and the app checks once. A plan could also wipe the folder an install
+  or USB scan was using; the lock fixes that too.
+- **Home Wi-Fi's "Connect now" can run until you drive off.** The page has a "Turn off
+  after [30] minutes" box (the minutes and the box are remembered); unticked, home Wi-Fi
+  stays on, with wireless CarPlay and Android Auto off, until you shift out of P, tap
+  Back, or the head unit restarts. Leaving the app doesn't end it (it never did: the
+  keeper runs on its own). `hmgapid wifi now 0` is the same from a shell; minutes with a
+  leading zero (`030`) are read as decimal. The status line says "connected" instead of
+  "connected (the car is off)", since Connect now runs with the car on. Off-car only.
 
 ## 1.1.0-rc.5 (2026-11-19)
 

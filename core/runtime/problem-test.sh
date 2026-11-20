@@ -172,6 +172,11 @@ f=$(cat "$D"/public/reports/problem-*.txt)
 has "dumps off: said so" "crash dumps: not included" "$f"
 hasnt "dumps off: no dump" "CarPlayAudio  >>>" "$f"
 
+# the engine lock (one run at a time: another run holds it here) holds up neither a recording nor its stop
+mkdir -p "$D/state"
+python3 -I -c 'import fcntl,sys,time; f=open(sys.argv[1],"a+"); fcntl.lockf(f,fcntl.LOCK_EX); time.sleep(40)' "$D/state/engine.lock" &
+holder=$!
+sleep 1
 # stop ends a long recording early
 rm -f "$D"/public/reports/problem-*
 start=$(date +%s)
@@ -184,6 +189,7 @@ took=$(( $(date +%s) - start ))
 has "stop: ended by stop" "ended by stopped" "$(cat "$T/long.out")"
 [ $took -lt 30 ] && echo "ok    stop: ended early (${took} s)" || { echo "FAIL  stop: took ${took} s"; fail=1; }
 check "stop: its flag cleared" "no" "$([ -e "$D/state/problem.stop" ] && echo yes || echo no)"
+kill $holder 2>/dev/null; wait $holder 2>/dev/null || true
 
 set +e
 HMGAPI_ROOT=$R HMGAPI_HOST=1 java -cp "$CP" hmgapi.engine.Engine problem > /dev/null 2>&1; rc=$?
