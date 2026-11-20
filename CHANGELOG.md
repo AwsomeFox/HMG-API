@@ -10,6 +10,13 @@
   a run waits up to 15 minutes, then says which run is still busy), each run writes its own
   temporary files, and the app checks once. A plan could also wipe the folder an install
   or USB scan was using; the lock fixes that too.
+- **Home Wi-Fi's "Connect now" can run until you drive off.** The page has a "Turn off
+  after [30] minutes" box (the minutes and the box are remembered); unticked, home Wi-Fi
+  stays on, with wireless CarPlay and Android Auto off, until you shift out of P, tap
+  Back, or the head unit restarts. Leaving the app doesn't end it (it never did: the
+  keeper runs on its own). `hmgapid wifi now 0` is the same from a shell; minutes with a
+  leading zero (`030`) are read as decimal. The status line says "connected" instead of
+  "connected (the car is off)", since Connect now runs with the car on. Off-car only.
 
 ## 1.1.0-rc.5 (2026-11-19)
 
