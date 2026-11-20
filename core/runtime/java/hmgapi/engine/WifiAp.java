@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 /**
  * The projection hotspot, through Android's own Wi-Fi service, as the projection apps start it:
- * app_process /system/bin hmgapi.engine.WifiAp restart | stop | start <mode> | client on|off (root;
+ * app_process /system/bin hmgapi.engine.WifiAp restart | stop | start <mode> | client on|off | ensure-projection (root;
  * CLASSPATH hmgapi-hook.jar). Home Wi-Fi's keeper turns the hotspot off and the car's own Wi-Fi
  * client on while the car is parked, and back when it's on: the stock path, the one this driver
  * handles well (a second interface next to the hotspot didn't hold up: US EV6, 2026-11-18).
@@ -14,7 +14,45 @@ import java.lang.reflect.Method;
 public final class WifiAp {
     private WifiAp() {}
 
-    static final int AP_ENABLED = 13;
+    static final int AP_DISABLED = 11, AP_ENABLED = 13, AP_FAILED = 14;
+    static final int CLIENT_DISABLED = 1, CLIENT_ENABLED = 3;
+
+    /** The boot keeper may start mode 2 only while both AP and client are idle. */
+    static int ensureProjection(Class<?> type, Object wifi, Class<?> config) throws ReflectiveOperationException, InterruptedException {
+        Method apState = type.getMethod("getWifiApEnabledState");
+        Method clientState = type.getMethod("getWifiEnabledState");
+        Method apMode = type.getMethod("getWifiApMode");
+        Method start = type.getMethod("setWifiApEnabledForConnectivity", config, boolean.class);
+        int client = (Integer) clientState.invoke(wifi);
+        if (client == CLIENT_ENABLED || (client == CLIENT_DISABLED && clientSavedOn(type, wifi))) {
+            System.out.println("the car's own Wi-Fi client is on or set to restore, left alone");
+            return 0;
+        }
+        int ap = (Integer) apState.invoke(wifi);
+        if (ap == AP_ENABLED) {
+            System.out.println("already up");
+            return 0;
+        }
+        if ((ap != AP_DISABLED && ap != AP_FAILED) || (Integer) clientState.invoke(wifi) != CLIENT_DISABLED
+                || (Integer) apState.invoke(wifi) != ap) {
+            System.out.println("Wi-Fi is changing mode");
+            return 1;
+        }
+        start.invoke(wifi, null, true);
+        for (int t = 0; t < 60 && (Integer) apState.invoke(wifi) != AP_ENABLED; t++) Thread.sleep(250);
+        boolean up = (Integer) apState.invoke(wifi) == AP_ENABLED && (Integer) apMode.invoke(wifi) == 2;
+        System.out.println(up ? "up in mode 2" : "didn't come on in mode 2");
+        return up ? 0 : 1;
+    }
+
+    private static boolean clientSavedOn(Class<?> type, Object wifi) throws ReflectiveOperationException {
+        try {
+            return Boolean.TRUE.equals(type.getMethod("getPersistedWifiEnabled").invoke(wifi));
+        } catch (NoSuchMethodException e) {
+            // This vendor API is absent on some builds. The current state still guards the radio.
+            return false;
+        }
+    }
 
     /**
      * restart: off and on again, the same mode. stop: off, printing the mode it had ("2" the projection
@@ -23,8 +61,9 @@ public final class WifiAp {
     public static void main(String[] args) throws Exception {
         String v = args.length > 0 ? args[0] : "";
         boolean client = "client".equals(v) && args.length == 2 && ("on".equals(args[1]) || "off".equals(args[1]));
-        if (!(("restart".equals(v) || "stop".equals(v)) && args.length == 1) && !("start".equals(v) && args.length == 2) && !client) {
-            System.out.println("usage: WifiAp restart | stop | start <1|2> | client on|off");
+        boolean ensure = "ensure-projection".equals(v) && args.length == 1;
+        if (!(("restart".equals(v) || "stop".equals(v)) && args.length == 1) && !("start".equals(v) && args.length == 2) && !client && !ensure) {
+            System.out.println("usage: WifiAp restart | stop | start <1|2> | client on|off | ensure-projection");
             System.exit(2);
         }
         Object b = Class.forName("android.os.ServiceManager").getMethod("getService", String.class).invoke(null, "wifi");
@@ -35,6 +74,7 @@ public final class WifiAp {
         Class<?> i = Class.forName("android.net.wifi.IWifiManager");
         Object wifi = Class.forName("android.net.wifi.IWifiManager$Stub").getMethod("asInterface", Class.forName("android.os.IBinder")).invoke(null, b);
         Class<?> conf = Class.forName("android.net.wifi.WifiConfiguration");
+        if (ensure) System.exit(ensureProjection(i, wifi, conf));
         if (client) {   // the stock Wi-Fi client (home Wi-Fi while parked); the hotspot must be off first
             boolean on = "on".equals(args[1]);
             i.getMethod("setWifiEnabled", boolean.class).invoke(wifi, on);

@@ -47,7 +47,12 @@ final class HomeWifi {
 
     /** mod.json "wifi": {"projection": true} (the hotspot feature comes with it: Engine.wifiAsk) */
     static boolean asksProjection(Map<String, Object> mj) {
-        return mj != null && Engine.wifiAsk(mj.get("wifi"), "projection");
+        try {
+            return mj != null && Engine.wifiAsk(mj.get("wifi"), "projection");
+        } catch (IllegalArgumentException e) {
+            // Apply reports the bad declaration against the mod. Ignore it when publishing state.
+            return false;
+        }
     }
 
     static List<String> projection(Map<String, Map<String, Object>> json, Set<String> on) {
@@ -206,7 +211,6 @@ final class HomeWifi {
         "boot() { cat $X/proc/sys/kernel/random/boot_id 2>/dev/null; }",
         "wants() { [ -f $ASKS ] && while read -r w rest; do [ \"$w\" = \"$1\" ] && { echo \"${rest:-$w}\"; }; done < $ASKS; }",
         "wifi_svc() { case $(service check wifi 2>/dev/null) in *\": found\"*) true ;; *) false ;; esac; }",
-        "ap_up() { ip -4 addr show $I 2>/dev/null | while read -r a b rest; do [ \"$a\" = inet ] && case $b in 192.168.0.1/*) echo y ;; esac; done; }",
         "",
         "# ---- the saved networks: Android's own config (the network={...} blocks; the rest is left as it is)",
         "ssid_of() { while IFS= read -r l; do case $l in *ssid=\\\"*) l=${l#*ssid=\\\"}; echo \"${l%\\\"}\"; return ;; esac; done; }",
@@ -368,10 +372,8 @@ final class HomeWifi {
         "    [ \"$(cat $W/ap.boot 2>/dev/null)\" = \"$(boot)\" ] && return 0",
         "    nap=2   # until it's up: the phone's Bluetooth reconnects early",
         "    client_mode && return 0   # home Wi-Fi has the radio: it brings the AP back itself",
-        "    if stock_client; then boot > $W/ap.boot; say \"projection AP: the car's own Wi-Fi client is on, left alone\"; nap=10; return 0; fi",
-        "    if [ -n \"$(ap_up)\" ]; then boot > $W/ap.boot; say \"projection AP: already up\"; nap=10; return 0; fi",
-        "    if r=$(tool start 2); then   # WifiAp: 0 only once it's up",
-        "        boot > $W/ap.boot; nap=10; say \"projection AP: up for $(echo $mods) ($r)\"",
+        "    if r=$(tool ensure-projection); then   # WifiAp checked the AP and client through Android",
+        "        boot > $W/ap.boot; nap=10; say \"projection AP: $r (requested by $(echo $mods))\"",
         "    else",
         "        [ \"$(cat $W/ap.fail 2>/dev/null)\" = \"$(boot)\" ] || { boot > $W/ap.fail; say \"projection AP: not up yet, trying again ($r)\"; }",
         "    fi",

@@ -410,6 +410,8 @@ check for updates.
   `"hotspot": true`. It's left alone when it's already up (in either mode), while a Wi-Fi
   client is on (the car's own, or home Wi-Fi's while parked, which brings it back itself),
   and once it's been up this boot: if the car turns it off later, that's the car's choice.
+  The keeper checks Android's Wi-Fi state, waits out transitions, and lets a saved Wi-Fi
+  client restore at boot.
   The name and key are the ones the phone is told (HMG-API's projection AP hook, rc.5).
   A mod never starts the AP itself; this is the one place that does, in the Wi-Fi keeper
   (`hmgapi wifi`, from boot; its log `/data/hmgapi/logs/hmgapi/wifi.log`).
