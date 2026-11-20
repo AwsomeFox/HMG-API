@@ -8,8 +8,10 @@
   mod's hooks still loaded. So the mod ran half-installed: its code without its system files
   (seen on a US K5 with the Wireless mod: no audio converter, so CarPlay failed as soon as
   music started). With `overrides.ignore_system` set for the mod, a missing set is now a
-  warning: the changes that need no set apply (props, added files, merges onto any version),
-  and one checked against a set's stock files finds none and is refused for that file.
+  warning, and a plan whose changes need no set (props, added files, merges onto any version)
+  applies. A change made against a set's stock files still refuses the plan, and now says why
+  ("<mod> has no patch set for this head unit ... turn <mod> off, or install a version made
+  for this car") instead of blaming a NEMESIS package.
 
 ## 1.1.0-rc.5 (2026-11-19)
 

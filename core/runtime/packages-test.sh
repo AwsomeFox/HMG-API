@@ -117,7 +117,8 @@ has "... its prop is live" "prop/persist.demo.on=1" "$(cat $R/settings.txt 2>/de
 mkdir -p $R/system/etc; printf 'keep\nx\n' > $R/system/etc/demo.cfg
 printf '{"cars": {"ZZEV.KOR.": "kr"}, "changes": [{"type": "prop", "key": "persist.demo.on", "value": "1"}, {"type": "lines", "path": "/system/etc/demo.cfg", "remove": ["x"]}]}\n' > $R/data/hmgapi/mods/demo/patches.json
 eng plan; check "no set, a change that needs one: refused" 3 $rc
-has "... for that file" "/system/etc/demo.cfg: not the stock file" "$out"
+has "... says the set is missing" "/system/etc/demo.cfg: demo has no patch set for this head unit" "$out"
+hasnt "... not blamed on NEMESIS" "NEMESIS package" "$out"
 check "... file untouched" "keep x" "$(cat $R/system/etc/demo.cfg | tr '\n' ' ' | sed 's/ $//')"
 printf '{"cars": {"ZZEV.KOR.": "kr"}, "changes": [{"type": "prop", "key": "persist.demo.on", "value": "1"}]}\n' > $R/data/hmgapi/mods/demo/patches.json
 python3 -c "import json,sys; p=sys.argv[1]; d=json.load(open(p)); d['overrides']['ignore_system']=[]; json.dump(d, open(p, 'w'))" $R/data/hmgapi/settings/hmgapi.json
