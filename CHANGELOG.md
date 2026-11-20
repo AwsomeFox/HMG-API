@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **New hook point `framework.activity.start_activity_for_result`** (`android.app.Activity`,
+  `startActivityForResult(Intent, int, Bundle)`, which `startActivity` goes through too), in
+  the base map for every car. First user: the Wireless mod, whose wireless features make the
+  car's "connect a phone" popup (`com.mobis.system`) open an app the US/Canadian builds don't
+  have; it sends that one intent to Phone Projection's own Device Connections page.
 - **The boot guard no longer mistakes quick restarts for crashes.** It turned HMG-API's hooks
   off after three zygote starts in a row that didn't last 120 s, so restarting the head unit
   (or switching the car off) within two minutes of starting, three times, as during an
