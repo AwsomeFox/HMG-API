@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- **HMG-API brings up the projection AP for mods that ask** (`"wifi": {"projection": true}`).
+  On some builds nothing starts the access point wireless Android Auto joins (apMode 2): on a
+  US Sorento PHEV (MQ4PHEV 260507, #314) Android Auto saw no AP when the phone's Bluetooth
+  came back, never sent the phone the Wi-Fi details, and didn't try again later. HMG-API's
+  Wi-Fi keeper now starts it from boot, as soon as Android's Wi-Fi service is there, once each
+  boot, with the name and key the phone is told (the rc.5 hook). It's left alone when it's
+  already up, while a Wi-Fi client is on (the car's own, or home Wi-Fi's), and after its first
+  start that boot. Bringing Wi-Fi up is HMG-API's job now, not a mod's. The keeper (`hmgapi
+  wifi`) starts from boot instead of after Android, home Wi-Fi included. The ask brings the
+  hotspot feature with it. Off-car only.
+
 ## 1.1.0-rc.7 (2026-11-19)
 
 - **Comes with wireless CarPlay + Android Auto 2.2.0-rc.8** (it needs this RC's hook points): more
