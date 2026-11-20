@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add the Palisade USA 260507 hook map: 343 points checked in the November 5
+  owner Car Report and eight more resolved off-car. Keep the map marked `mapped`
+  and explicitly list the 40 newer, unresolved points as missing.
 - **A mod's settings save themselves; no more "Save settings" button.** Changing a
   setting and pressing Apply changes without saving first lost the change. Now a switch
   or choice saves when tapped, a text or number field when you tap Done or move on, and
