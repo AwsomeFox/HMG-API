@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.8 (2026-11-20)
 
+- **Comes with wireless CarPlay + Android Auto 2.2.0-rc.9** (it needs this RC): #91's fix (an iPhone
+  can be picked again after an Android phone) and the projection AP from HMG-API.
+- **hmgapid takes its version from Engine.java** at build (#370): a release sets it in one place.
 - **HMG-API brings up the projection AP for mods that ask** (`"wifi": {"projection": true}`).
   On some builds nothing starts the access point wireless Android Auto joins (apMode 2): on a
   US Sorento PHEV (MQ4PHEV 260507, #314) Android Auto saw no AP when the phone's Bluetooth
