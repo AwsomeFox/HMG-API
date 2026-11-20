@@ -443,6 +443,30 @@ has "it doesn't come on: said once" "projection AP: not up yet, trying again" "$
 hasnt "... and not again" "not up yet" "$(wk)"
 mv "$F/bin/app_process.ok" "$F/bin/app_process"
 has "... tried again, up" "projection AP: up in mode 2 (requested by aa)" "$(wk)"
+# QuickBoot: the same boot resumes; the keeper's sleep took far longer than asked (/proc/uptime counts
+# the suspend). A fake sleep moves the clock: by what it was asked, or by 400 s more (a suspend).
+mkdir -p "$F/sleepbin"
+printf '#!/bin/sh\necho "$1" >> "$FW/sleeps"; read -r u r < "%s/proc/uptime"; u=${u%%.*}; echo "$((u + $1 + ${SUSPEND:-0})).00 0" > "%s/proc/uptime"\n' "$X" "$X" > "$F/sleepbin/sleep"; chmod +x "$F/sleepbin/sleep"
+sed -e 's/^while :; do$/for _k in $(seq 1 ${KEEPS:-1}); do keep; tick; done; keep; exit 0/' "$D/state/wifi.sh" > "$D/state/wifi.sh.t"
+wt() { r=0; HMGAPI_TEST_ROOT=$X FW=$F/fw KEEPS=${1:-1} SUSPEND=${SUSPEND:-0} PATH=$F/sleepbin:$F/bin:$PATH $UNIT_SH "$D/state/wifi.sh.t" 2>&1 || r=$?
+    [ $r = 0 ] || { echo "FAIL  the keeper exited $r, after: $last" >&2; fail=1; }; }
+rm "$F/fw/ap"; : > "$F/fw/apps.log"
+log=$(wt)
+hasnt "a plain sleep, the AP off since: still the car's choice" "projection AP" "$log"
+check "... not started" no "$([ -f "$F/fw/ap" ] && echo yes || echo no)"
+SUSPEND=400; log=$(wt); SUSPEND=0
+has "back from a QuickBoot suspend: said" "back from a suspend" "$log"
+has "... the projection AP up again" "projection AP: up in mode 2 (requested by aa)" "$log"
+check "... in mode 2" 2 "$(cat "$F/fw/ap")"
+echo boot-6b > "$X/proc/sys/kernel/random/boot_id"
+rm "$F/fw/ap"; : > "$F/fw/sleeps"
+mv "$F/bin/app_process" "$F/bin/app_process.ok"
+printf '#!/bin/sh\necho "app_process $*" >> "$FW/apps.log"; echo "projection AP didn\x27t come on"; exit 1\n' > "$F/bin/app_process"; chmod +x "$F/bin/app_process"
+wt 31 >/dev/null
+check "it keeps not coming on: every 2 s for about a minute" 2 "$(sed -n 29p "$F/fw/sleeps")"
+check "... then every 30 s" 30 "$(sed -n 30p "$F/fw/sleeps")"
+mv "$F/bin/app_process.ok" "$F/bin/app_process"
+has "... and up once it can" "projection AP: up in mode 2 (requested by aa)" "$(wt)"
 # with home Wi-Fi on too: home Wi-Fi has the radio while parked, and brings the AP back itself
 : > "$D/settings/allow/home_wifi"
 eng publish-state

@@ -11,7 +11,17 @@
   already up, while a Wi-Fi client is on (the car's own, or home Wi-Fi's), and after its first
   start that boot. Bringing Wi-Fi up is HMG-API's job now, not a mod's. The keeper (`hmgapi
   wifi`) starts from boot instead of after Android, home Wi-Fi included. The ask brings the
-  hotspot feature with it. Off-car only.
+  hotspot feature with it.
+  - **Back after QuickBoot:** a QuickBoot resume is the same boot, so the keeper also
+    checks the AP again when the head unit comes back from a suspend.
+  - **A mod attaching a phone asks again:** `hmgapi.hook.Wifi.projectionAp(context, who)`
+    starts the AP right then, the way the stock apps do, if the car turned it off since,
+    a plain hotspot is on, or the car's own Wi-Fi client has the radio. Only home Wi-Fi
+    keeps the radio while parked (it brings the AP back itself). The Wireless mod calls it
+    before every CarPlay attach, where it used to start the AP itself.
+  - **Fewer tries when it can't come up:** every 2 s for about a minute, then every 30 s.
+
+  Off-car only.
 
 ## 1.1.0-rc.7 (2026-11-19)
 

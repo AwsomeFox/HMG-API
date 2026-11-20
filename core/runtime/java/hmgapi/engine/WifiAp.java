@@ -45,6 +45,37 @@ public final class WifiAp {
         return up ? 0 : 1;
     }
 
+    /**
+     * A mod's projection attach (hmgapi.hook.Wifi.projectionAp, in the app's own process, on its
+     * WifiManager): the AP in mode 2 now, as the Wireless mod's ensureHotspot() did before HMG-API
+     * had the keeper. Unlike the boot keeper it switches a plain hotspot or the car's own client
+     * over, because a phone is connecting right now. Only home Wi-Fi's client (parked; home is
+     * wifi.json's state, "up" or "searching") keeps the radio: its keeper brings the AP back when
+     * the car is on. Returns what happened; "not started: ..." when it left the radio alone.
+     */
+    public static String attachProjection(Object wm, Class<?> config, String home) throws ReflectiveOperationException {
+        if ("up".equals(home) || "searching".equals(home)) {
+            return "not started: home Wi-Fi has the radio while parked (it brings the AP back itself)";
+        }
+        Class<?> k = wm.getClass();
+        boolean on = false;
+        int mode = -1;
+        try {
+            on = (Boolean) k.getMethod("isWifiApEnabled").invoke(wm);
+        } catch (NoSuchMethodException e) {
+            // no such call on this build: treat as off
+        }
+        try {
+            mode = (Integer) k.getMethod("getWifiApMode").invoke(wm);
+        } catch (NoSuchMethodException e) {
+            // vendor call missing: the mode is unknown
+        }
+        if (on && mode == 2) return "already up (mode 2)";
+        Object conf = k.getMethod("getWifiApConfiguration").invoke(wm);
+        Object r = k.getMethod("setWifiApEnabledForConnectivity", config, boolean.class).invoke(wm, conf, true);
+        return "started in mode 2 (" + r + "; was on=" + on + " mode=" + mode + ")";
+    }
+
     private static boolean clientSavedOn(Class<?> type, Object wifi) throws ReflectiveOperationException {
         try {
             return Boolean.TRUE.equals(type.getMethod("getPersistedWifiEnabled").invoke(wifi));

@@ -413,8 +413,14 @@ check for updates.
   The keeper checks Android's Wi-Fi state, waits out transitions, and lets a saved Wi-Fi
   client restore at boot.
   The name and key are the ones the phone is told (HMG-API's projection AP hook, rc.5).
-  A mod never starts the AP itself; this is the one place that does, in the Wi-Fi keeper
-  (`hmgapi wifi`, from boot; its log `/data/hmgapi/logs/hmgapi/wifi.log`).
+  A QuickBoot resume is the same boot, so the keeper checks again after a suspend too.
+  A mod never starts the AP itself. HMG-API does it in two places: the Wi-Fi keeper
+  (`hmgapi wifi`, from boot; its log `/data/hmgapi/logs/hmgapi/wifi.log`), and, for a mod
+  attaching a phone right now, `hmgapi.hook.Wifi.projectionAp(context, "<mod>")` in the
+  mod's app process (from 1.1.0-rc.8). That one starts the AP in mode 2 as the stock apps
+  do, even over a plain hotspot or the car's own Wi-Fi client, since a phone is connecting;
+  only home Wi-Fi keeps the radio while parked. It returns false when it left the radio
+  alone or failed, and logs either way.
 - **`media_codecs.xml` by codec name** (patches.json):
   `{"type": "codecs", "path": "/system/etc/media_codecs.xml", "stock": "any",
   "remove": ["OMX.google.h264.decoder"], "add": [{"name": "OMX.google.vp9.decoder",
