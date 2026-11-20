@@ -124,6 +124,8 @@ public final class Engine {
 
     final List<String> out = new ArrayList<String>();
     final List<String> problems = new ArrayList<String>();   // stop the apply
+    /** mods installed anyway (overrides.ignore_system) whose patches.json has no set for this unit */
+    final Set<String> noSet = new LinkedHashSet<String>();
     String product, onebin;
     Map<String, Object> hmgapi = new LinkedHashMap<String, Object>();
     SystemCheck.Facts facts;
@@ -548,8 +550,16 @@ public final class Engine {
                 }
             }
             if (cars != null && best == null) {
-                problems.add(m.id + ": doesn't support this head unit (" + product + ")");
-                continue;
+                if (!SystemCheck.ignored(hmgapi, m.id)) {
+                    problems.add(m.id + ": doesn't support this head unit (" + product + ")");
+                    continue;
+                }
+                // "Install anyway" covers the patch set too: a plan with only changes that need no
+                // set (props, added files, merges onto any version) applies; a change made against
+                // a set's stock files refuses the plan, saying it's the missing set (stockCheck)
+                noSet.add(m.id);
+                out.add("WARNING: " + m.id + ": its patches.json has no set for this head unit (" + product
+                        + "); overrides.ignore_system is set, so only changes that need no set can apply");
             }
             m.set = best == null ? "" : String.valueOf(cars.get(best));
             all.add(m);
@@ -1350,6 +1360,16 @@ public final class Engine {
                     out.add("note     " + t.path + ": live file isn't stock (" + m + "); using the stock copy NEMESIS kept ("
                             + nem.getParentFile().getName() + "). Uninstall that NEMESIS package, or HMG-API takes this file over.");
                 } else {
+                    // a mod installed anyway with no set for this unit: say so, not "a NEMESIS package"
+                    Set<String> needSet = new LinkedHashSet<String>();
+                    for (Ch ch : t.changes) if (noSet.contains(ch.mod.id) && ch.c.get("stock") == null) needSet.add(ch.mod.id);
+                    if (!needSet.isEmpty()) {
+                        String who = needSet.size() == 1 ? needSet.iterator().next() : needSet.toString();
+                        problems.add(t.path + ": " + who + (needSet.size() == 1 ? " has" : " have") + " no patch set for this head unit ("
+                                + product + "), and this change is made for another build's stock file; turn " + who
+                                + " off, or install a version made for this car.");
+                        return;
+                    }
                     boolean allAdd = true;
                     for (Ch ch : t.changes) allAdd &= "add".equals(ch.type);
                     String pkg = nemesisPackageOf(t.path);

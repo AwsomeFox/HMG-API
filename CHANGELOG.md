@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **"Install anyway" now covers a mod's patch sets too.** A mod's `patches.json` can list the
+  builds it has a set for (`"cars"`); on a head unit missing there, every plan was refused
+  ("doesn't support this head unit") even after the owner chose Install anyway, while the
+  mod's hooks still loaded. So the mod ran half-installed: its code without its system files
+  (seen on a US K5 with the Wireless mod: no audio converter, so CarPlay failed as soon as
+  music started). With `overrides.ignore_system` set for the mod, a missing set is now a
+  warning, and a plan whose changes need no set (props, added files, merges onto any version)
+  applies. A change made against a set's stock files still refuses the plan, and now says why
+  ("<mod> has no patch set for this head unit ... turn <mod> off, or install a version made
+  for this car") instead of blaming a NEMESIS package.
 - **Record a problem** (Logs tab; `engine problem record [--crash-dumps] [--usb] [--seconds N]`,
   `engine problem stop`): for an owner with an issue (a crash, CarPlay with no sound) to send to
   whoever helps them. The page says what it takes before it starts; the owner makes the problem
