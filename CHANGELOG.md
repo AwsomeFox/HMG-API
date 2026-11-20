@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Maps from rc.4 and rc.5 Car Reports: the newest hook points on five builds.** Ioniq 6
+  260206 (Canada and US, #354, #319: two cars, same points) and Elantra `CN7PE` USA 260507
+  (#252) now map all 391 points; Genesis G70 USA 260507 (#2) and Palisade USA 260903 (#54)
+  gain the 26 and 8 points their older reports lacked, and the points those maps had from
+  before code signatures (#233) are now confirmed. Genesis G70 Canada 260903 (#231) gains
+  the 30 framework points; its 10 newest DiPO and GPM points stay missing, since this car's
+  EPP replaces the projection apps and their stock files aren't known yet. Off-car only.
 - Add the Palisade USA 260507 hook map: 343 points checked in the November 5
   owner Car Report and eight more resolved off-car. Keep the map marked `mapped`
   and explicitly list the 40 newer, unresolved points as missing.
