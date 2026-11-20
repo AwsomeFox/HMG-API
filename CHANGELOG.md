@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **Record a problem** (Logs tab; `engine problem record [--crash-dumps] [--usb] [--seconds N]`,
+  `engine problem stop`): for an owner with an issue (a crash, CarPlay with no sound) to send to
+  whoever helps them. The page says what it takes before it starts; the owner makes the problem
+  happen and stops it (30 minutes at most). The file (`problem-<car>-<stamp>.txt`, on the USB stick
+  and in `public/reports`) holds the unit, the mods and the md5 of the libraries their native
+  patches are for, HMG-API's errors, and logcat lines (main and system) from crash, CarPlay,
+  Android Auto, audio, Bluetooth connection, Wi-Fi hotspot and HMG-API tags only, every other line dropped and only
+  counted; messages are scrubbed (addresses, numbers, VIN, phone ids, GPS positions). Always in
+  it: HMG-API's state (hook switches, the boot guard, its own kernel lines from each start) and
+  each mod's added system files with whether they're there. The owner picks the rest, each off
+  by default and said what it takes: crash dumps (the newest 5 tombstones, cut to the crashed
+  process, signal, registers, backtraces and the map near the fault; no stack or memory, no log
+  lines), Android's crash reports (`/data/system/dropbox`: app and system crashes, freezes and
+  native crashes, kept across restarts, so a crash while the head unit starts is there; the
+  newest 10, cut to header and stack trace), and the kernel log. With recording off it
+  collects at once, for a problem that already happened.
 - **New hook point `framework.activity.start_activity_for_result`** (`android.app.Activity`,
   `startActivityForResult(Intent, int, Bundle)`, which `startActivity` goes through too), in
   the base map for every car. First user: the Wireless mod, whose wireless features make the
