@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **Installing a mod from Updates could stop at "engine error: java.io.IOException: rename
+  …/.features/….xml.tmp"** (the wireless mod, and any mod with `"feature_flags"` or
+  `"wifi"`). Back from Updates, the app checked what would change twice at once, and both
+  runs wrote the mod's new feature file through the same temporary file. Opening HMG-API
+  again and applying worked. Now only one engine run happens at a time (`state/engine.lock`;
+  a run waits up to 15 minutes, then says which run is still busy), each run writes its own
+  temporary files, and the app checks once. A plan could also wipe the folder an install
+  or USB scan was using; the lock fixes that too.
+
 ## 1.1.0-rc.5 (2026-11-19)
 
 - **The older Hyundai models on 260903, US and Canada: a hook map from stock files**

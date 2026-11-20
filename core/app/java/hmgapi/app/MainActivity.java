@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private final View[] marks = new View[TABS.length];
     private int current;
     private boolean pendingChanges;
+    private boolean planning;   // plan() is running: the status pill comes from its answer
 
     @Override
     protected void onCreate(Bundle state) {
@@ -146,6 +147,7 @@ public class MainActivity extends Activity {
         pills.removeAllViews();
         hooksPill();
         if (restartNeeded()) Ui.pill(pills, "Restart needed", Ui.WARN);
+        if (planning) return;   // back from Updates: plan() asks already (two at once only wait on each other)
         new Ui.Job<Boolean>() {
             @Override
             Boolean work() throws Exception {
@@ -199,6 +201,7 @@ public class MainActivity extends Activity {
 
     void plan() {
         final AlertDialog wait = new AlertDialog.Builder(this).setMessage("Checking what would change…").show();
+        planning = true;
         new Ui.Job<Hmgapid.Result>() {
             @Override
             Hmgapid.Result work() throws Exception {
@@ -208,6 +211,10 @@ public class MainActivity extends Activity {
             @Override
             void done(Hmgapid.Result r, Exception e) {
                 wait.dismiss();
+                planning = false;
+                boolean changed = e == null && r.code == 0 && changes(r.output);
+                if (changed && !pendingChanges) Ui.pill(pills, "Changes not applied", Ui.WARN);
+                pendingChanges = changed;
                 if (e != null) {
                     message("Couldn't check", e.getMessage());
                     return;
