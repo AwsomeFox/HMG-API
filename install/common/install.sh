@@ -51,9 +51,10 @@ put() {
     log "installed $2"
 }
 
-# backup <path>: the stock file, once (a later install never overwrites it)
+# backup <path> [<from>]: the stock file, once (a later install never overwrites it); <from>
+# when the stock bytes are in another file (app_process.real under NEMESIS's script)
 backup() {
-    local src=$ROOT$1 bak=$D/stock$1
+    local src=$ROOT${2:-$1} bak=$D/stock$1
     [ -f "$bak" ] && return 0
     mkdir -p "${bak%/*}" || fail "backup folder for $1"
     if [ -f "$src" ]; then
@@ -86,8 +87,20 @@ if [ -f "$ROOT/system/bin/app_process.leafia-stock" ]; then
     fail "an earlier dev build (Leafia) is installed. Uninstall it first, as root: sh /data/leafia/uninstall.sh (then restart). Nothing was changed."
 fi
 
-# app_process: stock (a known build), or already our wrapper
-B=$ROOT/system/bin/app_process
+# app_process: stock (a known build), or already our wrapper. Under NEMESIS 1.17's LivePatch
+# script both live in app_process.real, and app_process stays NEMESIS's; when an older HMG-API
+# wrote over that script, both files get the wrapper (lib.sh, zygote_files). Z: the one checked
+# and kept: a known stock build among them, else the last (.real when there is one)
+ZS=$(zygote_files)
+[ -n "$ZS" ] || fail "app_process is NEMESIS LivePatch's script but app_process.real, the binary it runs, is missing, so nothing was changed. Please send this line to the HMG-API maintainers."
+nemesis_livepatch && log "app_process: NEMESIS LivePatch's script, which runs app_process.real: HMG-API's wrapper goes there"
+Z=; ZSTOCK=
+for z in $ZS; do
+    Z=$z; s=$(sum "$ROOT$z")
+    while read m label; do [ "$m" = "$s" ] && [ -z "$ZSTOCK" ] && ZSTOCK=$z; done < "$P/stock.txt"
+done
+[ -n "$ZSTOCK" ] && Z=$ZSTOCK
+B=$ROOT$Z
 KEEP=$ROOT/system/bin/app_process.hmgapi-stock
 WRAP=$(sum "$P/app_process")
 HAVE=$(sum "$B")
@@ -142,7 +155,7 @@ chmod 711 "$D" "$D/mods"; chmod 755 "$D/public"
 [ -f "$D/settings/hmgapi.json" ] || echo '{"updates": false}' > "$D/settings/hmgapi.json"
 chmod 600 "$D/settings/hmgapi.json"
 
-backup /system/bin/app_process
+backup /system/bin/app_process "$Z"
 backup /system/etc/install-recovery.sh
 backup /system/etc/qb_runtime.sh
 
@@ -159,7 +172,7 @@ if [ -z "$UPDATE" ]; then
     [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }
     mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
 fi
-put app_process /system/bin/app_process 755 shell
+for z in $ZS; do put app_process "$z" 755 shell; done
 hook_add /system/etc/install-recovery.sh top || fail "boot hook in install-recovery.sh"
 hook_add /system/etc/qb_runtime.sh end || fail "boot hook in qb_runtime.sh"
 sync
@@ -176,9 +189,10 @@ rm -f "$D/hook/boot" "$D/hook/disable"
     echo "version $VERSION"
     echo "build $(cat "$P/BUILD" 2>/dev/null)"
     echo "date $(date)"
-    for f in /system/bin/hmgapid /system/bin/lpatch /system/bin/app_process /system/lib/libhmgapi_hook.so /system/framework/hmgapi-hook.jar; do
+    for f in /system/bin/hmgapid /system/bin/lpatch /system/lib/libhmgapi_hook.so /system/framework/hmgapi-hook.jar; do
         echo "file $(sum "$ROOT$f") $f"
     done
+    echo "file $(sum "$B") /system/bin/app_process"   # the wrapper, wherever it is ($Z)
 } > "$D/installed.txt"
 cp "$P/uninstall.sh" "$P/lib.sh" "$P/stock.txt" "$P/app-pending.sh" "$P/hook-check.sh" "$P/boot.sh" "$D/" && chmod 700 "$D/uninstall.sh" "$D/app-pending.sh" "$D/hook-check.sh" "$D/boot.sh"
 # open.sh (NEMESIS Manager's Launch, adb) installs the app from this copy if it's missing, then opens it

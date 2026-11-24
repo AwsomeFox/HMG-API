@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+- **HMG-API works under NEMESIS 1.17's LivePatch, and uninstalling no longer stops Android
+  from starting there.** NEMESIS 1.17 puts its own script at `/system/bin/app_process`
+  (its watchdog writes it again on every boot, LivePatch package or not) and runs
+  `app_process.real`, which holds the binary it found there first: stock, or HMG-API's
+  wrapper. The installer and uninstaller only knew `app_process`, so on such a unit:
+  - uninstalling put the stock binary over NEMESIS's script and deleted
+    `app_process.hmgapi-stock`. The next boot worked; then NEMESIS's script came back,
+    `.real` was still HMG-API's wrapper, its stock copy was gone, and the zygote could not
+    start on any later boot (no safe mode helps: the chain is the same). Getting out needs
+    adb and a stock `app_process`.
+  - an update wrote the new wrapper where NEMESIS overwrote it at the next boot (`.real`
+    kept the old one);
+  - with NEMESIS 1.17 there first, the install refused (`app_process` isn't a known stock
+    build).
+
+  Now both recognise NEMESIS's script (`# NEMESIS LivePatch` on its second line,
+  `lib.sh` `zygote_files`) and work on `app_process.real` instead: the wrapper goes there,
+  the stock bytes it held are the backup and `app_process.hmgapi-stock`, and the uninstall
+  puts them back there. NEMESIS's script is left alone. When an older HMG-API's update or
+  uninstall wrote over NEMESIS's script before the next boot (so `.real` still holds an
+  older wrapper), both files get the wrapper, or both the stock bytes: whatever the next
+  boot runs ends at stock. That also rescues a unit an older uninstall left this way, if
+  this release is installed before it restarts. Without NEMESIS's script nothing
+  changes. Mods can't change `app_process.real` (`Engine.HMGAPI_OWNED`). The uninstall
+  that runs is the one saved at install, so **on NEMESIS 1.17, update HMG-API to this
+  release before uninstalling it.** Tested off-car (`install/common/install-test.sh`:
+  HMG-API then NEMESIS, NEMESIS then HMG-API, an update between, NEMESIS's boot after
+  each step); not yet on a car.
+
 ## 1.1.0-rc.8 (2026-11-20)
 
 - **Comes with wireless CarPlay + Android Auto 2.2.0-rc.9** (it needs this RC): #91's fix (an iPhone
