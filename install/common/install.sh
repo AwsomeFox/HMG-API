@@ -102,13 +102,28 @@ done
 [ -n "$ZSTOCK" ] && Z=$ZSTOCK
 B=$ROOT$Z
 KEEP=$ROOT/system/bin/app_process.hmgapi-stock
+BAK=$D/stock/system/bin/app_process
 WRAP=$(sum "$P/app_process")
 HAVE=$(sum "$B")
 known=
 while read m label; do [ "$m" = "$HAVE" ] && known=$label; done < "$P/stock.txt"
-if [ "$HAVE" = "$WRAP" ] || { [ -f "$KEEP" ] && [ -f "$D/stock/system/bin/app_process" ]; }; then
+# an update only when the stock copy is there: our wrapper (or an older one, with the backup)
+# runs app_process.hmgapi-stock, and an update never makes that copy
+RESCUE=
+if [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ]; }; then
     log "app_process: HMG-API's wrapper is in place (stock kept as app_process.hmgapi-stock)"
     UPDATE=1
+elif [ "$HAVE" = "$WRAP" ]; then
+    # our wrapper with its stock copy gone: what an older uninstall leaves on NEMESIS 1.17 after a
+    # restart (#397: NEMESIS's script back at app_process, .real still the wrapper, which is the
+    # same bytes from release to release). The next restart would start nothing. A plain uninstall
+    # keeps the backup: if it's a known stock build, the copy comes back from it. Still an update,
+    # so the firmware-reset step below keeps the backups
+    RBAK=$(sum "$BAK"); rk=
+    [ -n "$RBAK" ] && while read m label; do [ "$m" = "$RBAK" ] && rk=$label; done < "$P/stock.txt"
+    [ -n "$rk" ] || fail "${Z#/system/bin/} is HMG-API's wrapper but its stock copy (app_process.hmgapi-stock) is gone, and there's no stock backup to take it from, so nothing was changed. Android won't start after the next restart: see https://github.com/Open-HMG/HMG-API/issues/397"
+    log "${Z#/system/bin/}: HMG-API's wrapper, but its stock copy is gone (an older uninstall, #397): putting it back from the stock backup ($rk)"
+    UPDATE=1; RESCUE=1
 elif [ -n "$known" ]; then
     log "app_process: stock ($known)"
 elif [ "$HMGAPI_FORCE" = 1 ]; then
@@ -122,7 +137,6 @@ fi
 # the firmware-reset mark, or the app_process backup isn't this stock). The backups and records
 # hold the old firmware's bytes, which must never go back: they're dropped (the engine's own:
 # engine firmware-reset, from the payload's jar) and this install starts from the files as they are.
-BAK=$D/stock/system/bin/app_process
 if [ -z "$UPDATE" ] && { [ -f "$D/installed.txt" ] || [ -f "$D/firmware-reset" ] || { [ -s "$BAK" ] && [ "$(sum "$BAK")" != "$HAVE" ]; }; }; then
     log "a firmware update replaced /system since HMG-API was installed: starting again from the new firmware's files"
     r=
@@ -171,6 +185,12 @@ if [ -z "$UPDATE" ]; then
     chmod 755 "$KEEP.hmgapi-new"; chown root:shell "$KEEP.hmgapi-new" 2>/dev/null
     [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }
     mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
+elif [ -n "$RESCUE" ]; then
+    cp "$BAK" "$KEEP.hmgapi-new" || fail "copy the app_process backup"
+    chmod 755 "$KEEP.hmgapi-new"; chown root:shell "$KEEP.hmgapi-new" 2>/dev/null
+    [ "$(sum "$KEEP.hmgapi-new")" = "$RBAK" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process backup copy md5 mismatch"; }
+    mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
+    log "app_process.hmgapi-stock: back from the stock backup ($RBAK)"
 fi
 for z in $ZS; do put app_process "$z" 755 shell; done
 hook_add /system/etc/install-recovery.sh top || fail "boot hook in install-recovery.sh"

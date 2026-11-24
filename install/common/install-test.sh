@@ -373,6 +373,46 @@ check "... an uninstall after that leaves a starting zygote" "$STK" "$(chain)"
 rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process
 nemesis_boot
 
+# (f) #398 review: the wrapper is the same bytes from release to release (rc.7's and rc.8's are this
+# one; (d) and (e) use a different older one, which hid this). An older uninstall on NEMESIS 1.17,
+# then one restart: NEMESIS's script at app_process, .real this very wrapper, app_process.hmgapi-stock
+# gone, /data/hmgapi/stock kept. Not an update: the stock copy comes back from the backup
+rm -rf $R/data/hmgapi; cp $T/newfw $R/system/bin/app_process; rm -f $R/system/bin/app_process.real
+run $P/install.sh $P; nemesis_boot
+cp $T/newfw $R/system/bin/app_process; rm -f $R/system/bin/app_process.hmgapi-stock $R/data/hmgapi/installed.txt  # the old uninstall
+nemesis_boot                                                                                              # the restart that still works
+check "old uninstall + one restart, same wrapper: the next restart would fail" "nothing: $R/system/bin/app_process.hmgapi-stock is gone" "$(chain)"
+run $P/install.sh $P
+has "... installing this release rebuilds the stock copy" "its stock copy is gone (an older uninstall, #397): putting it back" "$out"
+has "... and finishes" "installed. Restart the head unit" "$out"
+check "... the stock copy is stock" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+check "... the backup kept (no firmware reset)" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+nemesis_boot
+check "... after NEMESIS's next boot the zygote start ends at stock" "$STK" "$(chain)"
+
+# (g) the same with /data/hmgapi purged (uninstall --purge): refused, nothing changed
+rm -f $R/system/bin/app_process.hmgapi-stock; rm -rf $R/data/hmgapi
+B4=$(tree)
+run $P/install.sh $P
+has "same, /data/hmgapi purged: refused, pointing at #397" "there's no stock backup to take it from, so nothing was changed" "$out"
+has "... names #397" "issues/397" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process; nemesis_boot
+
+# (h) without NEMESIS: our wrapper at app_process, app_process.hmgapi-stock gone, the backup kept
+rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi
+run $P/install.sh $P
+rm -f $R/system/bin/app_process.hmgapi-stock
+check "no NEMESIS, wrapper without its stock copy: the next start would fail" "nothing: $R/system/bin/app_process.hmgapi-stock is gone" "$(chain)"
+run $P/install.sh $P
+has "... installing rebuilds the stock copy" "its stock copy is gone (an older uninstall, #397): putting it back" "$out"
+has "... and finishes" "installed. Restart the head unit" "$out"
+check "... app_process is still the wrapper (no NEMESIS script written)" "$(md5sum < $P/app_process)" "$(md5sum < $R/system/bin/app_process)"
+check "... the zygote start ends at stock" "$STK" "$(chain)"
+run $R/data/hmgapi/uninstall.sh
+check "... and an uninstall after that gives stock back" "$STK" "$(md5sum < $R/system/bin/app_process)"
+nemesis_boot
+
 # (c) NEMESIS's script with no app_process.real: refused, nothing changed
 rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
 B4=$(tree)

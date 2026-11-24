@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Installing puts back a missing stock copy of `app_process` instead of taking it for an
+  update** (#398 review). HMG-API's zygote wrapper is the same bytes from release to release,
+  so after an older uninstall on NEMESIS 1.17 and one restart, `app_process.real` was still
+  that wrapper with `app_process.hmgapi-stock` gone, and installing again took it for an
+  update: it never made the stock copy, said "installed", and the next restart couldn't start
+  Android. Now the install counts as an update only when the stock copy is there. Our wrapper
+  without one gets it back from `/data/hmgapi/stock` (a plain uninstall keeps it) when that's
+  a known stock build, checked by md5; with no usable backup (uninstalled with `--purge`) the
+  install refuses, changes nothing, and points to #397. The same holds without NEMESIS.
+  Tested off-car (`install-test.sh`, with the wrapper byte-identical to the installed one);
+  not on a car.
+
 - **HMG-API works under NEMESIS 1.17's LivePatch, and uninstalling no longer stops Android
   from starting there.** NEMESIS 1.17 puts its own script at `/system/bin/app_process`
   (its watchdog writes it again on every boot, LivePatch package or not) and runs
