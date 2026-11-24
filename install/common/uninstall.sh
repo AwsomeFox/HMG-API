@@ -32,7 +32,15 @@ capcheck() {
 capcheck
 log "HMG-API uninstall $(date)"
 
-B=$ROOT/system/bin/app_process
+# the zygote binary the install wrapped: app_process, or app_process.real under NEMESIS 1.17's
+# LivePatch script (lib.sh, zygote_file). The stock bytes go back there, and NEMESIS's script stays:
+# its watchdog writes it again on every boot, and would then run .real
+Z=$(zygote_file)
+B=$ROOT$Z
+if [ "$Z" != /system/bin/app_process ]; then
+    [ -f "$B" ] || fail "app_process is NEMESIS LivePatch's script but app_process.real, the binary it runs, is missing, so nothing was changed. Please send this line to the HMG-API maintainers."
+    log "app_process: NEMESIS LivePatch's script, which runs app_process.real: the stock binary goes back there"
+fi
 KEEP=$ROOT/system/bin/app_process.hmgapi-stock
 BAK=$D/stock/system/bin/app_process
 # a firmware update since the install put /system back to stock: HMG-API's wrapper and its stock
@@ -119,7 +127,7 @@ else
         [ "$(sum "$B.hmgapi-new")" = "$ORIG" ] || { rm -f "$B.hmgapi-new"; fail "app_process md5 mismatch after copy"; }
         mv "$B.hmgapi-new" "$B" || { rm -f "$B.hmgapi-new"; fail "rename onto app_process"; }
     fi
-    log "app_process: stock again ($ORIG)"
+    log "${Z#/system/bin/}: stock again ($ORIG)"
 fi
 rm -f "$KEEP"
 # the boot scripts: the install's backup byte for byte when nothing else changed the file
@@ -139,7 +147,7 @@ REMOUNTED=
 for f in /system/lib/libhmgapi_hook.so /system/framework/hmgapi-hook.jar /system/bin/lpatch /system/bin/hmgapid /system/bin/app_process.hmgapi-stock; do
     [ ! -e "$ROOT$f" ] || fail "$f is still there"
 done
-[ -n "$RESET" ] || [ "$(sum "$B")" = "$ORIG" ] || fail "app_process isn't stock after the restore"
+[ -n "$RESET" ] || [ "$(sum "$B")" = "$ORIG" ] || fail "${Z#/system/bin/} isn't stock after the restore"
 log "/system: HMG-API's files removed, app_process and boot scripts stock"
 
 # 5. the app

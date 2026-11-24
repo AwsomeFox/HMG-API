@@ -8,6 +8,22 @@ HOOK_END="# HMGAPI_HOOK end"
 # /system back to read-only first when the script set REMOUNTED; each script has its own remount)
 log() { echo "$1"; echo "$1" >> "$LOG" 2>/dev/null; }
 sum() { set -- $(md5 "$1" 2>/dev/null); echo "$1"; }
+
+# NEMESIS 1.17's LivePatch puts its own shell script at /system/bin/app_process (its watchdog
+# writes it again on every boot, LivePatch package or not) and runs app_process.real, which
+# holds whatever binary it found there first: stock, or HMG-API's wrapper. Under that script
+# HMG-API's wrapper goes into app_process.real and the uninstall gives the stock binary back
+# there; app_process itself stays NEMESIS's. Writing app_process instead lasts one boot, and
+# an uninstall that did would leave .real running a wrapper whose stock copy is gone: no zygote.
+nemesis_livepatch() {
+    local a= b=
+    { read -r a; read -r b; } < "$ROOT/system/bin/app_process" 2>/dev/null
+    [ "$a" = "#!/system/bin/sh" ] || return 1
+    case "$b" in "# NEMESIS LivePatch"*) return 0 ;; esac
+    return 1
+}
+# the zygote binary HMG-API wraps and gives back (a /system path)
+zygote_file() { if nemesis_livepatch; then echo /system/bin/app_process.real; else echo /system/bin/app_process; fi; }
 REMOUNTED=
 fail() {
     log "FAIL: $1"

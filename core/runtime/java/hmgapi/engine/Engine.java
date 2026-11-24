@@ -1243,8 +1243,11 @@ public final class Engine {
     static final String[] BOOT_JARS = { "core", "conscrypt", "okhttp", "core-junit", "bouncycastle", "ext", "framework",
         "framework2", "telephony-common", "voip-common", "mms-common", "android.policy", "services", "apache-xml",
         "webviewchromium", "automotive" };
-    /** HMG-API's installer owns these; a mod changing them would fight it. */
-    static final String[] HMGAPI_OWNED = { "/system/bin/app_process", "/system/bin/app_process.hmgapi-stock",
+    /**
+     * HMG-API's installer owns these; a mod changing them would fight it. app_process.real is
+     * the zygote binary under NEMESIS 1.17's LivePatch script, where HMG-API's wrapper goes then.
+     */
+    static final String[] HMGAPI_OWNED = { "/system/bin/app_process", "/system/bin/app_process.real", "/system/bin/app_process.hmgapi-stock",
         "/system/bin/hmgapid", "/system/bin/lpatch", "/system/lib/libhmgapi_hook.so", "/system/framework/hmgapi-hook.jar",
         "/system/etc/install-recovery.sh", "/system/etc/qb_runtime.sh" };
 

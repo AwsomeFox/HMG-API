@@ -263,4 +263,76 @@ run $P/install.sh $P
 check "uninstalled, then a firmware update: the stale backup found, reset" "engine firmware-reset" "$(calls | grep '^engine firmware' || true)"
 check "... new backup" "$(md5sum < $T/newfw)" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
 unset HMGAPI_TEST_ENGINE
+
+# NEMESIS 1.17's LivePatch: on every boot its watchdog writes its own script at app_process, and
+# the first time keeps the binary it finds there as app_process.real (native/livepatch.c,
+# lp_wrapper_install, called from svc.c whether or not a LivePatch package is installed)
+NLP='#!/system/bin/sh
+# NEMESIS LivePatch: apply patches before the zygote starts, then run the real binary.
+case " $* " in
+*" --zygote "*) [ -x /system/xbin/nemesis ] && /system/xbin/nemesis boot-apply ;;
+esac
+exec /system/bin/app_process.real "$@"'
+nemesis_boot() {
+    grep -q '^# NEMESIS LivePatch' $R/system/bin/app_process || [ -f $R/system/bin/app_process.real ] \
+        || cp $R/system/bin/app_process $R/system/bin/app_process.real
+    printf '%s\n' "$NLP" > $R/system/bin/app_process
+}
+# what the zygote start runs, NEMESIS's script and HMG-API's wrapper followed: the binary at the end
+chain() {
+    local f=$R/system/bin/app_process
+    if grep -q '^# NEMESIS LivePatch' "$f"; then f=$R/system/bin/app_process.real; fi
+    if [ -f "$f" ] && [ "$(md5sum < "$f")" = "$(md5sum < $P/app_process)" ]; then f=$R/system/bin/app_process.hmgapi-stock; fi
+    if [ -f "$f" ]; then md5sum < "$f"; else echo "nothing: $f is gone"; fi
+}
+run $R/data/hmgapi/uninstall.sh
+STK=$(md5sum < $T/newfw)
+check "NEMESIS 1.17 cases start from stock" "$STK" "$(md5sum < $R/system/bin/app_process)"
+NLPSUM=$(printf '%s\n' "$NLP" | md5sum)
+
+# (a) HMG-API first, then NEMESIS 1.17: NEMESIS keeps HMG-API's wrapper as app_process.real
+run $P/install.sh $P
+nemesis_boot
+check "HMG-API, then NEMESIS 1.17: the zygote start ends at stock" "$STK" "$(chain)"
+# an update under NEMESIS's script: the new wrapper goes where NEMESIS runs it
+cp $P/app_process $T/wrapper.old; echo update >> $P/app_process
+(cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh app-open.sh hook-check.sh boot.sh MAPS.md5 > MANIFEST)
+run $P/install.sh $P
+has "... an update under NEMESIS's script finishes" "installed. Restart the head unit" "$out"
+check "... the new wrapper is app_process.real" "$(md5sum < $P/app_process)" "$(md5sum < $R/system/bin/app_process.real)"
+check "... NEMESIS's script left as it is" "$NLPSUM" "$(md5sum < $R/system/bin/app_process)"
+has "... install record: the wrapper's md5" "file $(md5sum < $P/app_process | cut -c1-32) /system/bin/app_process" "$(cat $R/data/hmgapi/installed.txt)"
+nemesis_boot
+check "... and after NEMESIS's next boot the zygote start still ends at stock" "$STK" "$(chain)"
+run $R/data/hmgapi/uninstall.sh
+has "... uninstall finishes" "HMG-API uninstalled" "$out"
+check "... the stock binary is back in app_process.real" "$STK" "$(md5sum < $R/system/bin/app_process.real)"
+check "... NEMESIS's script still there" "$NLPSUM" "$(md5sum < $R/system/bin/app_process)"
+check "... HMG-API's stock copy gone" no "$([ -e $R/system/bin/app_process.hmgapi-stock ] && echo yes || echo no)"
+nemesis_boot
+check "... and after NEMESIS's next boot the zygote still starts: stock" "$STK" "$(chain)"
+
+# (b) NEMESIS 1.17 first (its script at app_process, stock in .real), then HMG-API
+rm -rf $R/data/hmgapi
+run $P/install.sh $P
+has "NEMESIS 1.17, then HMG-API: installs (no unknown-app_process refusal)" "installed. Restart the head unit" "$out"
+check "... the wrapper is app_process.real" "$(md5sum < $P/app_process)" "$(md5sum < $R/system/bin/app_process.real)"
+check "... NEMESIS's script left as it is" "$NLPSUM" "$(md5sum < $R/system/bin/app_process)"
+check "... stock kept beside it" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+check "... the backup is the stock binary, not NEMESIS's script" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+nemesis_boot
+check "... the zygote start ends at stock" "$STK" "$(chain)"
+run $R/data/hmgapi/uninstall.sh
+has "... uninstall finishes" "HMG-API uninstalled" "$out"
+check "... the stock binary is back in app_process.real" "$STK" "$(md5sum < $R/system/bin/app_process.real)"
+nemesis_boot
+check "... and after NEMESIS's next boot the zygote still starts: stock" "$STK" "$(chain)"
+
+# (c) NEMESIS's script with no app_process.real: refused, nothing changed
+rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
+B4=$(tree)
+run $P/install.sh $P
+has "NEMESIS's script without app_process.real refused" "app_process.real, the binary it runs, is missing, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+cp $T/wrapper.old $P/app_process
 exit $fail
