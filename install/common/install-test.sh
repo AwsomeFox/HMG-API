@@ -413,6 +413,38 @@ run $R/data/hmgapi/uninstall.sh
 check "... and an uninstall after that gives stock back" "$STK" "$(md5sum < $R/system/bin/app_process)"
 nemesis_boot
 
+# (i) the same as (f) after an rc.5-or-older uninstall: the wrapper left in .real has other bytes
+# (it still names app_process.hmgapi-stock, as every version's does). Rescued too, also when
+# forced, and never taken for a stock build (#398 review: forcing dropped the stock backup)
+w5() { cp $P/app_process $T/w5; printf 'rc.5 /system/bin/app_process.hmgapi-stock\n' >> $T/w5; }
+old_uninstall_restart() {  # installed under NEMESIS's script, then an rc.5 uninstall, then a restart
+    rm -rf $R/data/hmgapi; cp $T/newfw $R/system/bin/app_process; rm -f $R/system/bin/app_process.real
+    run $P/install.sh $P; nemesis_boot
+    w5; cp $T/w5 $R/system/bin/app_process.real
+    cp $T/newfw $R/system/bin/app_process; rm -f $R/system/bin/app_process.hmgapi-stock $R/data/hmgapi/installed.txt
+    nemesis_boot
+}
+old_uninstall_restart
+run $P/install.sh $P
+has "rc.5 uninstall + one restart (older wrapper): rebuilds the stock copy" "its stock copy is gone (an older uninstall, #397): putting it back" "$out"
+check "... the stock copy is stock" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+check "... the backup kept" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+check "... the new wrapper in app_process.real" "$(md5sum < $P/app_process)" "$(md5sum < $R/system/bin/app_process.real)"
+nemesis_boot
+check "... after NEMESIS's next boot the zygote start ends at stock" "$STK" "$(chain)"
+old_uninstall_restart
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "... forced: rescued the same way" "its stock copy is gone (an older uninstall, #397): putting it back" "$out"
+check "... forced: the stock backup kept, not replaced by the wrapper" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+check "... forced: the stock copy is stock" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+old_uninstall_restart
+rm -rf $R/data/hmgapi
+B4=$(tree)
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "... purged and forced: refused, pointing at #397" "there's no stock backup to take it from, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process; nemesis_boot
+
 # (c) NEMESIS's script with no app_process.real: refused, nothing changed
 rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
 B4=$(tree)

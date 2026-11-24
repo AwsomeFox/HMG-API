@@ -113,12 +113,14 @@ RESCUE=
 if [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ]; }; then
     log "app_process: HMG-API's wrapper is in place (stock kept as app_process.hmgapi-stock)"
     UPDATE=1
-elif [ "$HAVE" = "$WRAP" ]; then
-    # our wrapper with its stock copy gone: what an older uninstall leaves on NEMESIS 1.17 after a
-    # restart (#397: NEMESIS's script back at app_process, .real still the wrapper, which is the
-    # same bytes from release to release). The next restart would start nothing. A plain uninstall
-    # keeps the backup: if it's a known stock build, the copy comes back from it. Still an update,
-    # so the firmware-reset step below keeps the backups
+elif [ ! -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || grep -q app_process.hmgapi-stock "$B" 2>/dev/null; }; then
+    # an HMG-API wrapper (this release's, or an older one: every version names
+    # app_process.hmgapi-stock) with its stock copy gone: what an older uninstall leaves on NEMESIS
+    # 1.17 after a restart (#397: NEMESIS's script back at app_process, .real still the wrapper).
+    # The next restart would start nothing. A plain uninstall keeps the backup: if it's a known
+    # stock build, the copy comes back from it. Still an update, so the firmware-reset step below
+    # keeps the backups. Before HMGAPI_FORCE: forcing over a wrapper took it for a new stock build,
+    # dropped the real stock backup as an old firmware's and kept the wrapper as "stock" (#398)
     RBAK=$(sum "$BAK"); rk=
     [ -n "$RBAK" ] && while read m label; do [ "$m" = "$RBAK" ] && rk=$label; done < "$P/stock.txt"
     [ -n "$rk" ] || fail "${Z#/system/bin/} is HMG-API's wrapper but its stock copy (app_process.hmgapi-stock) is gone, and there's no stock backup to take it from, so nothing was changed. Android won't start after the next restart: see https://github.com/Open-HMG/HMG-API/issues/397"

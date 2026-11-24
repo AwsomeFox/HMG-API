@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **The missing-stock-copy rescue works for every HMG-API version, and can't be forced
+  past** (#398 review). #399 recognised the leftover wrapper by this release's md5, which
+  rc.6 to rc.8 share; rc.5 and older ship other bytes, so their units were refused, and the
+  refusal suggested `HMGAPI/FORCE`. Forcing then took the old wrapper for an unknown stock
+  build, deleted HMG-API's stock backup as an old firmware's and kept the wrapper as the
+  "stock" copy, leaving no stock `app_process` on the unit for #397's stick. Now any HMG-API
+  wrapper (each version names `app_process.hmgapi-stock`) without its stock copy is rescued
+  from the backup the same way, before `HMGAPI_FORCE` is looked at, and refused with a
+  pointer to #397 when there's no backup. Tested off-car; not on a car.
+
 - **Installing puts back a missing stock copy of `app_process` instead of taking it for an
   update** (#398 review). HMG-API's zygote wrapper is the same bytes from release to release,
   so after an older uninstall on NEMESIS 1.17 and one restart, `app_process.real` was still
