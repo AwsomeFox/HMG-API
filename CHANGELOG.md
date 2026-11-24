@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.9 (2026-11-24)
 
 - **HMG-API works under NEMESIS 1.17's LivePatch, and uninstalling no longer stops Android
   from starting there.** NEMESIS 1.17 puts its own script at `/system/bin/app_process`
