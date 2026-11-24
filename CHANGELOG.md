@@ -18,9 +18,13 @@
     build).
 
   Now both recognise NEMESIS's script (`# NEMESIS LivePatch` on its second line,
-  `lib.sh` `zygote_file`) and work on `app_process.real` instead: the wrapper goes there,
+  `lib.sh` `zygote_files`) and work on `app_process.real` instead: the wrapper goes there,
   the stock bytes it held are the backup and `app_process.hmgapi-stock`, and the uninstall
-  puts them back there. NEMESIS's script is left alone. Without NEMESIS's script nothing
+  puts them back there. NEMESIS's script is left alone. When an older HMG-API's update or
+  uninstall wrote over NEMESIS's script before the next boot (so `.real` still holds an
+  older wrapper), both files get the wrapper, or both the stock bytes: whatever the next
+  boot runs ends at stock. That also rescues a unit an older uninstall left this way, if
+  this release is installed before it restarts. Without NEMESIS's script nothing
   changes. Mods can't change `app_process.real` (`Engine.HMGAPI_OWNED`). The uninstall
   that runs is the one saved at install, so **on NEMESIS 1.17, update HMG-API to this
   release before uninstalling it.** Tested off-car (`install/common/install-test.sh`:

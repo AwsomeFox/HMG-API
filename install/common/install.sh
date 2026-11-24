@@ -88,13 +88,19 @@ if [ -f "$ROOT/system/bin/app_process.leafia-stock" ]; then
 fi
 
 # app_process: stock (a known build), or already our wrapper. Under NEMESIS 1.17's LivePatch
-# script both live in app_process.real, and app_process stays NEMESIS's (lib.sh, zygote_file)
-Z=$(zygote_file)
+# script both live in app_process.real, and app_process stays NEMESIS's; when an older HMG-API
+# wrote over that script, both files get the wrapper (lib.sh, zygote_files). Z: the one checked
+# and kept: a known stock build among them, else the last (.real when there is one)
+ZS=$(zygote_files)
+[ -n "$ZS" ] || fail "app_process is NEMESIS LivePatch's script but app_process.real, the binary it runs, is missing, so nothing was changed. Please send this line to the HMG-API maintainers."
+nemesis_livepatch && log "app_process: NEMESIS LivePatch's script, which runs app_process.real: HMG-API's wrapper goes there"
+Z=; ZSTOCK=
+for z in $ZS; do
+    Z=$z; s=$(sum "$ROOT$z")
+    while read m label; do [ "$m" = "$s" ] && [ -z "$ZSTOCK" ] && ZSTOCK=$z; done < "$P/stock.txt"
+done
+[ -n "$ZSTOCK" ] && Z=$ZSTOCK
 B=$ROOT$Z
-if [ "$Z" != /system/bin/app_process ]; then
-    [ -f "$B" ] || fail "app_process is NEMESIS LivePatch's script but app_process.real, the binary it runs, is missing, so nothing was changed. Please send this line to the HMG-API maintainers."
-    log "app_process: NEMESIS LivePatch's script, which runs app_process.real: HMG-API's wrapper goes there"
-fi
 KEEP=$ROOT/system/bin/app_process.hmgapi-stock
 WRAP=$(sum "$P/app_process")
 HAVE=$(sum "$B")
@@ -166,7 +172,7 @@ if [ -z "$UPDATE" ]; then
     [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }
     mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
 fi
-put app_process "$Z" 755 shell
+for z in $ZS; do put app_process "$z" 755 shell; done
 hook_add /system/etc/install-recovery.sh top || fail "boot hook in install-recovery.sh"
 hook_add /system/etc/qb_runtime.sh end || fail "boot hook in qb_runtime.sh"
 sync

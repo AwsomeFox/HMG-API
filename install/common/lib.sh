@@ -22,8 +22,17 @@ nemesis_livepatch() {
     case "$b" in "# NEMESIS LivePatch"*) return 0 ;; esac
     return 1
 }
-# the zygote binary HMG-API wraps and gives back (a /system path)
-zygote_file() { if nemesis_livepatch; then echo /system/bin/app_process.real; else echo /system/bin/app_process; fi; }
+# the zygote binaries HMG-API wraps and gives back (/system paths, space-separated): app_process
+# unless it's NEMESIS's script, and app_process.real whenever it's there. NEMESIS's watchdog runs
+# .real from its next boot whatever app_process holds now: an older HMG-API's update or uninstall
+# wrote over NEMESIS's script and left the wrapper before it in .real (#396). Empty: NEMESIS's
+# script with no .real.
+zygote_files() {
+    local z=
+    nemesis_livepatch || z=/system/bin/app_process
+    [ -f "$ROOT/system/bin/app_process.real" ] && z="${z:+$z }/system/bin/app_process.real"
+    echo "$z"
+}
 REMOUNTED=
 fail() {
     log "FAIL: $1"
