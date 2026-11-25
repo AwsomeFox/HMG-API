@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0-rc.9 (2026-11-24)
 
 - **The missing-stock-copy rescue works for every HMG-API version, and can't be forced
   past** (#398 review). #399 recognised the leftover wrapper by this release's md5, which
