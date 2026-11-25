@@ -2,6 +2,25 @@
 
 ## 1.1.0-rc.9 (2026-11-24)
 
+- **The missing-stock-copy rescue works for every HMG-API version, and can't be forced
+  past** (#398 review). #399 recognised the leftover wrapper by this release's md5, which
+  rc.6 to rc.8 share; rc.5 and older ship other bytes, so their units were refused, and the
+  refusal suggested `HMGAPI/FORCE`. Forcing then took the old wrapper for an unknown stock
+  build, deleted HMG-API's stock backup as an old firmware's and kept the wrapper as the
+  "stock" copy, leaving no stock `app_process` on the unit for #397's stick. Now any HMG-API
+  wrapper (each version names `app_process.hmgapi-stock`) without its stock copy is rescued
+  from the backup the same way, before `HMGAPI_FORCE` is looked at, and refused with a
+  pointer to #397 when there's no backup. Tested off-car; not on a car.
+- **A factory reset no longer leaves HMG-API with a wrapper for a stock backup, and a forced
+  install can't keep a wrapper as the stock copy** (#400 review). A head-unit factory reset
+  wipes `/data/hmgapi` (its stock backups) while HMG-API stays on `/system`. Reinstalling then
+  took the missing backup from `app_process`, HMG-API's own wrapper, so the uninstall refused
+  ever after. With an older wrapper on `/system` the install refused it as an unknown build and
+  suggested `HMGAPI/FORCE`, and forcing copied that wrapper over the stock copy: the wrapper then
+  ran itself and Android couldn't start. Now any HMG-API wrapper with its stock copy there is an
+  update, a missing backup comes from the stock copy, a backup that is a wrapper is taken again,
+  and a stock copy that is a wrapper is refused even when forced.
+
 - **Installing puts back a missing stock copy of `app_process` instead of taking it for an
   update** (#398 review). HMG-API's zygote wrapper is the same bytes from release to release,
   so after an older uninstall on NEMESIS 1.17 and one restart, `app_process.real` was still
