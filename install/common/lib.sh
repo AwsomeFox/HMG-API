@@ -20,36 +20,11 @@ nemesis_livepatch() { is_livepatch_script "$ROOT/system/bin/app_process"; }
 # is_wrapper), wherever it is: never a stock binary
 is_livepatch_script() {
     local a= b=
-    { read -r a; read -r b; } 2>/dev/null < "$1"
+    { read -r a; read -r b; } < "$1" 2>/dev/null
     [ "$a" = "#!/system/bin/sh" ] || return 1
     case "$b" in "# NEMESIS LivePatch"*) return 0 ;; esac
     return 1
 }
-# an HMG-API wrapper, never stock: this release's (WRAP, the payload's md5, when the caller sets
-# it), or any version's (each names app_process.hmgapi-stock)
-is_wrapper() { { [ -n "$WRAP" ] && [ "$(sum "$1")" = "$WRAP" ]; } || grep -q app_process.hmgapi-stock "$1" 2>/dev/null; }
-# a file that can be the stock app_process: an ELF binary (not empty, not a script: NEMESIS
-# LivePatch's or any other) that isn't an HMG-API wrapper. What HMG-API's wrapper runs, and what
-# the uninstall puts back, must be one whatever HMGAPI_FORCE says, or no zygote starts. A binary
-# cut short past its header still passes: the md5 checks against its source catch that
-is_stock_binary() {
-    local a=
-    [ -s "$1" ] || return 1
-    { read -r a; } 2>/dev/null < "$1"
-    case "$a" in ?ELF*) ;; *) return 1 ;; esac
-    ! is_wrapper "$1"
-}
-# the first stock binary among the zygote files and app_process.hmgapi-stock (/system paths), or
-# nothing: what an install can take the stock copy and backup from
-stock_left() {
-    local z
-    for z in /system/bin/app_process.hmgapi-stock /system/bin/app_process.real /system/bin/app_process; do
-        is_stock_binary "$ROOT$z" && { echo "$z"; return 0; }
-    done
-    return 1
-}
-# when no stock app_process is left on the unit, HMG-API can't repair it: what helps then
-NOSTOCK="No stock app_process is left on the unit, so HMG-API can't repair this itself, and Android may not start after the next restart. Reinstalling the head unit's firmware puts a stock one back: see https://github.com/Open-HMG/HMG-API/issues/397"
 # the zygote binaries HMG-API wraps and gives back (/system paths, space-separated): app_process
 # unless it's NEMESIS's script, and app_process.real whenever it's there. NEMESIS's watchdog runs
 # .real from its next boot whatever app_process holds now: an older HMG-API's update or uninstall

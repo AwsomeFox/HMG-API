@@ -98,8 +98,7 @@ installed() { [ -f $R/system/bin/hmgapid ] && [ -f $R/system/bin/app_process.hmg
 mkdir -p $R/system/bin $R/system/lib $R/system/framework $R/system/etc $R/data/dalvik-cache $R/data/local/tmp
 # a car's own app_process when tools/cars.py runs this on its stock tree (HMGAPI_CAR, docs/car-trees.md)
 STOCK=${HMGAPI_CAR:+$HMGAPI_CAR/bin/app_process}
-# else a made-up one: an ELF header, then random bytes (the install only keeps a binary as stock)
-if [ -f "$STOCK" ]; then cp $STOCK $R/system/bin/app_process; else { printf '\177ELF\001\001\001\000'; head -c 9000 /dev/urandom; } > $R/system/bin/app_process; fi
+if [ -f "$STOCK" ]; then cp $STOCK $R/system/bin/app_process; else head -c 9000 /dev/urandom > $R/system/bin/app_process; fi
 chmod 755 $R/system/bin/app_process
 printf 'echo qb stock\n' > $R/system/etc/qb_runtime.sh
 BEFORE=$(tree)

@@ -9,22 +9,12 @@
   backup, and the stock binary stayed only in `app_process.real`. rc.9 took that for an update
   and wrote its wrapper over `.real`: the wrapper ran NEMESIS's script, the script ran the
   wrapper, and no zygote started, with no stock `app_process` left on the unit. Now a stock copy
-  that is NEMESIS's script means installing again from the stock binary (a known stock build, or
-  forced), as a new install that keeps the engine's backups. That binary is in `.real`, or back at
-  `app_process` when NEMESIS was uninstalled since. The backup is taken again when it's the script.
-  With no stock binary on the unit the install is refused even when forced, and the install and
-  the uninstall both say so, instead of sending the owner from one to the other. The uninstall
-  never puts the script or a wrapper back as stock, even forced. Tested off-car (the K5's sequence
-  reproduced with rc.9's scripts, then fixed); not on a car.
-- **The stock `app_process` must be a binary** (#406 review). What HMG-API's wrapper runs and
-  what the uninstall puts back must be an ELF binary that isn't a wrapper, whatever
-  `HMGAPI_FORCE` says. Before, only HMG-API's wrappers and NEMESIS's script were turned away, so a
-  forced install could keep another script or an empty file as stock. The check now comes before
-  anything changes, not after HMG-API's other files are on `/system`. A backup is copied beside
-  its place and checked before it's kept, so a copy cut short (a full `/data`) never becomes the
-  backup a retry keeps. A backup that doesn't match the binary it was taken from is taken again,
-  and the uninstall refuses one that doesn't match the stock copy, even forced. The install and the
-  uninstall now share one wrapper check (`lib.sh`). Tested off-car; not on a car.
+  that is NEMESIS's script means installing again from `.real` (a known stock build, or forced),
+  as a new install that keeps the engine's backups; the backup is taken again when it's the
+  script; with no stock binary in `.real` the install is refused even when forced. The install
+  checks the stock copy once more before any wrapper is written, and the uninstall never puts the
+  script or a wrapper back as stock, even forced. Tested off-car (the K5's sequence reproduced
+  with rc.9's scripts, then fixed); not on a car.
 
 ## 1.1.0-rc.9 (2026-11-24)
 

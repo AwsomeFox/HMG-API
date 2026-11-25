@@ -56,19 +56,11 @@ if [ ! -f "$KEEP" ] && [ -n "$WRAPPED" ] && [ "$LIVE" != "$WRAPPED" ]; then
     log "a firmware update replaced /system since HMG-API was installed: app_process is the new firmware's ($LIVE) and stays, and the old firmware's backups aren't put back"
 else
     [ -f "$BAK" ] || fail "no stock app_process backup in $D/stock; nothing changed"
-    # never put back whatever HMGAPI_FORCE says: anything but a stock binary (lib.sh), such as an
-    # HMG-API wrapper or NEMESIS 1.17's LivePatch script (what an older release installed with
-    # FORCE over it kept as stock, #397), or a backup that isn't the stock copy's bytes (one cut
-    # short). Either one in app_process.real runs itself or nothing, and no zygote starts. An
-    # install takes the backup again from the stock binary when there is one; with none, nothing can
-    if STOCKAT=$(stock_left); then
-        AGAIN="Install this HMG-API release again first (it takes the backup again from ${STOCKAT#/system/bin/}, the stock binary on the unit), then uninstall: see https://github.com/Open-HMG/HMG-API/issues/397"
-    else
-        AGAIN=$NOSTOCK
-    fi
-    is_stock_binary "$BAK" || fail "the app_process backup isn't a stock binary (an HMG-API wrapper, NEMESIS LivePatch's script, another script or an empty file), so nothing was changed. $AGAIN"
-    if is_stock_binary "$KEEP" && [ "$(sum "$KEEP")" != "$(sum "$BAK")" ]; then
-        fail "the app_process backup (md5 $(sum "$BAK")) isn't the same as app_process.hmgapi-stock, the stock copy HMG-API's wrapper runs ($(sum "$KEEP")), so nothing was changed. $AGAIN"
+    # never put back whatever HMGAPI_FORCE says: an HMG-API wrapper, or NEMESIS 1.17's LivePatch
+    # script (what an older release installed with FORCE over it kept as stock, #397). Either one in
+    # app_process.real runs itself, and no zygote starts
+    if is_livepatch_script "$BAK" || grep -q app_process.hmgapi-stock "$BAK" 2>/dev/null; then
+        fail "the app_process backup is NEMESIS LivePatch's script or an HMG-API wrapper, not stock, so nothing was changed. Install this HMG-API release again first (it takes the backup again from the stock binary), then uninstall: see https://github.com/Open-HMG/HMG-API/issues/397"
     fi
     ORIG=$(sum "$BAK")
     known=
