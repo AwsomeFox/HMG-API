@@ -32,6 +32,14 @@
   anything on `/system` is written. On a unit rc.9 already broke, the uninstall no longer says to
   install again first (the install refuses the same unit): it says no stock `app_process` is
   left and what that takes. Tested off-car only (sh and dash); not on a car.
+- **A test that tries every order of events** (`tools/zygote-orders.py`,
+  `install/common/orders-test.sh`). It runs the real install and uninstall scripts, this tree's
+  and 1.0.2's, rc.8's and rc.9's from their tags, on a made-up head unit through every order of
+  installs, forced installs, uninstalls, restarts, NEMESIS 1.17 installed and uninstalled, firmware
+  installs and factory resets, and installs with a copy cut off, and follows what the zygote start
+  would run after each. With rc.9's scripts it finds #397's K5 three events in, and the same
+  mistake by other roads; it fails when this tree's install or uninstall is the step that leaves
+  no zygote. `ORDERS_FULL=1` goes seven events deep, for before a release.
 
 ## 1.1.0-rc.9 (2026-11-24)
 
