@@ -58,8 +58,13 @@ backup() {
     [ -f "$bak" ] && return 0
     mkdir -p "${bak%/*}" || fail "backup folder for $1"
     if [ -f "$src" ]; then
-        cp "$src" "$bak" || fail "backup $1"
-        [ "$(sum "$bak")" = "$(sum "$src")" ] || { rm -f "$bak"; fail "backup md5 mismatch for $1"; }
+        # copied beside it, checked, then renamed: a copy that fails or is cut off never leaves a
+        # short file under the backup's own name, which the next install would keep ("once") and
+        # an uninstall could put back
+        rm -f "$bak.hmgapi-new"
+        cp "$src" "$bak.hmgapi-new" || { rm -f "$bak.hmgapi-new"; fail "backup $1"; }
+        [ "$(sum "$bak.hmgapi-new")" = "$(sum "$src")" ] || { rm -f "$bak.hmgapi-new"; fail "backup md5 mismatch for $1"; }
+        mv "$bak.hmgapi-new" "$bak" || { rm -f "$bak.hmgapi-new"; fail "backup $1"; }
     else
         : > "$bak.absent"
         : > "$bak"
@@ -110,18 +115,44 @@ while read m label; do [ "$m" = "$HAVE" ] && known=$label; done < "$P/stock.txt"
 # an update only when the stock copy is there: our wrapper (or an older one, with the backup)
 # runs app_process.hmgapi-stock, and an update never makes that copy
 RESCUE=
-# an HMG-API wrapper, never stock: this release's (by md5), or any version's (each names
-# app_process.hmgapi-stock)
-is_wrapper() { [ "$(sum "$1")" = "$WRAP" ] || grep -q app_process.hmgapi-stock "$1" 2>/dev/null; }
+# an HMG-API wrapper, never stock: this release's (by md5, $WRAP), or any version's (each names
+# app_process.hmgapi-stock): lib.sh, is_wrapper
 # the stock copy must be stock: one that is itself a wrapper (a forced install over an older
 # wrapper made those) runs itself, and no zygote starts. Refused whatever HMGAPI_FORCE says (#400)
 if [ -f "$KEEP" ] && is_wrapper "$KEEP"; then
     fail "app_process.hmgapi-stock, the stock copy HMG-API's wrapper runs, is itself an HMG-API wrapper, so nothing was changed. Android won't start after the next restart: see https://github.com/Open-HMG/HMG-API/issues/397"
 fi
+# never stock: an HMG-API wrapper, NEMESIS 1.17's LivePatch script, or anything that isn't a binary
+# (lib.sh, not_stock)
+# a release before #396, forced (HMGAPI_FORCE) over NEMESIS 1.17's script, took the script for
+# stock: app_process.hmgapi-stock and the backup are NEMESIS's script, and the stock binary is
+# only in app_process.real, where NEMESIS keeps it. Taken for an update, its wrapper went over
+# .real: the wrapper ran the script, the script the wrapper, and no zygote started (1.1.0-rc.9,
+# #397). Installed again from .real instead, as a new install (the stock copy and the backup
+# taken from it); with no stock .real, refused whatever HMGAPI_FORCE says. With no .real at all,
+# NEMESIS was uninstalled since (its uninstall moves .real back to app_process): the stock binary
+# is $Z then, the zygote file found above, and refusing would leave only the older release's own
+# uninstall, which asks for FORCE and writes the script over app_process with NEMESIS gone
+LPFIX=
+if [ -f "$KEEP" ] && is_livepatch_script "$KEEP"; then
+    RL=$ROOT/system/bin/app_process.real; RZ=/system/bin/app_process.real
+    [ -f "$RL" ] || { RL=$B; RZ=$Z; }
+    [ -f "$RL" ] && ! not_stock "$RL" \
+        || fail "app_process.hmgapi-stock, the stock copy HMG-API's wrapper runs, is NEMESIS LivePatch's script (an older release installed with FORCE), and ${RZ#/system/bin/} isn't a stock binary either, so nothing was changed. Android may not start after the next restart: see https://github.com/Open-HMG/HMG-API/issues/397"
+    LPFIX=1; Z=$RZ; B=$RL; HAVE=$(sum "$B")
+    known=
+    while read m label; do [ "$m" = "$HAVE" ] && known=$label; done < "$P/stock.txt"
+    log "app_process.hmgapi-stock is NEMESIS LivePatch's script, not stock (an older release installed with FORCE, #397): installing again from ${Z#/system/bin/}, the stock binary"
+fi
+if [ -n "$LPFIX" ]; then
+    if [ -n "$known" ]; then log "${Z#/system/bin/}: stock ($known)"
+    elif [ "$HMGAPI_FORCE" = 1 ]; then log "WARNING: ${Z#/system/bin/} md5 $HAVE isn't a known stock build; HMGAPI_FORCE=1, going on at your own risk"
+    else fail "${Z#/system/bin/} md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk: an empty file HMGAPI/FORCE on the USB stick, or HMGAPI_FORCE=1 over adb."
+    fi
 # an older wrapper with its stock copy there counts as an update too: after a factory reset wipes
 # /data/hmgapi (backup and all) while HMG-API stays on /system, HAVE is an older wrapper and BAK is
 # gone. Forcing that took the wrapper for stock and wrote it over the stock copy (#400)
-if [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ] || is_wrapper "$B"; }; then
+elif [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ] || is_wrapper "$B"; }; then
     log "app_process: HMG-API's wrapper is in place (stock kept as app_process.hmgapi-stock)"
     UPDATE=1
 elif [ ! -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || is_wrapper "$B"; }; then
@@ -145,12 +176,20 @@ else
     fail "app_process md5 $HAVE isn't a known stock build, so nothing was changed. Please send this line to the HMG-API maintainers. To install anyway, at your own risk: an empty file HMGAPI/FORCE on the USB stick, or HMGAPI_FORCE=1 over adb."
 fi
 
+# Before anything changes: the wrapper runs app_process.hmgapi-stock, so what that file is (an
+# update) or will be made from (the backup when it's being put back, else $Z) must be a stock
+# binary. Checked again below, on the file itself, right before the wrapper goes in.
+if [ -n "$RESCUE" ]; then KSRC=$BAK; elif [ -n "$UPDATE" ]; then KSRC=$KEEP; else KSRC=$B; fi
+if not_stock "$KSRC"; then
+    fail "${KSRC#$ROOT} isn't a stock binary (an HMG-API wrapper, NEMESIS LivePatch's script, another script or an empty file), and HMG-API's wrapper would run it as the stock app_process, so nothing was changed. Please send this line to the HMG-API maintainers."
+fi
+
 # a firmware update since HMG-API was installed put /system back to stock: the wrapper and its
 # stock copy are gone, but /data/hmgapi still says installed (or an uninstall afterwards left
 # the firmware-reset mark, or the app_process backup isn't this stock). The backups and records
 # hold the old firmware's bytes, which must never go back: they're dropped (the engine's own:
 # engine firmware-reset, from the payload's jar) and this install starts from the files as they are.
-if [ -z "$UPDATE" ] && { [ -f "$D/installed.txt" ] || [ -f "$D/firmware-reset" ] || { [ -s "$BAK" ] && [ "$(sum "$BAK")" != "$HAVE" ]; }; }; then
+if [ -z "$UPDATE" ] && [ -z "$LPFIX" ] && { [ -f "$D/installed.txt" ] || [ -f "$D/firmware-reset" ] || { [ -s "$BAK" ] && [ "$(sum "$BAK")" != "$HAVE" ]; }; }; then
     log "a firmware update replaced /system since HMG-API was installed: starting again from the new firmware's files"
     r=
     if [ -z "$ROOT" ]; then
@@ -189,11 +228,28 @@ if [ -s "$BAK" ] && is_wrapper "$BAK" && [ -f "$KEEP" ]; then
     log "app_process backup: an HMG-API wrapper, not stock (an older install after /data was wiped): taking it again from app_process.hmgapi-stock"
     rm -f "$BAK" "$BAK.absent"
 fi
+if [ -s "$BAK" ] && is_livepatch_script "$BAK"; then
+    log "app_process backup: NEMESIS LivePatch's script, not stock (an older release installed with FORCE): taking it again"
+    rm -f "$BAK" "$BAK.absent"
+fi
+# ... and one that isn't the bytes it was taken from: an install that failed or was cut off while
+# copying it left a short file, which "once" would keep and an uninstall could put back. On an
+# update a known stock build stays (it is what the stock copy came from)
+if [ -n "$UPDATE" ] && [ -z "$RESCUE" ]; then BSRC=$KEEP; else BSRC=$B; fi
+if [ -s "$BAK" ] && [ -z "$RESCUE" ] && [ "$(sum "$BAK")" != "$(sum "$BSRC")" ]; then
+    bk=
+    [ -n "$UPDATE" ] && { s=$(sum "$BAK"); while read m label; do [ "$m" = "$s" ] && bk=$label; done < "$P/stock.txt"; }
+    if [ -z "$bk" ]; then
+        log "app_process backup: not the bytes of ${BSRC#$ROOT} (a copy that was cut off?): taking it again"
+        rm -f "$BAK" "$BAK.absent"
+    fi
+fi
 if [ -n "$UPDATE" ] && [ -z "$RESCUE" ]; then
     backup /system/bin/app_process /system/bin/app_process.hmgapi-stock
 else
     backup /system/bin/app_process "$Z"
 fi
+[ -s "$BAK" ] && not_stock "$BAK" && fail "the app_process backup isn't a stock binary (an HMG-API wrapper, NEMESIS LivePatch's script or not a binary), so nothing on /system was changed. Please send this line to the HMG-API maintainers."
 backup /system/etc/install-recovery.sh
 backup /system/etc/qb_runtime.sh
 
@@ -205,7 +261,7 @@ put libhmgapi_hook.so /system/lib/libhmgapi_hook.so 644 root
 put hmgapi-hook.jar /system/framework/hmgapi-hook.jar 644 root
 rm -f "$ROOT/data/dalvik-cache/system@framework@hmgapi-hook.jar@classes.dex"
 if [ -z "$UPDATE" ]; then
-    is_wrapper "$B" && fail "${Z#/system/bin/} is an HMG-API wrapper, not a stock app_process, so it can't be kept as the stock copy; nothing was changed"
+    not_stock "$B" && fail "${Z#/system/bin/} is an HMG-API wrapper or NEMESIS LivePatch's script, not a stock app_process, so it can't be kept as the stock copy; nothing was changed"
     cp "$B" "$KEEP.hmgapi-new" || fail "copy app_process"
     chmod 755 "$KEEP.hmgapi-new"; chown root:shell "$KEEP.hmgapi-new" 2>/dev/null
     [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }
@@ -217,6 +273,9 @@ elif [ -n "$RESCUE" ]; then
     mv "$KEEP.hmgapi-new" "$KEEP" || fail "keep stock app_process"
     log "app_process.hmgapi-stock: back from the stock backup ($RBAK)"
 fi
+# the last word before the wrapper goes in: it runs app_process.hmgapi-stock, which must be a
+# stock binary, or no zygote starts
+[ -f "$KEEP" ] && ! not_stock "$KEEP" || fail "app_process.hmgapi-stock isn't a stock binary, so the wrapper wasn't written (HMG-API's other files are, harmless without it). Please send this line to the HMG-API maintainers."
 for z in $ZS; do put app_process "$z" 755 shell; done
 hook_add /system/etc/install-recovery.sh top || fail "boot hook in install-recovery.sh"
 hook_add /system/etc/qb_runtime.sh end || fail "boot hook in qb_runtime.sh"
