@@ -7,9 +7,9 @@
   ],
   "license": "MIT",
   "uuid": "f1154a64-b4d2-81b9-b45c-e791b3200a46",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "repo": "https://github.com/DeFlight/hmgapi-gen5w-button-mapper",
-  "download": "https://github.com/DeFlight/hmgapi-gen5w-button-mapper/releases/download/V1.2.0/gen5w-button-mapper-v1.2.0.zip",
-  "sha256": "139e3310082cf72b7d6d12049cf586cfcb65a6c7d3dd99fb6e163bc91381064c",
+  "download": "https://github.com/DeFlight/hmgapi-gen5w-button-mapper/releases/download/V1.2.1/gen5w-button-mapper-v1.2.1.zip",
+  "sha256": "ede84c915e219f63e9057dc98a3600cb1ab125250f74999ef258d3c407196afa",
   "hmgapi": ">=1.0.0"
 }
