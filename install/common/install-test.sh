@@ -32,7 +32,9 @@ tree() { (cd $R/system && find . -type f | sort | while read f; do echo "$(md5su
 mkdir -p $R/system/bin $R/system/lib $R/system/framework $R/system/etc $R/data/dalvik-cache $R/dev
 # a car's own app_process when tools/cars.py runs this on its stock tree (HMGAPI_CAR, docs/car-trees.md)
 STOCK=${HMGAPI_CAR:+$HMGAPI_CAR/bin/app_process}
-if [ -f "$STOCK" ]; then cp $STOCK $R/system/bin/app_process; else head -c 9000 /dev/urandom > $R/system/bin/app_process; fi
+# a made-up stock binary: an ELF header, then random bytes (the install only keeps a binary as stock)
+fakebin() { { printf '\177ELF\001\001\001\000'; head -c 9000 /dev/urandom; } > "$1"; chmod 755 "$1"; }
+if [ -f "$STOCK" ]; then cp $STOCK $R/system/bin/app_process; else fakebin $R/system/bin/app_process; fi
 chmod 755 $R/system/bin/app_process
 printf '#!/system/bin/sh\n# NEMESIS\nnemesis watchdog\nexit 0\n' > $R/system/etc/install-recovery.sh; chmod 755 $R/system/etc/install-recovery.sh
 printf 'RED="\\x1b[1;31m"\necho qb stock\n# NEMESIS_QB_HOOK\nnemesis watchdog' > $R/system/etc/qb_runtime.sh   # backslashes and no newline at the end: the uninstall still gives these bytes back
@@ -205,7 +207,7 @@ firmware_update() {
     printf '#!/system/bin/sh\n# NEMESIS\nnemesis watchdog\nexit 0\n' > $R/system/etc/install-recovery.sh
     printf 'echo qb stock\n# NEMESIS_QB_HOOK\nnemesis watchdog\n' > $R/system/etc/qb_runtime.sh
 }
-head -c 9000 /dev/urandom > $T/newfw; chmod 755 $T/newfw
+fakebin $T/newfw
 echo "$(md5sum < $T/newfw | cut -c1-32) test new firmware" >> $P/stock.txt
 (cd $P && md5sum hmgapid lpatch app_process libhmgapi_hook.so hmgapi-hook.jar HmgApi.apk install.sh uninstall.sh lib.sh stock.txt app-pending.sh app-open.sh hook-check.sh boot.sh MAPS.md5 > MANIFEST)
 export HMGAPI_TEST_ENGINE=$T/bin/engine
@@ -523,7 +525,7 @@ for boot in no yes; do
     check "... and the zygote still starts" "$STK" "$(chain)"
 done
 # the same on a build stock.txt doesn't know (the Korean K5's): refused unless forced, then from .real
-head -c 9000 /dev/urandom > $T/kfw; chmod 755 $T/kfw; KST=$(md5sum < $T/kfw)
+fakebin $T/kfw; KST=$(md5sum < $T/kfw)
 forced_old $T/kfw; nemesis_boot
 B4=$(tree)
 run $P/install.sh $P
@@ -540,14 +542,19 @@ forced_old $T/kfw; nemesis_boot; cp $P/app_process $R/system/bin/app_process.rea
 check "rc.9 over a forced older install: no zygote" "nothing: a loop" "$(chain)"
 B4=$(tree)
 HMGAPI_FORCE=1 run $P/install.sh $P
-has "... this release refuses, even forced" "is NEMESIS LivePatch's script (an older release installed with FORCE), and app_process.real isn't a stock binary either, so nothing was changed" "$out"
+has "... this release refuses, even forced" "is NEMESIS LivePatch's script (an older release installed with FORCE), and neither app_process nor app_process.real is a stock binary, so nothing was changed" "$out"
+has "... and says nothing on the unit can repair it" "No stock app_process is left on the unit" "$out"
+cp $P/uninstall.sh $P/lib.sh $P/stock.txt $R/data/hmgapi/
+HMGAPI_FORCE=1 run $R/data/hmgapi/uninstall.sh
+has "... the uninstall refuses too, even forced, and doesn't send the owner back to the install" "isn't a stock binary (an HMG-API wrapper, NEMESIS LivePatch's script, another script or an empty file), so nothing was changed. No stock app_process is left on the unit" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
 check "... /system unchanged" "$B4" "$(tree)"
 # an uninstall never puts NEMESIS's script back as stock, even forced (it would run itself in .real)
 forced_old $T/newfw; nemesis_boot; cp $P/app_process $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process.hmgapi-stock
 cp $P/uninstall.sh $P/lib.sh $P/stock.txt $R/data/hmgapi/ 2>/dev/null || true
 B4=$(tree)
 HMGAPI_FORCE=1 run $R/data/hmgapi/uninstall.sh
-has "uninstall with NEMESIS's script as the backup: refused, even forced" "the app_process backup is NEMESIS LivePatch's script or an HMG-API wrapper, not stock, so nothing was changed" "$out"
+has "uninstall with NEMESIS's script as the backup: refused, even forced" "the app_process backup isn't a stock binary (an HMG-API wrapper, NEMESIS LivePatch's script, another script or an empty file), so nothing was changed. Install this HMG-API release again first (it takes the backup again from app_process.hmgapi-stock" "$out"
 check "... /system unchanged" "$B4" "$(tree)"
 run $P/install.sh $P
 has "... installing again takes the backup again" "app_process backup: NEMESIS LivePatch's script, not stock" "$out"
@@ -557,6 +564,77 @@ has "... and then the uninstall finishes" "HMG-API uninstalled" "$out"
 nemesis_boot
 check "... the zygote still starts" "$STK" "$(chain)"
 rm -f $R/system/bin/app_process.real $R/system/bin/app_process.hmgapi-stock; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi; nemesis_boot
+
+# (o) #406 review. NEMESIS uninstalled after the forced older install: it put .real back at
+# app_process, so the stock binary is there and .real is gone; the stock copy and backup are still
+# NEMESIS's script. Installs from app_process
+forced_old $T/newfw
+cp $R/system/bin/app_process.real $R/system/bin/app_process; rm -f $R/system/bin/app_process.real
+run $P/install.sh $P
+has "NEMESIS uninstalled after a forced older install: installs from app_process" "installing again from app_process, the stock binary" "$out"
+has "... and finishes" "installed. Restart the head unit" "$out"
+check "... the stock copy and backup are stock" "$STK|$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)|$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+check "... the wrapper is app_process, no .real" "$(md5sum < $P/app_process)|no" "$(md5sum < $R/system/bin/app_process)|$([ -f $R/system/bin/app_process.real ] && echo yes || echo no)"
+check "... the zygote start ends at stock" "$STK" "$(chain)"
+run $R/data/hmgapi/uninstall.sh
+has "... the uninstall finishes" "HMG-API uninstalled" "$out"
+check "... app_process stock again" "$STK" "$(md5sum < $R/system/bin/app_process)"
+rm -rf $R/data/hmgapi; nemesis_boot
+# an empty app_process.real (NEMESIS's script at app_process) isn't a stock binary: refused even
+# forced, nothing changed
+forced_old $T/newfw; nemesis_boot; : > $R/system/bin/app_process.real
+B4=$(tree)
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "empty app_process.real, forced: refused" "neither app_process nor app_process.real is a stock binary, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+cp $T/newfw $R/system/bin/app_process.real
+# a repair cut short left a backup of 16 bytes: the retry takes it again from .real
+forced_old $T/newfw; nemesis_boot
+head -c 16 $T/newfw > $R/data/hmgapi/stock/system/bin/app_process
+run $P/install.sh $P
+has "a backup cut short: taken again" "app_process backup: not the same bytes as app_process.real" "$out"
+check "... now stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+# ... and on an installed unit: a forced uninstall refuses it, an install takes it again
+head -c 16 $T/newfw > $R/data/hmgapi/stock/system/bin/app_process
+B4=$(tree)
+HMGAPI_FORCE=1 run $R/data/hmgapi/uninstall.sh
+has "backup cut short, forced uninstall: refused" "isn't the same as app_process.hmgapi-stock, the stock copy HMG-API's wrapper runs" "$out"
+has "... pointing at the install" "Install this HMG-API release again first (it takes the backup again from app_process.hmgapi-stock" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+run $P/install.sh $P
+has "... the update takes it again" "app_process backup: not the same bytes as app_process.hmgapi-stock" "$out"
+check "... now stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+run $R/data/hmgapi/uninstall.sh
+has "... then the uninstall finishes" "HMG-API uninstalled" "$out"
+nemesis_boot
+check "... and the zygote still starts" "$STK" "$(chain)"
+# a backup copy that fails halfway (a full /data) never becomes the backup: the retry takes a whole one
+rm -f $R/system/bin/app_process.hmgapi-stock; rm -rf $R/data/hmgapi; nemesis_boot
+CP=$(command -v cp)
+printf '#!/bin/sh\ncase "$2" in */stock/system/bin/app_process.hmgapi-new) head -c 16 "$1" > "$2"; exit 1 ;; esac\nexec %s "$@"\n' "$CP" > $T/bin/cp; chmod +x $T/bin/cp
+B4=$(tree)
+run $P/install.sh $P
+rm -f $T/bin/cp
+has "backup copy fails: refused" "FAIL: backup /system/bin/app_process" "$out"
+check "... no backup kept" "no" "$({ [ -e $R/data/hmgapi/stock/system/bin/app_process ] || [ -e $R/data/hmgapi/stock/system/bin/app_process.hmgapi-new ]; } && echo yes || echo no)"
+check "... /system unchanged" "$B4" "$(tree)"
+run $P/install.sh $P
+has "... the retry finishes" "installed. Restart the head unit" "$out"
+check "... with a whole backup" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+run $R/data/hmgapi/uninstall.sh; nemesis_boot
+# a forced install over a script that isn't NEMESIS's, or an empty app_process: refused before
+# anything changes
+rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
+for f in script empty; do
+    if [ $f = script ]; then printf '#!/system/bin/sh\nexec /system/bin/app_process.orig "$@"\n' > $R/system/bin/app_process; else : > $R/system/bin/app_process; fi
+    B4=$(tree)
+    HMGAPI_FORCE=1 run $P/install.sh $P
+    has "forced over app_process that is a $f: refused" "app_process isn't a stock app_process" "$out"
+    check "... /system unchanged" "$B4" "$(tree)"
+    check "... no backup taken" "no" "$([ -e $R/data/hmgapi/stock/system/bin/app_process ] && echo yes || echo no)"
+    rm -rf $R/data/hmgapi
+done
+cp $T/newfw $R/system/bin/app_process; nemesis_boot
 
 # (c) NEMESIS's script with no app_process.real: refused, nothing changed
 rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
