@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- **Updating over an older release installed with `HMGAPI/FORCE` on NEMESIS 1.17 no longer
+  stops Android from starting** (#397, a Korean 2020 K5). Releases before #396 refused NEMESIS
+  1.17's LivePatch script at `app_process` as an unknown build (md5
+  `f0fa894f6898c28850bfcebfb8db69d0`); forcing them kept that script as HMG-API's stock copy and
+  backup, and the stock binary stayed only in `app_process.real`. rc.9 took that for an update
+  and wrote its wrapper over `.real`: the wrapper ran NEMESIS's script, the script ran the
+  wrapper, and no zygote started, with no stock `app_process` left on the unit. Now a stock copy
+  that is NEMESIS's script means installing again from `.real` (a known stock build, or forced),
+  as a new install that keeps the engine's backups; the backup is taken again when it's the
+  script; with no stock binary in `.real` the install is refused even when forced. The install
+  checks the stock copy once more before any wrapper is written, and the uninstall never puts the
+  script or a wrapper back as stock, even forced. Tested off-car (the K5's sequence reproduced
+  with rc.9's scripts, then fixed); not on a car.
+
 ## 1.1.0-rc.9 (2026-11-24)
 
 - **The missing-stock-copy rescue works for every HMG-API version, and can't be forced

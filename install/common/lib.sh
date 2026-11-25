@@ -15,9 +15,12 @@ sum() { set -- $(md5 "$1" 2>/dev/null); echo "$1"; }
 # HMG-API's wrapper goes into app_process.real and the uninstall gives the stock binary back
 # there; app_process itself stays NEMESIS's. Writing app_process instead lasts one boot, and
 # an uninstall that did would leave .real running a wrapper whose stock copy is gone: no zygote.
-nemesis_livepatch() {
+nemesis_livepatch() { is_livepatch_script "$ROOT/system/bin/app_process"; }
+# a file that is NEMESIS 1.17's LivePatch script (its first two lines; native/livepatch.c
+# is_wrapper), wherever it is: never a stock binary
+is_livepatch_script() {
     local a= b=
-    { read -r a; read -r b; } < "$ROOT/system/bin/app_process" 2>/dev/null
+    { read -r a; read -r b; } < "$1" 2>/dev/null
     [ "$a" = "#!/system/bin/sh" ] || return 1
     case "$b" in "# NEMESIS LivePatch"*) return 0 ;; esac
     return 1

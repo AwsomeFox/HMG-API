@@ -279,11 +279,18 @@ nemesis_boot() {
     printf '%s\n' "$NLP" > $R/system/bin/app_process
 }
 # what the zygote start runs, NEMESIS's script and HMG-API's wrapper followed: the binary at the end
+# (wherever each one is: a script or wrapper kept as a "stock copy" is followed too, and a chain
+# that comes back on itself starts nothing)
 chain() {
-    local f=$R/system/bin/app_process
-    if grep -q '^# NEMESIS LivePatch' "$f"; then f=$R/system/bin/app_process.real; fi
-    if [ -f "$f" ] && case " $WRAPPERS " in *" $(md5sum < "$f" | cut -c1-32) "*) true ;; *) false ;; esac; then f=$R/system/bin/app_process.hmgapi-stock; fi
-    if [ -f "$f" ]; then md5sum < "$f"; else echo "nothing: $f is gone"; fi
+    local f=$R/system/bin/app_process n=0
+    while [ $n -lt 8 ]; do
+        [ -f "$f" ] || { echo "nothing: $f is gone"; return; }
+        if grep -q '^# NEMESIS LivePatch' "$f"; then f=$R/system/bin/app_process.real
+        elif case " $WRAPPERS " in *" $(md5sum < "$f" | cut -c1-32) "*) true ;; *) false ;; esac; then f=$R/system/bin/app_process.hmgapi-stock
+        else md5sum < "$f"; return; fi
+        n=$((n + 1))
+    done
+    echo "nothing: a loop"
 }
 WRAPPERS="$(md5sum < $P/app_process | cut -c1-32)"
 run $R/data/hmgapi/uninstall.sh
@@ -477,6 +484,78 @@ HMGAPI_FORCE=1 run $P/install.sh $P
 has "stock copy that is a wrapper: refused even forced" "is itself an HMG-API wrapper, so nothing was changed" "$out"
 check "... /system unchanged" "$B4" "$(tree)"
 cp $T/newfw $R/system/bin/app_process.hmgapi-stock; run $R/data/hmgapi/uninstall.sh
+rm -f $R/system/bin/app_process.real $R/system/bin/app_process.hmgapi-stock; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi; nemesis_boot
+
+# (n) NEMESIS 1.17 first, then a release before #396 installed with FORCE (it refused NEMESIS's
+# script as an unknown app_process): it kept the script as its stock copy and backup and wrote its
+# wrapper over the script. The stock binary is only in .real. rc.9 took that for an update and
+# wrote its wrapper over .real: wrapper -> script -> wrapper, no zygote (#397, a Korean K5)
+w5; WRAPPERS="$WRAPPERS $(md5sum < $T/w5 | cut -c1-32)"
+forced_old() {  # $1: the stock binary NEMESIS finds
+    rm -rf $R/data/hmgapi; rm -f $R/system/bin/app_process.real $R/system/bin/app_process.hmgapi-stock
+    cp "$1" $R/system/bin/app_process; nemesis_boot
+    mkdir -p $R/data/hmgapi/stock/system/bin $R/data/hmgapi/state
+    cp $R/system/bin/app_process $R/data/hmgapi/stock/system/bin/app_process
+    cp $R/system/bin/app_process $R/system/bin/app_process.hmgapi-stock
+    cp $T/w5 $R/system/bin/app_process
+    printf 'version 1.0.2\nfile %s /system/bin/app_process\n' "$(md5sum < $T/w5 | cut -c1-32)" > $R/data/hmgapi/installed.txt
+    echo '{"files": {}, "settings": {}}' > $R/data/hmgapi/state/files.json
+}
+forced_old $T/newfw
+check "forced older install over NEMESIS's script: still starts (wrapper, script, stock)" "$STK" "$(chain)"
+check "... its stock copy is NEMESIS's script" "$NLPSUM" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+for boot in no yes; do
+    forced_old $T/newfw; [ $boot = yes ] && nemesis_boot
+    run $P/install.sh $P
+    has "... (restart since: $boot) this release sees the script" "is NEMESIS LivePatch's script, not stock (an older release installed with FORCE, #397)" "$out"
+    has "... and finishes" "installed. Restart the head unit" "$out"
+    check "... not taken for a firmware update (the engine's backups stay)" "" "$(echo "$out" | grep 'a firmware update replaced' || true)"
+    check "... the stock copy is stock, from .real" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+    check "... the backup is stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+    check "... the wrapper is app_process.real" "$(md5sum < $P/app_process)" "$(md5sum < $R/system/bin/app_process.real)"
+    check "... the zygote start ends at stock" "$STK" "$(chain)"
+    nemesis_boot
+    check "... and after NEMESIS's next boot" "$STK" "$(chain)"
+    run $R/data/hmgapi/uninstall.sh
+    has "... the uninstall finishes" "HMG-API uninstalled" "$out"
+    check "... stock in .real, NEMESIS's script at app_process" "$STK|$NLPSUM" "$(md5sum < $R/system/bin/app_process.real)|$(md5sum < $R/system/bin/app_process)"
+    nemesis_boot
+    check "... and the zygote still starts" "$STK" "$(chain)"
+done
+# the same on a build stock.txt doesn't know (the Korean K5's): refused unless forced, then from .real
+head -c 9000 /dev/urandom > $T/kfw; chmod 755 $T/kfw; KST=$(md5sum < $T/kfw)
+forced_old $T/kfw; nemesis_boot
+B4=$(tree)
+run $P/install.sh $P
+has "... unknown build in .real: refused" "app_process.real md5 $(echo $KST | cut -c1-32) isn't a known stock build, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "... forced: installs" "installed. Restart the head unit" "$out"
+check "... the stock copy and backup are .real's binary, not the script" "$KST|$KST" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)|$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+nemesis_boot
+check "... the zygote start ends at that binary" "$KST" "$(chain)"
+# what rc.9 left: the wrapper in .real, the stock copy and backup NEMESIS's script. Nothing stock is
+# left on the unit: refused even when forced, nothing changed
+forced_old $T/kfw; nemesis_boot; cp $P/app_process $R/system/bin/app_process.real
+check "rc.9 over a forced older install: no zygote" "nothing: a loop" "$(chain)"
+B4=$(tree)
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "... this release refuses, even forced" "is NEMESIS LivePatch's script (an older release installed with FORCE), and app_process.real isn't a stock binary either, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+# an uninstall never puts NEMESIS's script back as stock, even forced (it would run itself in .real)
+forced_old $T/newfw; nemesis_boot; cp $P/app_process $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process.hmgapi-stock
+cp $P/uninstall.sh $P/lib.sh $P/stock.txt $R/data/hmgapi/ 2>/dev/null || true
+B4=$(tree)
+HMGAPI_FORCE=1 run $R/data/hmgapi/uninstall.sh
+has "uninstall with NEMESIS's script as the backup: refused, even forced" "the app_process backup is NEMESIS LivePatch's script or an HMG-API wrapper, not stock, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+run $P/install.sh $P
+has "... installing again takes the backup again" "app_process backup: NEMESIS LivePatch's script, not stock" "$out"
+check "... now stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+run $R/data/hmgapi/uninstall.sh
+has "... and then the uninstall finishes" "HMG-API uninstalled" "$out"
+nemesis_boot
+check "... the zygote still starts" "$STK" "$(chain)"
 rm -f $R/system/bin/app_process.real $R/system/bin/app_process.hmgapi-stock; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi; nemesis_boot
 
 # (c) NEMESIS's script with no app_process.real: refused, nothing changed

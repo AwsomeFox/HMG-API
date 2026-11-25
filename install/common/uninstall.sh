@@ -56,6 +56,12 @@ if [ ! -f "$KEEP" ] && [ -n "$WRAPPED" ] && [ "$LIVE" != "$WRAPPED" ]; then
     log "a firmware update replaced /system since HMG-API was installed: app_process is the new firmware's ($LIVE) and stays, and the old firmware's backups aren't put back"
 else
     [ -f "$BAK" ] || fail "no stock app_process backup in $D/stock; nothing changed"
+    # never put back whatever HMGAPI_FORCE says: an HMG-API wrapper, or NEMESIS 1.17's LivePatch
+    # script (what an older release installed with FORCE over it kept as stock, #397). Either one in
+    # app_process.real runs itself, and no zygote starts
+    if is_livepatch_script "$BAK" || grep -q app_process.hmgapi-stock "$BAK" 2>/dev/null; then
+        fail "the app_process backup is NEMESIS LivePatch's script or an HMG-API wrapper, not stock, so nothing was changed. Install this HMG-API release again first (it takes the backup again from the stock binary), then uninstall: see https://github.com/Open-HMG/HMG-API/issues/397"
+    fi
     ORIG=$(sum "$BAK")
     known=
     while read m label; do [ "$m" = "$ORIG" ] && known=$label; done < "$H/stock.txt"
