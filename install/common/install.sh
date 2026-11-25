@@ -110,10 +110,21 @@ while read m label; do [ "$m" = "$HAVE" ] && known=$label; done < "$P/stock.txt"
 # an update only when the stock copy is there: our wrapper (or an older one, with the backup)
 # runs app_process.hmgapi-stock, and an update never makes that copy
 RESCUE=
-if [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ]; }; then
+# an HMG-API wrapper, never stock: this release's (by md5), or any version's (each names
+# app_process.hmgapi-stock)
+is_wrapper() { [ "$(sum "$1")" = "$WRAP" ] || grep -q app_process.hmgapi-stock "$1" 2>/dev/null; }
+# the stock copy must be stock: one that is itself a wrapper (a forced install over an older
+# wrapper made those) runs itself, and no zygote starts. Refused whatever HMGAPI_FORCE says (#400)
+if [ -f "$KEEP" ] && is_wrapper "$KEEP"; then
+    fail "app_process.hmgapi-stock, the stock copy HMG-API's wrapper runs, is itself an HMG-API wrapper, so nothing was changed. Android won't start after the next restart: see https://github.com/Open-HMG/HMG-API/issues/397"
+fi
+# an older wrapper with its stock copy there counts as an update too: after a factory reset wipes
+# /data/hmgapi (backup and all) while HMG-API stays on /system, HAVE is an older wrapper and BAK is
+# gone. Forcing that took the wrapper for stock and wrote it over the stock copy (#400)
+if [ -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || [ -f "$BAK" ] || is_wrapper "$B"; }; then
     log "app_process: HMG-API's wrapper is in place (stock kept as app_process.hmgapi-stock)"
     UPDATE=1
-elif [ ! -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || grep -q app_process.hmgapi-stock "$B" 2>/dev/null; }; then
+elif [ ! -f "$KEEP" ] && { [ "$HAVE" = "$WRAP" ] || is_wrapper "$B"; }; then
     # an HMG-API wrapper (this release's, or an older one: every version names
     # app_process.hmgapi-stock) with its stock copy gone: what an older uninstall leaves on NEMESIS
     # 1.17 after a restart (#397: NEMESIS's script back at app_process, .real still the wrapper).
@@ -171,7 +182,18 @@ chmod 711 "$D" "$D/mods"; chmod 755 "$D/public"
 [ -f "$D/settings/hmgapi.json" ] || echo '{"updates": false}' > "$D/settings/hmgapi.json"
 chmod 600 "$D/settings/hmgapi.json"
 
-backup /system/bin/app_process "$Z"
+# the backup is the stock bytes: on an update the wrapper is in $Z and the stock copy in $KEEP, so a
+# missing backup (a factory reset wiped /data/hmgapi) comes from $KEEP, and one taken from a wrapper
+# by an older install is taken again (#400). Otherwise from $Z, the stock binary
+if [ -s "$BAK" ] && is_wrapper "$BAK" && [ -f "$KEEP" ]; then
+    log "app_process backup: an HMG-API wrapper, not stock (an older install after /data was wiped): taking it again from app_process.hmgapi-stock"
+    rm -f "$BAK" "$BAK.absent"
+fi
+if [ -n "$UPDATE" ] && [ -z "$RESCUE" ]; then
+    backup /system/bin/app_process /system/bin/app_process.hmgapi-stock
+else
+    backup /system/bin/app_process "$Z"
+fi
 backup /system/etc/install-recovery.sh
 backup /system/etc/qb_runtime.sh
 
@@ -183,6 +205,7 @@ put libhmgapi_hook.so /system/lib/libhmgapi_hook.so 644 root
 put hmgapi-hook.jar /system/framework/hmgapi-hook.jar 644 root
 rm -f "$ROOT/data/dalvik-cache/system@framework@hmgapi-hook.jar@classes.dex"
 if [ -z "$UPDATE" ]; then
+    is_wrapper "$B" && fail "${Z#/system/bin/} is an HMG-API wrapper, not a stock app_process, so it can't be kept as the stock copy; nothing was changed"
     cp "$B" "$KEEP.hmgapi-new" || fail "copy app_process"
     chmod 755 "$KEEP.hmgapi-new"; chown root:shell "$KEEP.hmgapi-new" 2>/dev/null
     [ "$(sum "$KEEP.hmgapi-new")" = "$HAVE" ] || { rm -f "$KEEP.hmgapi-new"; fail "app_process copy md5 mismatch"; }

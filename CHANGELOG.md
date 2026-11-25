@@ -11,6 +11,15 @@
   wrapper (each version names `app_process.hmgapi-stock`) without its stock copy is rescued
   from the backup the same way, before `HMGAPI_FORCE` is looked at, and refused with a
   pointer to #397 when there's no backup. Tested off-car; not on a car.
+- **A factory reset no longer leaves HMG-API with a wrapper for a stock backup, and a forced
+  install can't keep a wrapper as the stock copy** (#400 review). A head-unit factory reset
+  wipes `/data/hmgapi` (its stock backups) while HMG-API stays on `/system`. Reinstalling then
+  took the missing backup from `app_process`, HMG-API's own wrapper, so the uninstall refused
+  ever after. With an older wrapper on `/system` the install refused it as an unknown build and
+  suggested `HMGAPI/FORCE`, and forcing copied that wrapper over the stock copy: the wrapper then
+  ran itself and Android couldn't start. Now any HMG-API wrapper with its stock copy there is an
+  update, a missing backup comes from the stock copy, a backup that is a wrapper is taken again,
+  and a stock copy that is a wrapper is refused even when forced.
 
 - **Installing puts back a missing stock copy of `app_process` instead of taking it for an
   update** (#398 review). HMG-API's zygote wrapper is the same bytes from release to release,

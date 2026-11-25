@@ -445,6 +445,40 @@ has "... purged and forced: refused, pointing at #397" "there's no stock backup 
 check "... /system unchanged" "$B4" "$(tree)"
 rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process; nemesis_boot
 
+# (j) a factory reset wipes /data (HMG-API's backups included) while HMG-API stays on /system, no
+# NEMESIS. Reinstalling the same version: the backup comes from the stock copy, not the wrapper
+rm -f $R/system/bin/app_process.real; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi
+run $P/install.sh $P; rm -rf $R/data/hmgapi
+run $P/install.sh $P
+has "/data wiped, same version reinstalled: finishes" "installed. Restart the head unit" "$out"
+check "... the backup is stock, not the wrapper" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+run $R/data/hmgapi/uninstall.sh
+has "... and the uninstall finishes" "HMG-API uninstalled" "$out"
+check "... giving stock back" "$STK" "$(md5sum < $R/system/bin/app_process)"
+# (k) the same with an older wrapper on /system: an update, not an unknown stock build; forced the same
+for force in 0 1; do
+    cp $T/newfw $R/system/bin/app_process; rm -f $R/system/bin/app_process.hmgapi-stock; rm -rf $R/data/hmgapi
+    run $P/install.sh $P; w5; cp $T/w5 $R/system/bin/app_process; rm -rf $R/data/hmgapi
+    HMGAPI_FORCE=$force run $P/install.sh $P
+    has "/data wiped, older wrapper (FORCE=$force): an update" "HMG-API's wrapper is in place" "$out"
+    check "... the stock copy kept as stock" "$STK" "$(md5sum < $R/system/bin/app_process.hmgapi-stock)"
+    check "... the backup is stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+    check "... the zygote start ends at stock" "$STK" "$(chain)"
+done
+# (l) a backup an older install took from the wrapper after a wipe: taken again from the stock copy
+cp $P/app_process $R/data/hmgapi/stock/system/bin/app_process
+run $P/install.sh $P
+has "backup that is a wrapper: taken again" "an HMG-API wrapper, not stock" "$out"
+check "... now stock" "$STK" "$(md5sum < $R/data/hmgapi/stock/system/bin/app_process)"
+# (m) a stock copy that is itself a wrapper: refused even when forced, nothing changed
+w5; cp $T/w5 $R/system/bin/app_process.hmgapi-stock
+B4=$(tree)
+HMGAPI_FORCE=1 run $P/install.sh $P
+has "stock copy that is a wrapper: refused even forced" "is itself an HMG-API wrapper, so nothing was changed" "$out"
+check "... /system unchanged" "$B4" "$(tree)"
+cp $T/newfw $R/system/bin/app_process.hmgapi-stock; run $R/data/hmgapi/uninstall.sh
+rm -f $R/system/bin/app_process.real $R/system/bin/app_process.hmgapi-stock; cp $T/newfw $R/system/bin/app_process; rm -rf $R/data/hmgapi; nemesis_boot
+
 # (c) NEMESIS's script with no app_process.real: refused, nothing changed
 rm -f $R/system/bin/app_process.real; rm -rf $R/data/hmgapi
 B4=$(tree)
