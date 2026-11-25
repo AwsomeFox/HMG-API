@@ -20,11 +20,27 @@ nemesis_livepatch() { is_livepatch_script "$ROOT/system/bin/app_process"; }
 # is_wrapper), wherever it is: never a stock binary
 is_livepatch_script() {
     local a= b=
-    { read -r a; read -r b; } < "$1" 2>/dev/null
+    { read -r a; read -r b; } 2>/dev/null < "$1"   # 2> first: a file that isn't there says nothing
     [ "$a" = "#!/system/bin/sh" ] || return 1
     case "$b" in "# NEMESIS LivePatch"*) return 0 ;; esac
     return 1
 }
+# is_binary FILE: an ELF binary by its first four bytes: not empty, not a script, not missing. A
+# stock app_process is one. A copy that was cut short still starts like one, so a copy is also
+# checked by md5 against what it was made from.
+is_binary() {
+    [ -s "$1" ] || return 1
+    case "$(dd if="$1" bs=4 count=1 2>/dev/null)" in ?ELF) return 0 ;; esac
+    return 1
+}
+# is_wrapper FILE: an HMG-API zygote wrapper, never stock: every version's names the stock copy it
+# runs. $WRAP, when set: the md5 of the one this release installs (install.sh) or the one that is
+# installed (uninstall.sh, from installed.txt).
+is_wrapper() { { [ -n "$WRAP" ] && [ "$(sum "$1")" = "$WRAP" ]; } || grep -q app_process.hmgapi-stock "$1" 2>/dev/null; }
+# not_stock FILE: can't be a stock app_process: an HMG-API wrapper, NEMESIS 1.17's LivePatch
+# script, or anything else that isn't a binary (another tool's script, an empty file, no file).
+# install.sh and uninstall.sh both ask this, so neither keeps nor puts back what the other refuses.
+not_stock() { is_wrapper "$1" || is_livepatch_script "$1" || ! is_binary "$1"; }
 # the zygote binaries HMG-API wraps and gives back (/system paths, space-separated): app_process
 # unless it's NEMESIS's script, and app_process.real whenever it's there. NEMESIS's watchdog runs
 # .real from its next boot whatever app_process holds now: an older HMG-API's update or uninstall

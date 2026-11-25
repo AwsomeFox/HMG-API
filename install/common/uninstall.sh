@@ -56,13 +56,34 @@ if [ ! -f "$KEEP" ] && [ -n "$WRAPPED" ] && [ "$LIVE" != "$WRAPPED" ]; then
     log "a firmware update replaced /system since HMG-API was installed: app_process is the new firmware's ($LIVE) and stays, and the old firmware's backups aren't put back"
 else
     [ -f "$BAK" ] || fail "no stock app_process backup in $D/stock; nothing changed"
-    # never put back whatever HMGAPI_FORCE says: an HMG-API wrapper, or NEMESIS 1.17's LivePatch
-    # script (what an older release installed with FORCE over it kept as stock, #397). Either one in
-    # app_process.real runs itself, and no zygote starts
-    if is_livepatch_script "$BAK" || grep -q app_process.hmgapi-stock "$BAK" 2>/dev/null; then
-        fail "the app_process backup is NEMESIS LivePatch's script or an HMG-API wrapper, not stock, so nothing was changed. Install this HMG-API release again first (it takes the backup again from the stock binary), then uninstall: see https://github.com/Open-HMG/HMG-API/issues/397"
+    # What goes back is a stock binary, whatever HMGAPI_FORCE says: never an HMG-API wrapper,
+    # NEMESIS 1.17's LivePatch script (what an older release installed with FORCE over it kept as
+    # stock, #397) or something that isn't a binary (lib.sh, not_stock): each of those in
+    # app_process.real starts no zygote. Nor a backup that isn't the bytes of the stock copy the
+    # wrapper runs, unless it's a known stock build: a copy that was cut off is a short file.
+    # Then the stock bytes come from that stock copy, or from a zygote file that is a stock binary.
+    WRAP=$WRAPPED
+    SRC=$BAK; why=
+    if not_stock "$BAK"; then
+        why="the app_process backup is NEMESIS LivePatch's script, an HMG-API wrapper or not a binary"
+    elif [ -f "$KEEP" ] && ! not_stock "$KEEP" && [ "$(sum "$BAK")" != "$(sum "$KEEP")" ]; then
+        s=$(sum "$BAK"); bk=
+        while read m label; do [ "$m" = "$s" ] && bk=$label; done < "$H/stock.txt"
+        [ -n "$bk" ] || why="the app_process backup isn't the bytes of app_process.hmgapi-stock (a copy that was cut off?)"
     fi
-    ORIG=$(sum "$BAK")
+    if [ -n "$why" ]; then
+        SRC=
+        for c in "$KEEP" $(for z in $ZS; do echo "$ROOT$z"; done); do
+            not_stock "$c" || { SRC=$c; break; }
+        done
+        # no stock binary anywhere: what 1.1.0-rc.9's update over an older release installed with
+        # FORCE left (its wrapper in app_process.real, NEMESIS's script as the stock copy and the
+        # backup). Installing again can't help either (install.sh refuses the same unit), so this
+        # doesn't send the owner there
+        [ -n "$SRC" ] || fail "$why, and no other stock app_process is left on this unit: app_process.hmgapi-stock and ${ZS#/system/bin/} aren't one either. That's what 1.1.0-rc.9's update over an older release installed with FORCE leaves (#397), and Android doesn't start on it. Installing HMG-API again can't bring the stock file back. It needs the stock app_process of this exact firmware build copied to ${Z}, or the firmware installed again: see https://github.com/Open-HMG/HMG-API/issues/397. Nothing was changed."
+        log "$why: the stock bytes come from ${SRC#$ROOT} instead"
+    fi
+    ORIG=$(sum "$SRC")
     known=
     while read m label; do [ "$m" = "$ORIG" ] && known=$label; done < "$H/stock.txt"
     if [ -z "$known" ] && [ "$HMGAPI_FORCE" != 1 ]; then
@@ -130,7 +151,7 @@ else
     for z in $ZS; do
         b=$ROOT$z
         if [ "$(sum "$b")" != "$ORIG" ]; then
-            cp "$BAK" "$b.hmgapi-new" || fail "copy the app_process backup"
+            cp "$SRC" "$b.hmgapi-new" || fail "copy the stock app_process"
             chmod 755 "$b.hmgapi-new"; chown root:shell "$b.hmgapi-new" 2>/dev/null
             [ "$(sum "$b.hmgapi-new")" = "$ORIG" ] || { rm -f "$b.hmgapi-new"; fail "app_process md5 mismatch after copy"; }
             mv "$b.hmgapi-new" "$b" || { rm -f "$b.hmgapi-new"; fail "rename onto ${z#/system/bin/}"; }
